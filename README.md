@@ -1,3 +1,3 @@
 # StormServer
 
-Server for our Brainstorm Server App
+Server for our Brainstorm App
