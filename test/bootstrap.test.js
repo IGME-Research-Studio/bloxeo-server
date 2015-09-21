@@ -1,5 +1,14 @@
-var Sails = require('sails'),
-    sails;
+const Sails = require('sails');
+
+const options = {
+  loose: 'all',
+  stage: 2,
+  ignore: null,
+  only: null,
+  extensions: null,
+};
+
+global.babel = require('sails-hook-babel/node_modules/babel/register')(options);
 
 before(function(done) {
 
@@ -9,7 +18,7 @@ before(function(done) {
   Sails.lift({
     // configuration for testing purposes
   }, function(err, server) {
-    sails = server;
+    const sails = server;
     if (err) return done(err);
     // here you can load fixtures, etc.
     done(err, sails);
