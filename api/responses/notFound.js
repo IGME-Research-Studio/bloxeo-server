@@ -17,19 +17,19 @@
  * automatically.
  */
 
-module.exports = function notFound (data, options) {
+module.exports = function notFound(data, options) {
 
   // Get access to `req`, `res`, & `sails`
-  var req = this.req;
-  var res = this.res;
-  var sails = req._sails;
+  const req = this.req;
+  const res = this.res;
+  const sails = req._sails;
 
   // Set status code
   res.status(404);
 
   // Log error to console
   if (data !== undefined) {
-    sails.log.verbose('Sending 404 ("Not Found") response: \n',data);
+    sails.log.verbose('Sending 404 ("Not Found") response: \n', data);
   }
   else sails.log.verbose('Sending 404 ("Not Found") response');
 
@@ -58,25 +58,25 @@ module.exports = function notFound (data, options) {
 
   // If no second argument provided, try to serve the default view,
   // but fall back to sending JSON(P) if any errors occur.
-  else return res.view('404', { data: data }, function (err, html) {
-
-    // If a view error occured, fall back to JSON(P).
-    if (err) {
-      //
-      // Additionally:
-      // • If the view was missing, ignore the error but provide a verbose log.
-      if (err.code === 'E_VIEW_FAILED') {
-        sails.log.verbose('res.notFound() :: Could not locate view for error page (sending JSON instead).  Details: ',err);
+  else {
+    return res.view('404', { data: data }, (err, html) => {
+      // If a view error occured, fall back to JSON(P).
+      if (err) {
+        //
+        // Additionally:
+        // • If the view was missing, ignore the error but provide a verbose log.
+        if (err.code === 'E_VIEW_FAILED') {
+          sails.log.verbose('res.notFound() :: Could not locate view for error page (sending JSON instead).  Details: ', err);
+        }
+        // Otherwise, if this was a more serious error, log to the console with the details.
+        else {
+          sails.log.warn('res.notFound() :: When attempting to render error page view, an error occured (sending JSON instead).  Details: ', err);
+        }
+        return res.jsonx(data);
       }
-      // Otherwise, if this was a more serious error, log to the console with the details.
-      else {
-        sails.log.warn('res.notFound() :: When attempting to render error page view, an error occured (sending JSON instead).  Details: ', err);
-      }
-      return res.jsonx(data);
-    }
 
-    return res.send(html);
-  });
-
+      return res.send(html);
+    });
+  }
 };
 

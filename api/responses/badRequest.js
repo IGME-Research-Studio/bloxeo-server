@@ -18,16 +18,16 @@
 module.exports = function badRequest(data, options) {
 
   // Get access to `req`, `res`, & `sails`
-  var req = this.req;
-  var res = this.res;
-  var sails = req._sails;
+  const req = this.req;
+  const res = this.res;
+  const sails = req._sails;
 
   // Set status code
   res.status(400);
 
   // Log error to console
   if (data !== undefined) {
-    sails.log.verbose('Sending 400 ("Bad Request") response: \n',data);
+    sails.log.verbose('Sending 400 ("Bad Request") response: \n', data);
   }
   else sails.log.verbose('Sending 400 ("Bad Request") response');
 
@@ -56,9 +56,10 @@ module.exports = function badRequest(data, options) {
 
   // If no second argument provided, try to serve the implied view,
   // but fall back to sending JSON(P) if no view can be inferred.
-  else return res.guessView({ data: data }, function couldNotGuessView () {
-    return res.jsonx(data);
-  });
-
+  else {
+    return res.guessView({ data: data }, function couldNotGuessView() {
+      return res.jsonx(data);
+    });
+  }
 };
 
