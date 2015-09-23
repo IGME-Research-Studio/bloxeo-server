@@ -1,5 +1,12 @@
-const User = {
-  // Enforce model schema in the case of schemaless databases
+/**
+* User.js
+*
+* @description :: TODO: You might write a short summary of how this model works and what it represents here.
+* @docs        :: http://sailsjs.org/#!documentation/models
+*/
+
+module.exports = {
+
   schema: true,
 
   attributes: {
@@ -8,13 +15,6 @@ const User = {
 
       type: 'boolean',
       required: true,
-    },
-
-    uuid: {
-
-      type: 'string',
-      required: true,
-      unique: true,
     },
 
     username: {
@@ -36,9 +36,15 @@ const User = {
 
     rooms: {
 
-      type: 'array',
+      collection: 'room',
+      via: 'users',
+    },
+
+    ideas: {
+
+      collection: 'idea',
+      via: 'user',
     },
   },
 };
 
-module.exports = User;

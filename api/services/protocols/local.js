@@ -47,10 +47,10 @@ exports.register = function(req, res, next) {
   User.create({
     username: username,
     email: email,
-  }, function(err, user) {
-    if (err) {
-      if (err.code === 'E_VALIDATION') {
-        if (err.invalidAttributes.email) {
+  }, function(userCreateErr, user) {
+    if (userCreateErr) {
+      if (userCreateErr.code === 'E_VALIDATION') {
+        if (userCreateErr.invalidAttributes.email) {
           req.flash('error', 'Error.Passport.Email.Exists');
         }
         else {
@@ -58,7 +58,7 @@ exports.register = function(req, res, next) {
         }
       }
 
-      return next(err);
+      return next(userCreateErr);
     }
 
     // Generating accessToken for API authentication
@@ -69,14 +69,14 @@ exports.register = function(req, res, next) {
       password: password,
       user: user.id,
       accessToken: token,
-    }, function(err) {
-      if (err) {
-        if (err.code === 'E_VALIDATION') {
+    }, function(passCreateErr) {
+      if (passCreateErr) {
+        if (passCreateErr.code === 'E_VALIDATION') {
           req.flash('error', 'Error.Passport.Password.Invalid');
         }
 
         return user.destroy(function(destroyErr) {
-          next(destroyErr || err);
+          next(destroyErr || passCreateErr);
         });
       }
 
@@ -103,18 +103,16 @@ exports.connect = function(req, res, next) {
   Passport.findOne({
     protocol: 'local',
     user: user.id,
-  }, function(err, passport) {
-    if (err) {
-      return next(err);
-    }
+  }, function(passFindErr, passport) {
+    if (passFindErr) { return next(passFindErr); }
 
     if (!passport) {
       Passport.create({
         protocol: 'local',
         password: password,
         user: user.id,
-      }, function(err) {
-        next(err, user);
+      }, function(passCreateErr) {
+        next(passCreateErr, user);
       });
     }
     else {
@@ -146,9 +144,9 @@ exports.login = function(req, identifier, password, next) {
     query.username = identifier;
   }
 
-  User.findOne(query, function(err, user) {
-    if (err) {
-      return next(err);
+  User.findOne(query, function(userFindErr, user) {
+    if (userFindErr) {
+      return next(userFindErr);
     }
 
     if (!user) {
@@ -167,9 +165,9 @@ exports.login = function(req, identifier, password, next) {
       user: user.id,
     }, function(err, passport) {
       if (passport) {
-        passport.validatePassword(password, function(err, res) {
-          if (err) {
-            return next(err);
+        passport.validatePassword(password, function(passFindErr, res) {
+          if (passFindErr) {
+            return next(passFindErr);
           }
 
           if (!res) {

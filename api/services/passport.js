@@ -98,9 +98,9 @@ passport.connect = function(req, query, profile, next) {
   Passport.findOne({
     provider: provider,
     identifier: query.identifier.toString(),
-  }, function(err, passport) {
-    if (err) {
-      return next(err);
+  }, function(findErr, passport) {
+    if (findErr) {
+      return next(findErr);
     }
 
     if (!req.user) {
@@ -108,27 +108,27 @@ passport.connect = function(req, query, profile, next) {
       //           authentication provider.
       // Action:   Create a new user and assign them a passport.
       if (!passport) {
-        User.create(user, function(err, user) {
-          if (err) {
-            if (err.code === 'E_VALIDATION') {
-              if (err.invalidAttributes.email) {
+        User.create(user, function(userCreateErr) {
+          if (userCreateErr) {
+            if (userCreateErr.code === 'E_VALIDATION') {
+              if (userCreateErr.invalidAttributes.email) {
                 req.flash('error', 'Error.Passport.Email.Exists');
               }
               else {
                 req.flash('error', 'Error.Passport.User.Exists');
               }
             }
-            return next(err);
+            return next(userCreateErr);
           }
 
           query.user = user.id;
 
-          Passport.create(query, function(err) {
+          Passport.create(query, function(passCreateErr) {
             // If a passport wasn't created, bail out
-            if (err) {
-              return next(err);
+            if (passCreateErr) {
+              return next(passCreateErr);
             }
-            next(err, user);
+            next(passCreateErr, user);
           });
         });
       }
@@ -142,9 +142,9 @@ passport.connect = function(req, query, profile, next) {
         }
 
         // Save any updates to the Passport before moving on
-        passport.save(function(err, passport) {
-          if (err) {
-            return next(err);
+        passport.save(function(saveErr, passport) {
+          if (saveErr) {
+            return next(saveErr);
           }
 
           // Fetch the user associated with the Passport
@@ -286,7 +286,7 @@ passport.loadStrategies = function() {
       // emails, we'll set the username field to something more generic.
       _.extend(options, { usernameField: 'identifier' });
 
-      //Let users override the username and passwordField from the options
+      // Let users override the username and passwordField from the options
       _.extend(options, strategies[key].options || {});
 
       // Only load the local strategy if it's enabled in the config
@@ -352,14 +352,14 @@ passport.disconnect = function(req, res, next) {
   query.user = user.id;
   query[provider === 'local' ? 'protocol' : 'provider'] = provider;
 
-  Passport.findOne(query, function(err, passport) {
-    if (err) {
-      return next(err);
+  Passport.findOne(query, function(findErr, passport) {
+    if (findErr) {
+      return next(findErr);
     }
 
-    Passport.destroy(passport.id, function(error) {
-      if (err) {
-        return next(err);
+    Passport.destroy(passport.id, function(destroyErr) {
+      if (destroyErr) {
+        return next(destroyErr);
       }
 
       next(null, user);
