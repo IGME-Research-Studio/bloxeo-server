@@ -11,18 +11,18 @@ module.exports = {
 
   attributes: {
 
-      content: {
+    content: {
 
-  	      type: 'string',
-  		  required: true
-  	  },
+      type: 'string',
+      required: true,
+    },
 
-  	  createdBy: {
+    createdBy: {
 
-  	  	  type: 'string',
-  		  required: true,
-  		  unique: true
-  	  },
+      type: 'string',
+      required: true,
+      unique: true,
+    },
   },
 };
 

@@ -6,28 +6,28 @@
 */
 
 module.exports = {
-  
+
   schema: true,
 
   attributes: {
 
-  	roomID: {
+    roomID: {
 
-  		type: 'string',
-  		required: true,
-  		unique: true
-  	},
+      type: 'string',
+      required: true,
+      unique: true,
+    },
 
-  	uuids: {
+    uuids: {
 
-  		type: 'array',
-  		required: true
-  	},
+      type: 'array',
+      required: true,
+    },
 
-  	ideas: {
+    ideas: {
 
-  		type: 'array',
-  	}
-  }
+      type: 'array',
+    },
+  },
 };
 

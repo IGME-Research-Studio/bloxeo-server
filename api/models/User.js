@@ -11,40 +11,40 @@ module.exports = {
 
   attributes: {
 
-  	isFullAccount: {
+    isFullAccount: {
 
-  		type: 'boolean',
-  		required: true
-  	},
+      type: 'boolean',
+      required: true,
+    },
 
-  	uuid: {
+    uuid: {
 
-  		type: 'string',
-  		required: true,
-  		unique: true
-  	},
+      type: 'string',
+      required: true,
+      unique: true,
+    },
 
-  	username: {
+    username: {
 
-  		type: 'string',
-  		unique: true
-  	},
+      type: 'string',
+      unique: true,
+    },
 
-  	password: {
+    password: {
 
-  		type: 'string'  		
-  	},
+      type: 'string',
+    },
 
-  	email: {
+    email: {
 
-  		type: 'email',
-  		unique: true
-  	},
+      type: 'email',
+      unique: true,
+    },
 
-  	rooms: {
+    rooms: {
 
-  		type: 'array'
-  	}
-  }
+      type: 'array',
+    },
+  },
 };
 
