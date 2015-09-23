@@ -17,6 +17,15 @@ module.exports = function (grunt) {
         src: testFiles
       }
     },
+      
+    jsdoc : {
+        basic : {
+            src: [srcFiles, './*.js'],
+            options: {
+                destination: 'doc'
+            }
+        }
+    }
   });
 
   // Load plugins
@@ -24,4 +33,5 @@ module.exports = function (grunt) {
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('test', ['eslint', 'mochaTest']);
+  grunt.registerTask('doc', ['jsdoc:basic']);
 };
