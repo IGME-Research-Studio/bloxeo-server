@@ -21,7 +21,8 @@
     "sails": "~0.11.0",
     "sails-disk": "~0.10.0",
     "sails-hook-babel": "^5.0.1",
-    "sails-mongo": "^0.11.4"
+    "sails-mongo": "^0.11.4",
+    "shortid": "^2.2.2"
   },
   "scripts": {
     "debug": "sails lift --verbose",

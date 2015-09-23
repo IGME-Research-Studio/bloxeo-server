@@ -17,13 +17,6 @@ module.exports = {
       required: true,
     },
 
-    uuid: {
-
-      type: 'string',
-      required: true,
-      unique: true,
-    },
-
     username: {
 
       type: 'string',
@@ -43,7 +36,14 @@ module.exports = {
 
     rooms: {
 
-      type: 'array',
+      collection: 'room',
+      via: 'users',
+    },
+
+    ideas: {
+
+      collection: 'idea',
+      via: 'user',
     },
   },
 };

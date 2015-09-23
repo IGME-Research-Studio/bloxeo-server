@@ -17,11 +17,14 @@ module.exports = {
       required: true,
     },
 
-    createdBy: {
+    room: {
 
-      type: 'string',
-      required: true,
-      unique: true,
+      model: 'room',
+    },
+
+    user: {
+
+      model: 'user',
     },
   },
 };
