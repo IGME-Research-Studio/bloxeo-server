@@ -1,6 +1,6 @@
 const expect = require('chai').expect;
 
-describe.only('UserModel', function() {
+describe('UserModel', function() {
 
 	describe('#find()', function() {
 
