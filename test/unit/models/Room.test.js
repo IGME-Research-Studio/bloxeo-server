@@ -28,7 +28,7 @@ describe.only('RoomModel', function() {
 
 			.then(function(room) {
 
-				expect(room.roomID).to.be.a('string');
+				expect(room.roomId).to.be.a('string');
 
 				done();
 			})
