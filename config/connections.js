@@ -32,6 +32,10 @@ module.exports.connections = {
     adapter: 'sails-disk'
   },
 
+  test: {
+    adapter: 'sails-memory'
+  },
+
   /***************************************************************************
   *                                                                          *
   * MySQL is the world's most popular relational database.                   *
@@ -64,24 +68,6 @@ module.exports.connections = {
     // password: 'password',
     // database: 'your_mongo_db_name_here'
   },
-
-  /***************************************************************************
-  *                                                                          *
-  * PostgreSQL is another officially supported relational database.          *
-  * http://en.wikipedia.org/wiki/PostgreSQL                                  *
-  *                                                                          *
-  * Run: npm install sails-postgresql                                        *
-  *                                                                          *
-  *                                                                          *
-  ***************************************************************************/
-  somePostgresqlServer: {
-    adapter: 'sails-postgresql',
-    host: 'YOUR_POSTGRES_SERVER_HOSTNAME_OR_IP_ADDRESS',
-    user: 'YOUR_POSTGRES_USER',
-    password: 'YOUR_POSTGRES_PASSWORD',
-    database: 'YOUR_POSTGRES_DB'
-  }
-
 
   /***************************************************************************
   *                                                                          *
