@@ -13,14 +13,25 @@ module.exports = function (grunt) {
     },
 
     mochaTest: {
+      // options: {
+      //   require: ['sails-hook-babel/node_modules/babel/register']
+      // },
       test: {
         src: testFiles
       }
     },
+
+    watch: {
+      js: {
+        options: { spawn: false, },
+        files: jsFiles,
+        tasks: ['default']
+      }
+    },
       
-    jsdoc : {
+    jsdoc: {
         basic : {
-            src: [srcFiles, './*.js'],
+            src: [srcFiles],
             options: {
                 destination: 'doc'
             }
@@ -31,7 +42,8 @@ module.exports = function (grunt) {
   // Load plugins
   require('load-grunt-tasks')(grunt);
 
-  grunt.registerTask('default', ['test']);
-  grunt.registerTask('test', ['eslint', 'mochaTest']);
+  grunt.registerTask('default', ['lint', 'test']);
+  grunt.registerTask('lint', 'eslint');
+  grunt.registerTask('test', 'mochaTest');
   grunt.registerTask('doc', ['jsdoc:basic']);
 };
