@@ -1,0 +1,19 @@
+## Dependencies
+
+## Database setup
+
+## Test commands
+
+## Deployment commands
+deployment:
+  release:
+    tag: /release-.*/
+    heroku:
+      appname: storm-server-prod
+
+  staging:
+    branch: stage
+    heroku:
+      appname: storm-server-stage
+
+## Customize the test machine
