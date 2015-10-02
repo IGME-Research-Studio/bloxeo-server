@@ -1,3 +1,5 @@
+var roomModel = "../models/Room.js";
+
 /**
  * RoomController
  *
@@ -7,5 +9,27 @@
 
 module.exports = {
 
+	createRoom: function(req, res) {
+
+		roomModel.create({}).exec(function(err, created) {
+
+			res.json({
+
+				message: 'Room created.',
+			});
+		});
+	},
+
+	joinRoom: function(req, res) {
+
+		var roomId = req.param('roomId');
+
+		sails.sockets.join(req.socket, roomId);
+
+		res.json({
+
+			message: 'User subscribed to: ' + roomId,
+		});
+	},
 };
 
