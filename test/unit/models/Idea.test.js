@@ -1,21 +1,7 @@
 const expect = require('chai').expect;
+const should = require('chai').should();
 
 describe('IdeaModel', () => {
-
-  describe('#find()', () => {
-
-    it('Should check the find function', (done) => {
-
-      Idea.find()
-
-      .then(() => {
-
-        done();
-      })
-
-      .catch(done);
-    });
-  });
 
   describe('#create()', () => {
 
@@ -30,6 +16,52 @@ describe('IdeaModel', () => {
 
         expect(idea.content).to.be.a('string');
 
+        done();
+      })
+
+      .catch(done);
+    });
+    
+    it('Should not create an Idea w/o content', (done) => {
+
+      Idea.create()
+
+      .exec(function(err, idea) {
+
+        should.exist(err);
+        should.not.exist(idea);
+        done();
+      });
+    }); 
+  }); 
+  
+  describe('#find()', () => {
+
+    it('Should check the find function', (done) => {
+
+      Idea.find()
+
+      .then((ideas) => {
+
+        for(var i=0; i < ideas.length; i++){
+            expect(ideas[i].content).to.be.a('string');
+         }
+        done();
+      })
+
+      .catch(done);
+    });
+  });
+  
+  describe('#findOne()', () => {
+
+    it('Should check the findOne function', (done) => {
+
+      Idea.findOne({content:'Purple'})
+      
+      .then((idea) => {
+      
+        expect(idea.content).to.equal('Purple');
         done();
       })
 

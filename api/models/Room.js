@@ -19,6 +19,17 @@ module.exports = {
       // required: true,
       // unique: true,
     },
+    
+    isPublic: {
+    
+      type: 'boolean',
+      required: true,
+    },
+    
+    admin: {
+      
+      model: 'user',
+    },
 
     users: {
 
@@ -29,6 +40,12 @@ module.exports = {
     ideas: {
 
       collection: 'idea',
+      via: 'room',
+    },
+    
+    collections: {
+    
+      collection: 'ideaCollection',
       via: 'room',
     },
   },

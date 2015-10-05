@@ -26,6 +26,12 @@ module.exports = {
 
       model: 'user',
     },
+    
+    collections: {
+      
+      collection: 'ideaCollection',
+      via: 'ideas'
+    },
   },
 };
 

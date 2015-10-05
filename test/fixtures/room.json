@@ -1,0 +1,20 @@
+[
+  {
+    "id":10,
+    "roomId":"xyz123",
+    "isPublic":true,
+    "admin":10,
+    "users":[11],
+    "ideas":[10,11],
+    "collections":[10]
+  },
+  {
+    "id":11,
+    "roomId":"xyz123",
+    "isPublic":true,
+    "admin":12,
+    "users":[10],
+    "ideas":[12],
+    "collections":[11]
+  }
+]

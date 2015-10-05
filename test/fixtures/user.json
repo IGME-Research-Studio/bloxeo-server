@@ -1,0 +1,27 @@
+[
+  {
+    "id":10,
+    "isFullAccount":true,
+    "username":"rocksocks",
+    "email":"thisisrocks@yahoo.com",
+    "password":"cheesewiz",
+    "rooms":[10,11],
+    "ideas":[]
+  },
+  {
+    "id":11,
+    "isFullAccount":false,
+    "username":"temp",
+    "rooms":[10],
+    "ideas":[11]
+  },
+  {
+    "id":12,
+    "isFullAccount":true,
+    "username":"socksRocked",
+    "email":"socksarerocked@gmail.com",
+    "password":"theLword",
+    "rooms":[11],
+    "ideas":[12]
+  }
+]

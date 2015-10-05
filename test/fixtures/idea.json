@@ -1,0 +1,23 @@
+[
+  {
+    "id":10,
+    "content":"purple dragon",
+    "room":10,
+    "user":10,
+    "collection":10
+  },
+  {
+    "id":11,
+    "content":"green imp",
+    "room":10,
+    "user":11,
+    "collection":10
+  },
+  {
+    "id":12,
+    "content":"yellow cheese",
+    "room":11,
+    "user":12,
+    "collection":11
+  }
+]

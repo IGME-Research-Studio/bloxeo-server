@@ -1,21 +1,7 @@
 const expect = require('chai').expect;
+const should = require('chai').should();
 
 describe('RoomModel', () => {
-
-  describe('#find()', () => {
-
-    it('Should check the find function', (done) => {
-
-      Room.find()
-
-      .then(() => {
-
-        done();
-      })
-
-      .catch(done);
-    });
-  });
 
   describe('#create()', () => {
 
@@ -23,7 +9,8 @@ describe('RoomModel', () => {
 
       Room.create({
 
-        roomID: 'abc123',
+        roomId: 'abc123',
+        isPublic: true,
       })
 
       .then((room) => {
@@ -35,13 +22,48 @@ describe('RoomModel', () => {
 
       .catch(done);
     });
+    
+    it('Should not create an incomplete Room', (done) => {
+
+      Room.create({
+
+        roomId: 'abc124',
+      })
+
+      .exec(function(err, room) {
+
+        should.exist(err);
+        should.not.exist(room);
+
+        done();
+      });
+    });
+  });
+  
+  describe('#find()', () => {
+
+    it('Should check the find function', (done) => {
+
+      Room.find()
+
+      .then((rooms) => {
+
+        for(var i=0; i < rooms.length; i++){
+          expect(rooms[i].roomId).to.be.a('string');
+         }
+      
+        done();
+      })
+
+      .catch(done);
+    });
   });
 
   describe('#update()', () => {
 
     it('Should update a Room', (done) => {
 
-      Room.update({roomID: 'abc123'}, {roomID: 'abc12345'})
+      Room.update({roomId: 'abc123'}, {roomId: 'abc12345'})
 
       .then(() => {
 
