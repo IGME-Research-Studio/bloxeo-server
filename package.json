@@ -1,11 +1,11 @@
 {
   "name": "StormServer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Storm app server",
   "scripts": {
     "debug": "sails lift --verbose",
     "start": "sails lift",
-    "test": "grunt test",
+    "test": "NODE_ENV=test grunt test",
     "lint": "grunt lint",
     "watch": "grunt watch"
   },
