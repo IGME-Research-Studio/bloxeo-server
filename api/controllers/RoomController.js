@@ -1,15 +1,3 @@
-const roomModel = '../models/Room.js';
-// const userModel = '../models/User.js';
-
-/*
-var socketIOClient = require('socket.io-client');
-var sailsIOClient = require('sails.io.js');
-
-// Instantiate the socket client (`io`)
-// (for now, you must explicitly pass in the socket.io client when using this library from Node.js)
-var io = sailsIOClient(socketIOClient);
-io.sails.url = 'http://localhost:1337';
-
 /**
  * RoomController
  *
@@ -23,16 +11,32 @@ module.exports = {
 
   createRoom: function(req, res) {
 
-    roomModel.create({}).exec(function(err, created) {
+  	var userSocketId = req.query.socketId;
+  	console.log('RoomController userSocketId has value: ' + userSocketId);
+
+    Room.create({}).exec(function(err, created) {
+
+      var roomId = created.roomId;
 
       res.json({
 
-        message: 'Room created with room id: ' + created.roomId,
+        message: 'Server: Room created with room id: ' + roomId,
       });
+
+      //User.findOne({id: userId}).exec(function(err, found) {
+
+      	//console.log('Found user with uuid: ' + userId);  
+      	sails.sockets.join(userSocketId, roomId);
+
+      	sails.sockets.broadcast(roomId, 'roomJoined', {message: 'User with socket id: ' + userSocketId + 'has joined the room!'});   	
+     // });
+
+      //sails.sockets.join(req.socket, roomId);
+      //console.log('Server: Socket ' + req.socket + ' joined room ' + roomId);
     });
   },
 
-  joinRoom: function(req, res) {
+/*  joinRoom: function(req, res) {
 
     const roomId = req.param('roomId');
     const userId = req.param('userId');
@@ -51,13 +55,5 @@ module.exports = {
 
       message: 'User ' + userId + ' subscribed to: ' + roomId,
     });
-  },
+  },*/
 };
-
-/*
-io.socket.get('/createRoom', function serverResponded(body, JWR) {
-  // body === JWR.body
-  console.log('Sails responded with: ', body);
-  console.log('with headers: ', JWR.headers);
-  console.log('and with status code: ', JWR.statusCode);
-});
