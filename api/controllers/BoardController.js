@@ -1,15 +1,3 @@
-const roomModel = '../models/Room.js';
-// const userModel = '../models/User.js';
-
-/*
-var socketIOClient = require('socket.io-client');
-var sailsIOClient = require('sails.io.js');
-
-// Instantiate the socket client (`io`)
-// (for now, you must explicitly pass in the socket.io client when using this library from Node.js)
-var io = sailsIOClient(socketIOClient);
-io.sails.url = 'http://localhost:1337';
-
 /**
  * RoomController
  *
@@ -17,25 +5,43 @@ io.sails.url = 'http://localhost:1337';
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
-// ToDo: Test responses from this and figure out how to send response to render view instead of just json responses
-
 module.exports = {
 
   createRoom: function(req, res) {
 
-    roomModel.create({}).exec(function(err, created) {
+  	var userSocketId = req.socket;
+  	console.log('RoomController userSocketId has value: ' + userSocketId);
+
+  	// cannot subscribe if the request is not through socket.io
+    if (!req.isSocket) {
+
+      return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
+    }
+
+    Room.create({}).exec(function(err, created) {
+
+      var roomId = created.roomId;
 
       res.json({
 
-        message: 'Room created with room id: ' + created.roomId,
+        message: 'Server: Room created with room id: ' + roomId,
+        roomId: created.roomId,
       });
+
+      sails.sockets.join(userSocketId, roomId);
+
+      // subscribe the user to the room (works)
+      Room.subscribe(req, [roomId]);
+      Room.publishUpdate(roomId);
+
+      sails.sockets.broadcast(roomId, 'roomJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});   	
     });
-  },
+  },  
 
   joinRoom: function(req, res) {
 
-    const roomId = req.param('roomId');
-    const userId = req.param('userId');
+  	var userSocketId = req.socket;
+    var roomId = req.body.roomIdentifier;
 
     // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
@@ -43,21 +49,33 @@ module.exports = {
       return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
     }
 
-    sails.sockets.join(req.socket, roomId);
+    sails.sockets.join(userSocketId, roomId);
 
-    roomModel.subscribe(req, [roomId]);
+    sails.sockets.broadcast(roomId, 'roomJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});
+
+    Room.subscribe(req, [roomId]);
 
     res.json({
-
       message: 'User ' + userId + ' subscribed to: ' + roomId,
     });
   },
-};
 
-/*
-io.socket.get('/createRoom', function serverResponded(body, JWR) {
-  // body === JWR.body
-  console.log('Sails responded with: ', body);
-  console.log('with headers: ', JWR.headers);
-  console.log('and with status code: ', JWR.statusCode);
-});
+  leaveRoom: function(req, res) {
+
+  	var userSocketId = req.socket;
+  	var roomId = req.body.roomIdentifier;
+
+  	// cannot subscribe if the request is not through socket.io
+    if (!req.isSocket) {
+
+      return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
+    }
+
+  	sails.sockets.leave(userSocketId, roomId);
+
+  	res.json({
+
+  	  message: 'Server: User with socket id: ' + userSocketId.id + ' left room with room id: ' + roomId,
+  	});
+  },
+};
