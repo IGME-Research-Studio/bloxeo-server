@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">api/models/Passport.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+</head>
+<body class="layout-container">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="git://github.com/IGME-Research-Studio/StormServer.git">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  </ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">api/models/Passport.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">const bcrypt = require(&apos;bcryptjs&apos;);
+
+/**
+ * Hash a passport password.
+ *
+ * @param {Object}   password
+ * @param {Function} next
+ */
+function hashPassword(passport, next) {
+  if (passport.password) {
+    bcrypt.hash(passport.password, 10, function(err, hash) {
+      passport.password = hash;
+      next(err, passport);
+    });
+  }
+  else {
+    next(null, passport);
+  }
+}
+
+/**
+ * Passport Model
+ *
+ * The Passport model handles associating authenticators with users. An authen-
+ * ticator can be either local (password) or third-party (provider). A single
+ * user can have multiple passports, allowing them to connect and use several
+ * third-party strategies in optional conjunction with a password.
+ *
+ * Since an application will only need to authenticate a user once per session,
+ * it makes sense to encapsulate the data specific to the authentication process
+ * in a model of its own. This allows us to keep the session itself as light-
+ * weight as possible as the application only needs to serialize and deserialize
+ * the user, but not the authentication data, to and from the session.
+ */
+const Passport = {
+  attributes: {
+    // Required field: Protocol
+    //
+    // Defines the protocol to use for the passport. When employing the local
+    // strategy, the protocol will be set to &apos;local&apos;. When using a third-party
+    // strategy, the protocol will be set to the standard used by the third-
+    // party service (e.g. &apos;oauth&apos;, &apos;oauth2&apos;, &apos;openid&apos;).
+    protocol: { type: &apos;alphanumeric&apos;, required: true },
+
+    // Local fields: Password, Access Token
+    //
+    // When the local strategy is employed, a password will be used as the
+    // means of authentication along with either a username or an email.
+    //
+    // accessToken is used to authenticate API requests. it is generated when a
+    // passport (with protocol &apos;local&apos;) is created for a user.
+    password: { type: &apos;string&apos;, minLength: 8 },
+    accessToken: { type: &apos;string&apos; },
+
+    // Provider fields: Provider, identifer and tokens
+    //
+    // &quot;provider&quot; is the name of the third-party auth service in all lowercase
+    // (e.g. &apos;github&apos;, &apos;facebook&apos;) whereas &quot;identifier&quot; is a provider-specific
+    // key, typically an ID. These two fields are used as the main means of
+    // identifying a passport and tying it to a local user.
+    //
+    // The &quot;tokens&quot; field is a JSON object used in the case of the OAuth stan-
+    // dards. When using OAuth 1.0, a `token` as well as a `tokenSecret` will
+    // be issued by the provider. In the case of OAuth 2.0, an `accessToken`
+    // and a `refreshToken` will be issued.
+    provider: { type: &apos;alphanumericdashed&apos; },
+    identifier: { type: &apos;string&apos; },
+    tokens: { type: &apos;json&apos; },
+
+    // Associations
+    //
+    // Associate every passport with one, and only one, user. This requires an
+    // adapter compatible with associations.
+    //
+    // For more information on associations in Waterline, check out:
+    // https://github.com/balderdashy/waterline
+    user: { model: &apos;User&apos;, required: true },
+
+    /**
+     * Validate password used by the local strategy.
+     *
+     * @param {string}   password The password to validate
+     * @param {Function} next
+     */
+    validatePassword: function(password, next) {
+      bcrypt.compare(password, this.password, next);
+    },
+  },
+
+  /**
+   * Callback to be run before creating a Passport.
+   *
+   * @param {Object}   passport The soon-to-be-created Passport
+   * @param {Function} next
+   */
+  beforeCreate: function(passport, next) {
+    hashPassword(passport, next);
+  },
+
+  /**
+   * Callback to be run before updating a Passport.
+   *
+   * @param {Object}   passport Values to be updated
+   * @param {Function} next
+   */
+  beforeUpdate: function(passport, next) {
+    hashPassword(passport, next);
+  },
+};
+
+module.exports = Passport;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.0)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../../">
+  <title data-ice="title">api/services/protocols/local.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+</head>
+<body class="layout-container">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="git://github.com/IGME-Research-Studio/StormServer.git">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  </ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">api/services/protocols/local.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">const validator = require(&apos;validator&apos;);
+const crypto = require(&apos;crypto&apos;);
+
+/**
+ * Local Authentication Protocol
+ *
+ * The most widely used way for websites to authenticate users is via a username
+ * and/or email as well as a password. This module provides functions both for
+ * registering entirely new users, assigning passwords to already registered
+ * users and validating login requesting.
+ *
+ * For more information on local authentication in Passport.js, check out:
+ * http://passportjs.org/guide/username-password/
+ */
+
+/**
+ * Register a new user
+ *
+ * This method creates a new user from a specified email, username and password
+ * and assign the newly created user a local Passport.
+ *
+ * @param {Object}   req
+ * @param {Object}   res
+ * @param {Function} next
+ */
+exports.register = function(req, res, next) {
+  const email = req.param(&apos;email&apos;);
+  const username = req.param(&apos;username&apos;);
+  const password = req.param(&apos;password&apos;);
+  let token;
+
+  if (!email) {
+    req.flash(&apos;error&apos;, &apos;Error.Passport.Email.Missing&apos;);
+    return next(new Error(&apos;No email was entered.&apos;));
+  }
+
+  if (!username) {
+    req.flash(&apos;error&apos;, &apos;Error.Passport.Username.Missing&apos;);
+    return next(new Error(&apos;No username was entered.&apos;));
+  }
+
+  if (!password) {
+    req.flash(&apos;error&apos;, &apos;Error.Passport.Password.Missing&apos;);
+    return next(new Error(&apos;No password was entered.&apos;));
+  }
+
+  User.create({
+    username: username,
+    email: email,
+  }, function(userCreateErr, user) {
+    if (userCreateErr) {
+      if (userCreateErr.code === &apos;E_VALIDATION&apos;) {
+        if (userCreateErr.invalidAttributes.email) {
+          req.flash(&apos;error&apos;, &apos;Error.Passport.Email.Exists&apos;);
+        }
+        else {
+          req.flash(&apos;error&apos;, &apos;Error.Passport.User.Exists&apos;);
+        }
+      }
+
+      return next(userCreateErr);
+    }
+
+    // Generating accessToken for API authentication
+    token = crypto.randomBytes(48).toString(&apos;base64&apos;);
+
+    Passport.create({
+      protocol: &apos;local&apos;,
+      password: password,
+      user: user.id,
+      accessToken: token,
+    }, function(passCreateErr) {
+      if (passCreateErr) {
+        if (passCreateErr.code === &apos;E_VALIDATION&apos;) {
+          req.flash(&apos;error&apos;, &apos;Error.Passport.Password.Invalid&apos;);
+        }
+
+        return user.destroy(function(destroyErr) {
+          next(destroyErr || passCreateErr);
+        });
+      }
+
+      next(null, user);
+    });
+  });
+};
+
+/**
+ * Assign local Passport to user
+ *
+ * This function can be used to assign a local Passport to a user who doens&apos;t
+ * have one already. This would be the case if the user registered using a
+ * third-party service and therefore never set a password.
+ *
+ * @param {Object}   req
+ * @param {Object}   res
+ * @param {Function} next
+ */
+exports.connect = function(req, res, next) {
+  const user = req.user;
+  const password = req.param(&apos;password&apos;);
+
+  Passport.findOne({
+    protocol: &apos;local&apos;,
+    user: user.id,
+  }, function(passFindErr, passport) {
+    if (passFindErr) { return next(passFindErr); }
+
+    if (!passport) {
+      Passport.create({
+        protocol: &apos;local&apos;,
+        password: password,
+        user: user.id,
+      }, function(passCreateErr) {
+        next(passCreateErr, user);
+      });
+    }
+    else {
+      next(null, user);
+    }
+  });
+};
+
+/**
+ * Validate a login request
+ *
+ * Looks up a user using the supplied identifier (email or username) and then
+ * attempts to find a local Passport associated with the user. If a Passport is
+ * found, its password is checked against the password supplied in the form.
+ *
+ * @param {Object}   req
+ * @param {string}   identifier
+ * @param {string}   password
+ * @param {Function} next
+ */
+exports.login = function(req, identifier, password, next) {
+  const isEmail = validator.isEmail(identifier);
+  const query = {};
+
+  if (isEmail) {
+    query.email = identifier;
+  }
+  else {
+    query.username = identifier;
+  }
+
+  User.findOne(query, function(userFindErr, user) {
+    if (userFindErr) {
+      return next(userFindErr);
+    }
+
+    if (!user) {
+      if (isEmail) {
+        req.flash(&apos;error&apos;, &apos;Error.Passport.Email.NotFound&apos;);
+      }
+      else {
+        req.flash(&apos;error&apos;, &apos;Error.Passport.Username.NotFound&apos;);
+      }
+
+      return next(null, false);
+    }
+
+    Passport.findOne({
+      protocol: &apos;local&apos;,
+      user: user.id,
+    }, function(err, passport) {
+      if (passport) {
+        passport.validatePassword(password, function(passFindErr, res) {
+          if (passFindErr) {
+            return next(passFindErr);
+          }
+
+          if (!res) {
+            req.flash(&apos;error&apos;, &apos;Error.Passport.Password.Wrong&apos;);
+            return next(null, false);
+          }
+          else {
+            return next(null, user);
+          }
+        });
+      }
+      else {
+        req.flash(&apos;error&apos;, &apos;Error.Passport.Password.NotSet&apos;);
+        return next(null, false);
+      }
+    });
+  });
+};
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.0)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">api/services/passport.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+</head>
+<body class="layout-container">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="git://github.com/IGME-Research-Studio/StormServer.git">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  </ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">api/services/passport.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">const url = require(&apos;url&apos;);
+const passport = require(&apos;passport&apos;);
+
+/**
+ * Passport Service
+ *
+ * A painless Passport.js service for your Sails app that is guaranteed to
+ * Rock Your Socks&#x2122;. It takes all the hassle out of setting up Passport.js by
+ * encapsulating all the boring stuff in two functions:
+ *
+ *   passport.endpoint()
+ *   passport.callback()
+ *
+ * The former sets up an endpoint (/auth/:provider) for redirecting a user to a
+ * third-party provider for authentication, while the latter sets up a callback
+ * endpoint (/auth/:provider/callback) for receiving the response from the
+ * third-party provider. All you have to do is define in the configuration which
+ * third-party providers you&apos;d like to support. It&apos;s that easy!
+ *
+ * Behind the scenes, the service stores all the data it needs within &quot;Pass-
+ * ports&quot;. These contain all the information required to associate a local user
+ * with a profile from a third-party provider. This even holds true for the good
+ * ol&apos; password authentication scheme &#x2013; the Authentication Service takes care of
+ * encrypting passwords and storing them in Passports, allowing you to keep your
+ * User model free of bloat.
+ */
+
+// Load authentication protocols
+passport.protocols = require(&apos;./protocols&apos;);
+
+/**
+ * Connect a third-party profile to a local user
+ *
+ * This is where most of the magic happens when a user is authenticating with a
+ * third-party provider. What it does, is the following:
+ *
+ *   1. Given a provider and an identifier, find a matching Passport.
+ *   2. From here, the logic branches into two paths.
+ *
+ *     - A user is not currently logged in:
+ *       1. If a Passport wasn&apos;t found, create a new user as well as a new
+ *          Passport that will be assigned to the user.
+ *       2. If a Passport was found, get the user associated with the passport.
+ *
+ *     - A user is currently logged in:
+ *       1. If a Passport wasn&apos;t found, create a new Passport and associate it
+ *          with the already logged in user (ie. &quot;Connect&quot;)
+ *       2. If a Passport was found, nothing needs to happen.
+ *
+ * As you can see, this function handles both &quot;authentication&quot; and &quot;authori-
+ * zation&quot; at the same time. This is due to the fact that we pass in
+ * `passReqToCallback: true` when loading the strategies, allowing us to look
+ * for an existing session in the request and taking action based on that.
+ *
+ * For more information on auth(entication|rization) in Passport.js, check out:
+ * http://passportjs.org/guide/authenticate/
+ * http://passportjs.org/guide/authorize/
+ *
+ * @param {Object}   req
+ * @param {Object}   query
+ * @param {Object}   profile
+ * @param {Function} next
+ */
+passport.connect = function(req, query, profile, next) {
+  const user = {};
+  let provider;
+
+  // Get the authentication provider from the query.
+  query.provider = req.param(&apos;provider&apos;);
+
+  // Use profile.provider or fallback to the query.provider if it is undefined
+  // as is the case for OpenID, for example
+  provider = profile.provider || query.provider;
+
+  // If the provider cannot be identified we cannot match it to a passport so
+  // throw an error and let whoever&apos;s next in line take care of it.
+  if (!provider) {
+    return next(new Error(&apos;No authentication provider was identified.&apos;));
+  }
+
+  // If the profile object contains a list of emails, grab the first one and
+  // add it to the user.
+  if (profile.hasOwnProperty(&apos;emails&apos;)) {
+    user.email = profile.emails[0].value;
+  }
+  // If the profile object contains a username, add it to the user.
+  if (profile.hasOwnProperty(&apos;username&apos;)) {
+    user.username = profile.username;
+  }
+
+  // If neither an email or a username was available in the profile, we don&apos;t
+  // have a way of identifying the user in the future. Throw an error and let
+  // whoever&apos;s next in the line take care of it.
+  if (!user.username &amp;&amp; !user.email) {
+    return next(new Error(&apos;Neither a username nor email was available&apos;));
+  }
+
+  Passport.findOne({
+    provider: provider,
+    identifier: query.identifier.toString(),
+  }, function(findErr, passport) {
+    if (findErr) {
+      return next(findErr);
+    }
+
+    if (!req.user) {
+      // Scenario: A new user is attempting to sign up using a third-party
+      //           authentication provider.
+      // Action:   Create a new user and assign them a passport.
+      if (!passport) {
+        User.create(user, function(userCreateErr) {
+          if (userCreateErr) {
+            if (userCreateErr.code === &apos;E_VALIDATION&apos;) {
+              if (userCreateErr.invalidAttributes.email) {
+                req.flash(&apos;error&apos;, &apos;Error.Passport.Email.Exists&apos;);
+              }
+              else {
+                req.flash(&apos;error&apos;, &apos;Error.Passport.User.Exists&apos;);
+              }
+            }
+            return next(userCreateErr);
+          }
+
+          query.user = user.id;
+
+          Passport.create(query, function(passCreateErr) {
+            // If a passport wasn&apos;t created, bail out
+            if (passCreateErr) {
+              return next(passCreateErr);
+            }
+            next(passCreateErr, user);
+          });
+        });
+      }
+      // Scenario: An existing user is trying to log in using an already
+      //           connected passport.
+      // Action:   Get the user associated with the passport.
+      else {
+        // If the tokens have changed since the last session, update them
+        if (query.hasOwnProperty(&apos;tokens&apos;) &amp;&amp; query.tokens !== passport.tokens) {
+          passport.tokens = query.tokens;
+        }
+
+        // Save any updates to the Passport before moving on
+        passport.save(function(saveErr, passport) {
+          if (saveErr) {
+            return next(saveErr);
+          }
+
+          // Fetch the user associated with the Passport
+          User.findOne(passport.user.id, next);
+        });
+      }
+    }
+    else {
+      // Scenario: A user is currently logged in and trying to connect a new
+      //           passport.
+      // Action:   Create and assign a new passport to the user.
+      if (!passport) {
+        query.user = req.user.id;
+
+        Passport.create(query, function(err) {
+          // If a passport wasn&apos;t created, bail out
+          if (err) {
+            return next(err);
+          }
+          next(err, req.user);
+        });
+      }
+      // Scenario: The user is a nutjob or spammed the back-button.
+      // Action:   Simply pass along the already established session.
+      else {
+        next(null, req.user);
+      }
+    }
+  });
+};
+
+/**
+ * Create an authentication endpoint
+ *
+ * For more information on authentication in Passport.js, check out:
+ * http://passportjs.org/guide/authenticate/
+ *
+ * @param  {Object} req
+ * @param  {Object} res
+ */
+passport.endpoint = function(req, res) {
+  const strategies = sails.config.passport;
+  const provider = req.param(&apos;provider&apos;);
+  const options = {};
+
+  // If a provider doesn&apos;t exist for this endpoint, send the user back to the
+  // login page
+  if (!strategies.hasOwnProperty(provider)) {
+    return res.redirect(&apos;/login&apos;);
+  }
+
+  // Attach scope if it has been set in the config
+  if (strategies[provider].hasOwnProperty(&apos;scope&apos;)) {
+    options.scope = strategies[provider].scope;
+  }
+
+  // Redirect the user to the provider for authentication. When complete,
+  // the provider will redirect the user back to the application at
+  //     /auth/:provider/callback
+  this.authenticate(provider, options)(req, res, req.next);
+};
+
+/**
+ * Create an authentication callback endpoint
+ *
+ * For more information on authentication in Passport.js, check out:
+ * http://passportjs.org/guide/authenticate/
+ *
+ * @param {Object}   req
+ * @param {Object}   res
+ * @param {Function} next
+ */
+passport.callback = function(req, res, next) {
+  const provider = req.param(&apos;provider&apos;, &apos;local&apos;);
+  const action = req.param(&apos;action&apos;);
+
+  // Passport.js wasn&apos;t really built for local user registration, but it&apos;s nice
+  // having it tied into everything else.
+  if (provider === &apos;local&apos; &amp;&amp; action !== undefined) {
+    if (action === &apos;register&apos; &amp;&amp; !req.user) {
+      this.protocols.local.register(req, res, next);
+    }
+    else if (action === &apos;connect&apos; &amp;&amp; req.user) {
+      this.protocols.local.connect(req, res, next);
+    }
+    else if (action === &apos;disconnect&apos; &amp;&amp; req.user) {
+      this.disconnect(req, res, next);
+    }
+    else {
+      next(new Error(&apos;Invalid action&apos;));
+    }
+  }
+  else {
+    if (action === &apos;disconnect&apos; &amp;&amp; req.user) {
+      this.disconnect(req, res, next);
+    }
+    else {
+      // The provider will redirect the user to this URL after approval. Finish
+      // the authentication process by attempting to obtain an access token. If
+      // access was granted, the user will be logged in. Otherwise, authentication
+      // has failed.
+      this.authenticate(provider, next)(req, res, req.next);
+    }
+  }
+};
+
+/**
+ * Load all strategies defined in the Passport configuration
+ *
+ * For example, we could add this to our config to use the GitHub strategy
+ * with permission to access a users email address (even if it&apos;s marked as
+ * private) as well as permission to add and update a user&apos;s Gists:
+ *
+    github: {
+      name: &apos;GitHub&apos;,
+      protocol: &apos;oauth2&apos;,
+      strategy: require(&apos;passport-github&apos;).Strategy
+      scope: [ &apos;user&apos;, &apos;gist&apos; ]
+      options: {
+        clientID: &apos;CLIENT_ID&apos;,
+        clientSecret: &apos;CLIENT_SECRET&apos;
+      }
+    }
+ *
+ * For more information on the providers supported by Passport.js, check out:
+ * http://passportjs.org/guide/providers/
+ *
+ */
+passport.loadStrategies = function() {
+  const self = this;
+  const strategies = sails.config.passport;
+
+  Object.keys(strategies).forEach(function(key) {
+    const options = { passReqToCallback: true };
+    let Strategy;
+
+    if (key === &apos;local&apos;) {
+      // Since we need to allow users to login using both usernames as well as
+      // emails, we&apos;ll set the username field to something more generic.
+      _.extend(options, { usernameField: &apos;identifier&apos; });
+
+      // Let users override the username and passwordField from the options
+      _.extend(options, strategies[key].options || {});
+
+      // Only load the local strategy if it&apos;s enabled in the config
+      if (strategies.local) {
+        Strategy = strategies[key].strategy;
+
+        self.use(new Strategy(options, self.protocols.local.login));
+      }
+    }
+    else if (key === &apos;bearer&apos;) {
+
+      if (strategies.bearer) {
+        Strategy = strategies[key].strategy;
+        self.use(new Strategy(self.protocols.bearer.authorize));
+      }
+
+    }
+    else {
+      const protocol = strategies[key].protocol;
+      let callback = strategies[key].callback;
+
+      if (!callback) {
+        callback = &apos;auth/&apos; + key + &apos;/callback&apos;;
+      }
+
+      Strategy = strategies[key].strategy;
+
+      const baseUrl = sails.getBaseurl();
+
+      switch (protocol) {
+      case &apos;oauth&apos;:
+      case &apos;oauth2&apos;:
+        options.callbackURL = url.resolve(baseUrl, callback);
+        break;
+      case &apos;openid&apos;:
+        options.returnURL = url.resolve(baseUrl, callback);
+        options.realm = baseUrl;
+        options.profile = true;
+        break;
+      }
+
+      // Merge the default options with any options defined in the config. All
+      // defaults can be overriden, but I don&apos;t see a reason why you&apos;d want to
+      // do that.
+      _.extend(options, strategies[key].options);
+
+      self.use(new Strategy(options, self.protocols[protocol]));
+    }
+  });
+};
+
+/**
+ * Disconnect a passport from a user
+ *
+ * @param  {Object} req
+ * @param  {Object} res
+ */
+passport.disconnect = function(req, res, next) {
+  const user = req.user;
+  const provider = req.param(&apos;provider&apos;, &apos;local&apos;);
+  const query = {};
+
+  query.user = user.id;
+  query[provider === &apos;local&apos; ? &apos;protocol&apos; : &apos;provider&apos;] = provider;
+
+  Passport.findOne(query, function(findErr, passport) {
+    if (findErr) {
+      return next(findErr);
+    }
+
+    Passport.destroy(passport.id, function(destroyErr) {
+      if (destroyErr) {
+        return next(destroyErr);
+      }
+
+      next(null, user);
+    });
+  });
+};
+
+passport.serializeUser(function(user, next) {
+  next(null, user.id);
+});
+
+passport.deserializeUser(function(id, next) {
+  User.findOne(id, next);
+});
+
+module.exports = passport;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.0)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

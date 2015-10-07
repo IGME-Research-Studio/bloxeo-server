@@ -20,6 +20,22 @@ module.exports = function (grunt) {
         src: testFiles
       }
     },
+      
+    esdoc : {
+      dist : {
+        options: {
+          source: './api',
+          destination: './doc'
+        }
+      }
+    },
+      
+    'gh-pages': {
+      options: {
+        base: 'doc'
+      },
+      src: ['**']
+    },
 
     watch: {
       js: {
@@ -36,4 +52,6 @@ module.exports = function (grunt) {
   grunt.registerTask('default', ['lint', 'test']);
   grunt.registerTask('lint', 'eslint');
   grunt.registerTask('test', 'mochaTest');
+  grunt.registerTask('doc', 'esdoc');
+  grunt.registerTask('doc-deploy', ['doc', 'gh-pages']);
 };

@@ -1,0 +1,630 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "Identifier",
+            "name": "module",
+            "range": [
+              603,
+              609
+            ],
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 0
+              },
+              "end": {
+                "line": 18,
+                "column": 6
+              }
+            }
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "exports",
+            "range": [
+              610,
+              617
+            ],
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 7
+              },
+              "end": {
+                "line": 18,
+                "column": 14
+              }
+            }
+          },
+          "range": [
+            603,
+            617
+          ],
+          "loc": {
+            "start": {
+              "line": 18,
+              "column": 0
+            },
+            "end": {
+              "line": 18,
+              "column": 14
+            }
+          }
+        },
+        "right": {
+          "type": "FunctionExpression",
+          "id": {
+            "type": "Identifier",
+            "name": "exports",
+            "range": [
+              610,
+              617
+            ],
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 7
+              },
+              "end": {
+                "line": 18,
+                "column": 14
+              }
+            }
+          },
+          "params": [
+            {
+              "type": "Identifier",
+              "name": "req",
+              "range": [
+                629,
+                632
+              ],
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 26
+                },
+                "end": {
+                  "line": 18,
+                  "column": 29
+                }
+              }
+            },
+            {
+              "type": "Identifier",
+              "name": "identifier",
+              "range": [
+                634,
+                644
+              ],
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 31
+                },
+                "end": {
+                  "line": 18,
+                  "column": 41
+                }
+              }
+            },
+            {
+              "type": "Identifier",
+              "name": "profile",
+              "range": [
+                646,
+                653
+              ],
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 43
+                },
+                "end": {
+                  "line": 18,
+                  "column": 50
+                }
+              }
+            },
+            {
+              "type": "Identifier",
+              "name": "next",
+              "range": [
+                655,
+                659
+              ],
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 52
+                },
+                "end": {
+                  "line": 18,
+                  "column": 56
+                }
+              }
+            }
+          ],
+          "body": {
+            "type": "BlockStatement",
+            "body": [
+              {
+                "type": "VariableDeclaration",
+                "declarations": [
+                  {
+                    "type": "VariableDeclarator",
+                    "id": {
+                      "type": "Identifier",
+                      "name": "query",
+                      "range": [
+                        672,
+                        677
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 19,
+                          "column": 8
+                        },
+                        "end": {
+                          "line": 19,
+                          "column": 13
+                        }
+                      }
+                    },
+                    "init": {
+                      "type": "ObjectExpression",
+                      "properties": [
+                        {
+                          "type": "Property",
+                          "key": {
+                            "type": "Identifier",
+                            "name": "identifier",
+                            "range": [
+                              690,
+                              700
+                            ],
+                            "loc": {
+                              "start": {
+                                "line": 20,
+                                "column": 4
+                              },
+                              "end": {
+                                "line": 20,
+                                "column": 14
+                              }
+                            }
+                          },
+                          "value": {
+                            "type": "Identifier",
+                            "name": "identifier",
+                            "range": [
+                              702,
+                              712
+                            ],
+                            "loc": {
+                              "start": {
+                                "line": 20,
+                                "column": 16
+                              },
+                              "end": {
+                                "line": 20,
+                                "column": 26
+                              }
+                            }
+                          },
+                          "kind": "init",
+                          "method": false,
+                          "shorthand": false,
+                          "computed": false,
+                          "range": [
+                            690,
+                            712
+                          ],
+                          "loc": {
+                            "start": {
+                              "line": 20,
+                              "column": 4
+                            },
+                            "end": {
+                              "line": 20,
+                              "column": 26
+                            }
+                          }
+                        },
+                        {
+                          "type": "Property",
+                          "key": {
+                            "type": "Identifier",
+                            "name": "protocol",
+                            "range": [
+                              719,
+                              727
+                            ],
+                            "loc": {
+                              "start": {
+                                "line": 21,
+                                "column": 4
+                              },
+                              "end": {
+                                "line": 21,
+                                "column": 12
+                              }
+                            }
+                          },
+                          "value": {
+                            "type": "Literal",
+                            "value": "openid",
+                            "raw": "'openid'",
+                            "range": [
+                              729,
+                              737
+                            ],
+                            "loc": {
+                              "start": {
+                                "line": 21,
+                                "column": 14
+                              },
+                              "end": {
+                                "line": 21,
+                                "column": 22
+                              }
+                            }
+                          },
+                          "kind": "init",
+                          "method": false,
+                          "shorthand": false,
+                          "computed": false,
+                          "range": [
+                            719,
+                            737
+                          ],
+                          "loc": {
+                            "start": {
+                              "line": 21,
+                              "column": 4
+                            },
+                            "end": {
+                              "line": 21,
+                              "column": 22
+                            }
+                          }
+                        }
+                      ],
+                      "range": [
+                        683,
+                        743
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 19,
+                          "column": 19
+                        },
+                        "end": {
+                          "line": 22,
+                          "column": 3
+                        }
+                      }
+                    },
+                    "range": [
+                      672,
+                      743
+                    ],
+                    "loc": {
+                      "start": {
+                        "line": 19,
+                        "column": 8
+                      },
+                      "end": {
+                        "line": 22,
+                        "column": 3
+                      }
+                    }
+                  }
+                ],
+                "kind": "const",
+                "range": [
+                  666,
+                  744
+                ],
+                "loc": {
+                  "start": {
+                    "line": 19,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 22,
+                    "column": 4
+                  }
+                }
+              },
+              {
+                "type": "ExpressionStatement",
+                "expression": {
+                  "type": "CallExpression",
+                  "callee": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                      "type": "Identifier",
+                      "name": "passport",
+                      "range": [
+                        750,
+                        758
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 24,
+                          "column": 2
+                        },
+                        "end": {
+                          "line": 24,
+                          "column": 10
+                        }
+                      }
+                    },
+                    "property": {
+                      "type": "Identifier",
+                      "name": "connect",
+                      "range": [
+                        759,
+                        766
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 24,
+                          "column": 11
+                        },
+                        "end": {
+                          "line": 24,
+                          "column": 18
+                        }
+                      }
+                    },
+                    "range": [
+                      750,
+                      766
+                    ],
+                    "loc": {
+                      "start": {
+                        "line": 24,
+                        "column": 2
+                      },
+                      "end": {
+                        "line": 24,
+                        "column": 18
+                      }
+                    }
+                  },
+                  "arguments": [
+                    {
+                      "type": "Identifier",
+                      "name": "req",
+                      "range": [
+                        767,
+                        770
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 24,
+                          "column": 19
+                        },
+                        "end": {
+                          "line": 24,
+                          "column": 22
+                        }
+                      }
+                    },
+                    {
+                      "type": "Identifier",
+                      "name": "query",
+                      "range": [
+                        772,
+                        777
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 24,
+                          "column": 24
+                        },
+                        "end": {
+                          "line": 24,
+                          "column": 29
+                        }
+                      }
+                    },
+                    {
+                      "type": "Identifier",
+                      "name": "profile",
+                      "range": [
+                        779,
+                        786
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 24,
+                          "column": 31
+                        },
+                        "end": {
+                          "line": 24,
+                          "column": 38
+                        }
+                      }
+                    },
+                    {
+                      "type": "Identifier",
+                      "name": "next",
+                      "range": [
+                        788,
+                        792
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 24,
+                          "column": 40
+                        },
+                        "end": {
+                          "line": 24,
+                          "column": 44
+                        }
+                      }
+                    }
+                  ],
+                  "range": [
+                    750,
+                    793
+                  ],
+                  "loc": {
+                    "start": {
+                      "line": 24,
+                      "column": 2
+                    },
+                    "end": {
+                      "line": 24,
+                      "column": 45
+                    }
+                  }
+                },
+                "range": [
+                  750,
+                  794
+                ],
+                "loc": {
+                  "start": {
+                    "line": 24,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 24,
+                    "column": 46
+                  }
+                }
+              }
+            ],
+            "range": [
+              661,
+              797
+            ],
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 58
+              },
+              "end": {
+                "line": 25,
+                "column": 1
+              }
+            }
+          },
+          "generator": false,
+          "expression": false,
+          "range": [
+            620,
+            797
+          ],
+          "loc": {
+            "start": {
+              "line": 18,
+              "column": 17
+            },
+            "end": {
+              "line": 25,
+              "column": 1
+            }
+          }
+        },
+        "range": [
+          603,
+          797
+        ],
+        "loc": {
+          "start": {
+            "line": 18,
+            "column": 0
+          },
+          "end": {
+            "line": 25,
+            "column": 1
+          }
+        }
+      },
+      "range": [
+        603,
+        798
+      ],
+      "loc": {
+        "start": {
+          "line": 18,
+          "column": 0
+        },
+        "end": {
+          "line": 25,
+          "column": 2
+        }
+      },
+      "leadingComments": [
+        {
+          "type": "Block",
+          "value": "*\r\n * OpenID Authentication Protocol\r\n *\r\n * OpenID is an open standard for federated authentication. When visiting a\r\n * website, users present their OpenID to sign in. The user then authenticates\r\n * with their chosen OpenID provider, which issues an assertion to confirm the\r\n * user's identity. The website verifies this assertion in order to sign the\r\n * user in.\r\n *\r\n * For more information on OpenID in Passport.js, check out:\r\n * http://passportjs.org/guide/openid/\r\n *\r\n * @param {Object}   req\r\n * @param {string}   identifier\r\n * @param {Object}   profile\r\n * @param {Function} next\r\n ",
+          "range": [
+            0,
+            601
+          ],
+          "loc": {
+            "start": {
+              "line": 1,
+              "column": 0
+            },
+            "end": {
+              "line": 17,
+              "column": 3
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "sourceType": "module",
+  "range": [
+    603,
+    798
+  ],
+  "loc": {
+    "start": {
+      "line": 18,
+      "column": 0
+    },
+    "end": {
+      "line": 25,
+      "column": 2
+    }
+  },
+  "comments": [
+    {
+      "type": "Block",
+      "value": "*\r\n * OpenID Authentication Protocol\r\n *\r\n * OpenID is an open standard for federated authentication. When visiting a\r\n * website, users present their OpenID to sign in. The user then authenticates\r\n * with their chosen OpenID provider, which issues an assertion to confirm the\r\n * user's identity. The website verifies this assertion in order to sign the\r\n * user in.\r\n *\r\n * For more information on OpenID in Passport.js, check out:\r\n * http://passportjs.org/guide/openid/\r\n *\r\n * @param {Object}   req\r\n * @param {string}   identifier\r\n * @param {Object}   profile\r\n * @param {Function} next\r\n ",
+      "range": [
+        0,
+        601
+      ],
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 0
+        },
+        "end": {
+          "line": 17,
+          "column": 3
+        }
+      }
+    }
+  ]
+}
