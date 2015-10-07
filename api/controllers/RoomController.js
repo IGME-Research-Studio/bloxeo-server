@@ -40,11 +40,11 @@ module.exports = {
     });
   },
   
-/*
   joinRoom: function(req, res) {
 
-    const roomId = req.roomId;
-    const userId = req.userId;
+    console.log(req.body);
+    const roomId = req.body.roomId;
+    const userId = req.body.userId;
 
     // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
@@ -52,9 +52,9 @@ module.exports = {
       return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
     }
 
-    sails.sockets.join(req.query.userId, roomId);
+    sails.sockets.join(req.socket, roomId);
 
     Room.subscribe(req, [roomId]);
+    Room.publishUpdate(roomId);
   },
-  */
 };
