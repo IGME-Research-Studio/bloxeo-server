@@ -16,37 +16,40 @@ module.exports = {
     roomId: {
 
       type: 'string',
-      // required: true,
-      // unique: true,
     },
     
     isPublic: {
-    
+
       type: 'boolean',
       required: true,
     },
-    
+
     admin: {
-      
+
       model: 'user',
     },
 
     users: {
 
       collection: 'user',
-      via: 'rooms',
+    },
+    
+    whiteList: {
+
+      collection: 'user',
+      required: function(){
+        return !this.isPublic;
+      }
     },
 
     ideas: {
 
       collection: 'idea',
-      via: 'room',
     },
-    
+
     collections: {
-    
+
       collection: 'ideaCollection',
-      via: 'room',
     },
   },
 

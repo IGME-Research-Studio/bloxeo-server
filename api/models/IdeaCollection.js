@@ -6,18 +6,12 @@ module.exports = {
   
   attributes: {
     
-    room: {
-    
-      model: 'room',
-    },
-    
     ideas: {
     
       collection: 'idea',
-      via: 'collections',
     },
     
-    constraint: {
+    weight: {
     
       type: 'integer',
       required: true,

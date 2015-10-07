@@ -22,16 +22,10 @@ before(function(done) {
     const sails = server;
     if (err) return done(err);
     // here you can load fixtures, etc.
-    //var barrels = new Barrels();
-    
-    //keep fixtures var to check against eventually
-    //fixtures = barrels.data;
-    //console.log(fixtures);
-    
-    //populate the database with fixtures
-    //barrels.populate(function(err){
-      done(err, sails);
-    //});
+    var barrels = new Barrels();
+    fixtures = barrels.data;
+
+    barrels.populate(function(){done(err, sails);});
   });
 });
 

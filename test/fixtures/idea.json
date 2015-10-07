@@ -1,23 +1,17 @@
 [
   {
-    "id":10,
+    "uid":13,
     "content":"purple dragon",
-    "room":10,
-    "user":10,
-    "collection":10
+    "user":10
   },
   {
-    "id":11,
+    "uid":14,
     "content":"green imp",
-    "room":10,
-    "user":11,
-    "collection":10
+    "user":11
   },
   {
-    "id":12,
+    "uid":15,
     "content":"yellow cheese",
-    "room":11,
-    "user":12,
-    "collection":11
+    "user":12
   }
 ]

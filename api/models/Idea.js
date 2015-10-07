@@ -17,21 +17,11 @@ module.exports = {
       required: true,
     },
 
-    room: {
-
-      model: 'room',
-    },
-
     user: {
 
       model: 'user',
     },
-    
-    collections: {
-      
-      collection: 'ideaCollection',
-      via: 'ideas'
-    },
+
   },
 };
 

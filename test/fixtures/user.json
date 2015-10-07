@@ -1,27 +1,21 @@
 [
   {
-    "id":10,
+    "uid":10,
     "isFullAccount":true,
     "username":"rocksocks",
     "email":"thisisrocks@yahoo.com",
-    "password":"cheesewiz",
-    "rooms":[10,11],
-    "ideas":[]
+    "password":"cheesewiz"
   },
   {
-    "id":11,
+    "uid":11,
     "isFullAccount":false,
-    "username":"temp",
-    "rooms":[10],
-    "ideas":[11]
+    "username":"temp"
   },
   {
-    "id":12,
+    "uid":12,
     "isFullAccount":true,
     "username":"socksRocked",
     "email":"socksarerocked@gmail.com",
-    "password":"theLword",
-    "rooms":[11],
-    "ideas":[12]
+    "password":"theLword"
   }
 ]

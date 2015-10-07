@@ -51,7 +51,8 @@ describe('UserModel', () => {
       
       User.create({
 
-        isFullAccount: false,
+        isFullAccount: true,
+        username: 'nickers',
         email: 'braxtonissokewl@yahoo.com',
       })
 
