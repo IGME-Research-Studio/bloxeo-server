@@ -1,0 +1,2210 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/controllers/AuthController.js",
+    "memberof": null,
+    "longname": "api/controllers/AuthController.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n * Authentication Controller\r\n *\r\n * This is merely meant as an example of how your Authentication controller\r\n * should look. It currently includes the minimum amount of functionality for\r\n * the basics of Passport.js to work.\r\n */\r\nconst AuthController = {\r\n  /**\r\n   * Render the login page\r\n   *\r\n   * The login form itself is just a simple HTML form:\r\n   *\r\n      <form role=\"form\" action=\"/auth/local\" method=\"post\">\r\n        <input type=\"text\" name=\"identifier\" placeholder=\"Username or Email\">\r\n        <input type=\"password\" name=\"password\" placeholder=\"Password\">\r\n        <button type=\"submit\">Sign in</button>\r\n      </form>\r\n   *\r\n   * You could optionally add CSRF-protection as outlined in the documentation:\r\n   * http://sailsjs.org/#!documentation/config.csrf\r\n   *\r\n   * A simple example of automatically listing all available providers in a\r\n   * Handlebars template would look like this:\r\n   *\r\n      {{#each providers}}\r\n        <a href=\"/auth/{{slug}}\" role=\"button\">{{name}}</a>\r\n      {{/each}}\r\n   *\r\n   * @param {Object} req\r\n   * @param {Object} res\r\n   */\r\n  login: function(req, res) {\r\n    const strategies = sails.config.passport;\r\n    const providers = {};\r\n\r\n    // Get a list of available providers for use in your templates.\r\n    Object.keys(strategies).forEach(function(key) {\r\n      if (key === 'local') {\r\n        return;\r\n      }\r\n\r\n      providers[key] = {\r\n        name: strategies[key].name,\r\n        slug: key,\r\n      };\r\n    });\r\n\r\n    // Render the `auth/login.ext` view\r\n    res.view({\r\n      providers: providers,\r\n      errors: req.flash('error'),\r\n    });\r\n  },\r\n\r\n  /**\r\n   * Log out a user and return them to the homepage\r\n   *\r\n   * Passport exposes a logout() function on req (also aliased as logOut()) that\r\n   * can be called from any route handler which needs to terminate a login\r\n   * session. Invoking logout() will remove the req.user property and clear the\r\n   * login session (if any).\r\n   *\r\n   * For more information on logging out users in Passport.js, check out:\r\n   * http://passportjs.org/guide/logout/\r\n   *\r\n   * @param {Object} req\r\n   * @param {Object} res\r\n   */\r\n  logout: function(req, res) {\r\n    req.logout();\r\n    // mark the user as logged out for auth purposes\r\n    req.session.authenticated = false;\r\n    res.redirect('/');\r\n  },\r\n\r\n  /**\r\n   * Render the registration page\r\n   *\r\n   * Just like the login form, the registration form is just simple HTML:\r\n   *\r\n      <form role=\"form\" action=\"/auth/local/register\" method=\"post\">\r\n        <input type=\"text\" name=\"username\" placeholder=\"Username\">\r\n        <input type=\"text\" name=\"email\" placeholder=\"Email\">\r\n        <input type=\"password\" name=\"password\" placeholder=\"Password\">\r\n        <button type=\"submit\">Sign up</button>\r\n      </form>\r\n   *\r\n   * @param {Object} req\r\n   * @param {Object} res\r\n   */\r\n  register: function(req, res) {\r\n    res.view({\r\n      errors: req.flash('error'),\r\n    });\r\n  },\r\n\r\n  /**\r\n   * Create a third-party authentication endpoint\r\n   *\r\n   * @param {Object} req\r\n   * @param {Object} res\r\n   */\r\n  provider: function(req, res) {\r\n    passport.endpoint(req, res);\r\n  },\r\n\r\n  /**\r\n   * Create a authentication callback endpoint\r\n   *\r\n   * This endpoint handles everything related to creating and verifying Pass-\r\n   * ports and users, both locally and from third-aprty providers.\r\n   *\r\n   * Passport exposes a login() function on req (also aliased as logIn()) that\r\n   * can be used to establish a login session. When the login operation\r\n   * completes, user will be assigned to req.user.\r\n   *\r\n   * For more information on logging in users in Passport.js, check out:\r\n   * http://passportjs.org/guide/login/\r\n   *\r\n   * @param {Object} req\r\n   * @param {Object} res\r\n   */\r\n  callback: function(req, res) {\r\n    function tryAgain(err) {\r\n\r\n      // Only certain error messages are returned via req.flash('error', someError)\r\n      // because we shouldn't expose internal authorization errors to the user.\r\n      // We do return a generic error and the original request body.\r\n      const flashError = req.flash('error')[0];\r\n\r\n      if (err && !flashError ) {\r\n        req.flash('error', 'Error.Passport.Generic');\r\n      }\r\n      else if (flashError) {\r\n        req.flash('error', flashError);\r\n      }\r\n      req.flash('form', req.body);\r\n\r\n      // If an error was thrown, redirect the user to the\r\n      // login, register or disconnect action initiator view.\r\n      // These views should take care of rendering the error messages.\r\n      const action = req.param('action');\r\n\r\n      switch (action) {\r\n      case 'register':\r\n        res.redirect('/register');\r\n        break;\r\n      case 'disconnect':\r\n        res.redirect('back');\r\n        break;\r\n      default:\r\n        res.redirect('/login');\r\n      }\r\n    }\r\n\r\n    passport.callback(req, res, function(err, user, challenges) {\r\n      if (err || !user) {\r\n        return tryAgain(challenges);\r\n      }\r\n\r\n      req.login(user, function(loginErr) {\r\n        if (loginErr) {\r\n          return tryAgain(loginErr);\r\n        }\r\n        // Mark the session as authenticated to work with default Sails sessionAuth.js policy\r\n        req.session.authenticated = true;\r\n        // Upon successful login, send the user to the homepage were req.user\r\n        // will be available.\r\n        res.redirect('/');\r\n      });\r\n    });\r\n  },\r\n\r\n  /**\r\n   * Disconnect a passport from a user\r\n   *\r\n   * @param {Object} req\r\n   * @param {Object} res\r\n   */\r\n  disconnect: function(req, res) {\r\n    passport.disconnect(req, res);\r\n  },\r\n};\r\n\r\nmodule.exports = AuthController;\r\n"
+  },
+  {
+    "__docId__": 1,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "AuthController",
+    "memberof": "api/controllers/AuthController.js",
+    "longname": "api/controllers/AuthController.js~AuthController",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/controllers/AuthController.js",
+    "importStyle": null,
+    "description": "Authentication Controller\n\nThis is merely meant as an example of how your Authentication controller\nshould look. It currently includes the minimum amount of functionality for\nthe basics of Passport.js to work.",
+    "lineNumber": 8,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 2,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/controllers/IdeaController.js",
+    "memberof": null,
+    "longname": "api/controllers/IdeaController.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n * IdeaController\r\n *\r\n * @description :: Server-side logic for managing ideas\r\n * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers\r\n */\r\n\r\nmodule.exports = {\r\n\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 3,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/controllers/RoomController.js",
+    "memberof": null,
+    "longname": "api/controllers/RoomController.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n * RoomController\r\n *\r\n * @description :: Server-side logic for managing rooms\r\n * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers\r\n */\r\n\r\nmodule.exports = {\r\n\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 4,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/controllers/UserController.js",
+    "memberof": null,
+    "longname": "api/controllers/UserController.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n * UserController\r\n *\r\n * @description :: Server-side logic for managing users\r\n * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers\r\n */\r\n\r\nmodule.exports = {\r\n\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 5,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/models/Idea.js",
+    "memberof": null,
+    "longname": "api/models/Idea.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n  * Idea.js\r\n*\r\n  * @description :: TODO: You might write a short summary of how this model works and what it represents here.\r\n  * @docs        :: http://sailsjs.org/#!documentation/models\r\n  */\r\n\r\nmodule.exports = {\r\n\r\n  schema: true,\r\n\r\n  attributes: {\r\n\r\n    content: {\r\n\r\n      type: 'string',\r\n      required: true,\r\n    },\r\n\r\n    room: {\r\n\r\n      model: 'room',\r\n    },\r\n\r\n    user: {\r\n\r\n      model: 'user',\r\n    },\r\n  },\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 6,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/models/Passport.js",
+    "memberof": null,
+    "longname": "api/models/Passport.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "const bcrypt = require('bcryptjs');\r\n\r\n/**\r\n * Hash a passport password.\r\n *\r\n * @param {Object}   password\r\n * @param {Function} next\r\n */\r\nfunction hashPassword(passport, next) {\r\n  if (passport.password) {\r\n    bcrypt.hash(passport.password, 10, function(err, hash) {\r\n      passport.password = hash;\r\n      next(err, passport);\r\n    });\r\n  }\r\n  else {\r\n    next(null, passport);\r\n  }\r\n}\r\n\r\n/**\r\n * Passport Model\r\n *\r\n * The Passport model handles associating authenticators with users. An authen-\r\n * ticator can be either local (password) or third-party (provider). A single\r\n * user can have multiple passports, allowing them to connect and use several\r\n * third-party strategies in optional conjunction with a password.\r\n *\r\n * Since an application will only need to authenticate a user once per session,\r\n * it makes sense to encapsulate the data specific to the authentication process\r\n * in a model of its own. This allows us to keep the session itself as light-\r\n * weight as possible as the application only needs to serialize and deserialize\r\n * the user, but not the authentication data, to and from the session.\r\n */\r\nconst Passport = {\r\n  attributes: {\r\n    // Required field: Protocol\r\n    //\r\n    // Defines the protocol to use for the passport. When employing the local\r\n    // strategy, the protocol will be set to 'local'. When using a third-party\r\n    // strategy, the protocol will be set to the standard used by the third-\r\n    // party service (e.g. 'oauth', 'oauth2', 'openid').\r\n    protocol: { type: 'alphanumeric', required: true },\r\n\r\n    // Local fields: Password, Access Token\r\n    //\r\n    // When the local strategy is employed, a password will be used as the\r\n    // means of authentication along with either a username or an email.\r\n    //\r\n    // accessToken is used to authenticate API requests. it is generated when a\r\n    // passport (with protocol 'local') is created for a user.\r\n    password: { type: 'string', minLength: 8 },\r\n    accessToken: { type: 'string' },\r\n\r\n    // Provider fields: Provider, identifer and tokens\r\n    //\r\n    // \"provider\" is the name of the third-party auth service in all lowercase\r\n    // (e.g. 'github', 'facebook') whereas \"identifier\" is a provider-specific\r\n    // key, typically an ID. These two fields are used as the main means of\r\n    // identifying a passport and tying it to a local user.\r\n    //\r\n    // The \"tokens\" field is a JSON object used in the case of the OAuth stan-\r\n    // dards. When using OAuth 1.0, a `token` as well as a `tokenSecret` will\r\n    // be issued by the provider. In the case of OAuth 2.0, an `accessToken`\r\n    // and a `refreshToken` will be issued.\r\n    provider: { type: 'alphanumericdashed' },\r\n    identifier: { type: 'string' },\r\n    tokens: { type: 'json' },\r\n\r\n    // Associations\r\n    //\r\n    // Associate every passport with one, and only one, user. This requires an\r\n    // adapter compatible with associations.\r\n    //\r\n    // For more information on associations in Waterline, check out:\r\n    // https://github.com/balderdashy/waterline\r\n    user: { model: 'User', required: true },\r\n\r\n    /**\r\n     * Validate password used by the local strategy.\r\n     *\r\n     * @param {string}   password The password to validate\r\n     * @param {Function} next\r\n     */\r\n    validatePassword: function(password, next) {\r\n      bcrypt.compare(password, this.password, next);\r\n    },\r\n  },\r\n\r\n  /**\r\n   * Callback to be run before creating a Passport.\r\n   *\r\n   * @param {Object}   passport The soon-to-be-created Passport\r\n   * @param {Function} next\r\n   */\r\n  beforeCreate: function(passport, next) {\r\n    hashPassword(passport, next);\r\n  },\r\n\r\n  /**\r\n   * Callback to be run before updating a Passport.\r\n   *\r\n   * @param {Object}   passport Values to be updated\r\n   * @param {Function} next\r\n   */\r\n  beforeUpdate: function(passport, next) {\r\n    hashPassword(passport, next);\r\n  },\r\n};\r\n\r\nmodule.exports = Passport;\r\n"
+  },
+  {
+    "__docId__": 7,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "bcrypt",
+    "memberof": "api/models/Passport.js",
+    "longname": "api/models/Passport.js~bcrypt",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/models/Passport.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 1,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 8,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "hashPassword",
+    "memberof": "api/models/Passport.js",
+    "longname": "api/models/Passport.js~hashPassword",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/models/Passport.js",
+    "importStyle": null,
+    "description": "Hash a passport password.",
+    "lineNumber": 9,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "password",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 9,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "Passport",
+    "memberof": "api/models/Passport.js",
+    "longname": "api/models/Passport.js~Passport",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/models/Passport.js",
+    "importStyle": null,
+    "description": "Passport Model\n\nThe Passport model handles associating authenticators with users. An authen-\nticator can be either local (password) or third-party (provider). A single\nuser can have multiple passports, allowing them to connect and use several\nthird-party strategies in optional conjunction with a password.\n\nSince an application will only need to authenticate a user once per session,\nit makes sense to encapsulate the data specific to the authentication process\nin a model of its own. This allows us to keep the session itself as light-\nweight as possible as the application only needs to serialize and deserialize\nthe user, but not the authentication data, to and from the session.",
+    "lineNumber": 35,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 10,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/models/Room.js",
+    "memberof": null,
+    "longname": "api/models/Room.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n* Room.js\r\n*\r\n* @description :: TODO: You might write a short summary of how this model works and what it represents here.\r\n* @docs        :: http://sailsjs.org/#!documentation/models\r\n*/\r\n\r\nconst shortid = require('shortid');\r\n\r\nmodule.exports = {\r\n\r\n  schema: true,\r\n\r\n  attributes: {\r\n\r\n    roomId: {\r\n\r\n      type: 'string',\r\n      // required: true,\r\n      // unique: true,\r\n    },\r\n\r\n    users: {\r\n\r\n      collection: 'user',\r\n      via: 'rooms',\r\n    },\r\n\r\n    ideas: {\r\n\r\n      collection: 'idea',\r\n      via: 'room',\r\n    },\r\n  },\r\n\r\n  beforeCreate: function(model, cb) {\r\n    model.roomId = shortid.generate();\r\n    cb();\r\n  },\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 11,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "shortid",
+    "memberof": "api/models/Room.js",
+    "longname": "api/models/Room.js~shortid",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/models/Room.js",
+    "importStyle": null,
+    "description": "Room.js",
+    "lineNumber": 8,
+    "unknown": [
+      {
+        "tagName": "@description",
+        "tagValue": ":: TODO: You might write a short summary of how this model works and what it represents here."
+      },
+      {
+        "tagName": "@docs",
+        "tagValue": "       :: http://sailsjs.org/#!documentation/models"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 12,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/models/User.js",
+    "memberof": null,
+    "longname": "api/models/User.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "content": "/**\r\n* User.js\r\n*\r\n* @description :: TODO: You might write a short summary of how this model works and what it represents here.\r\n* @docs        :: http://sailsjs.org/#!documentation/models\r\n*/\r\n\r\nmodule.exports = {\r\n\r\n  schema: true,\r\n\r\n  attributes: {\r\n\r\n    isFullAccount: {\r\n\r\n      type: 'boolean',\r\n      required: true,\r\n    },\r\n\r\n    username: {\r\n\r\n      type: 'string',\r\n      unique: true,\r\n    },\r\n\r\n    password: {\r\n\r\n      type: 'string',\r\n    },\r\n\r\n    email: {\r\n\r\n      type: 'email',\r\n      unique: true,\r\n    },\r\n\r\n    rooms: {\r\n\r\n      collection: 'room',\r\n      via: 'users',\r\n    },\r\n\r\n    ideas: {\r\n\r\n      collection: 'idea',\r\n      via: 'user',\r\n    },\r\n  },\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 13,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/policies/bearerAuth.js",
+    "memberof": null,
+    "longname": "api/policies/bearerAuth.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "content": "/**\r\n* bearerAuth Policy\r\n *\r\n * Policy for authorizing API requests. The request is authenticated if the\r\n * it contains the accessToken in header, body or as a query param.\r\n * Unlike other strategies bearer doesn't require a session.\r\n * Add this policy (in config/policies.js) to controller actions which are not\r\n * accessed through a session. For example: API request from another client\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n */\r\n\r\nmodule.exports = function(req, res, next) {\r\n\r\n  return passport.authenticate('bearer', { session: false })(req, res, next);\r\n};\r\n"
+  },
+  {
+    "__docId__": 14,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/policies/bearerAuth.js",
+    "longname": "api/policies/bearerAuth.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/policies/bearerAuth.js",
+    "importStyle": null,
+    "description": "bearerAuth Policy\n\nPolicy for authorizing API requests. The request is authenticated if the\nit contains the accessToken in header, body or as a query param.\nUnlike other strategies bearer doesn't require a session.\nAdd this policy (in config/policies.js) to controller actions which are not\naccessed through a session. For example: API request from another client",
+    "lineNumber": 15,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 15,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/policies/passport.js",
+    "memberof": null,
+    "longname": "api/policies/passport.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 24,
+    "content": "/**\r\n * Passport Middleware\r\n *\r\n * Policy for Sails that initializes Passport.js and as well as its built-in\r\n * session support.\r\n *\r\n * In a typical web application, the credentials used to authenticate a user\r\n * will only be transmitted during the login request. If authentication\r\n * succeeds, a session will be established and maintained via a cookie set in\r\n * the user's browser.\r\n *\r\n * Each subsequent request will not contain credentials, but rather the unique\r\n * cookie that identifies the session. In order to support login sessions,\r\n * Passport will serialize and deserialize user instances to and from the\r\n * session.\r\n *\r\n * For more information on the Passport.js middleware, check out:\r\n * http://passportjs.org/guide/configure/\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n */\r\nmodule.exports = function(req, res, next) {\r\n  // Initialize Passport\r\n  passport.initialize()(req, res, function() {\r\n    // Use the built-in sessions\r\n    passport.session()(req, res, function() {\r\n      // Make the user available throughout the frontend\r\n      res.locals.user = req.user;\r\n\r\n      next();\r\n    });\r\n  });\r\n};\r\n"
+  },
+  {
+    "__docId__": 16,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/policies/passport.js",
+    "longname": "api/policies/passport.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/policies/passport.js",
+    "importStyle": null,
+    "description": "Passport Middleware\n\nPolicy for Sails that initializes Passport.js and as well as its built-in\nsession support.\n\nIn a typical web application, the credentials used to authenticate a user\nwill only be transmitted during the login request. If authentication\nsucceeds, a session will be established and maintained via a cookie set in\nthe user's browser.\n\nEach subsequent request will not contain credentials, but rather the unique\ncookie that identifies the session. In order to support login sessions,\nPassport will serialize and deserialize user instances to and from the\nsession.\n\nFor more information on the Passport.js middleware, check out:\nhttp://passportjs.org/guide/configure/",
+    "lineNumber": 24,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 17,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/policies/sessionAuth.js",
+    "memberof": null,
+    "longname": "api/policies/sessionAuth.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 10,
+    "content": "/**\r\n * sessionAuth\r\n *\r\n * @module      :: Policy\r\n * @description :: Simple policy to allow any authenticated user\r\n *                 Assumes that your login action in one of your controllers sets `req.session.authenticated = true;`\r\n * @docs        :: http://sailsjs.org/#!/documentation/concepts/Policies\r\n *\r\n */\r\nmodule.exports = function(req, res, next) {\r\n\r\n  // User is allowed, proceed to the next policy,\r\n  // or if this is the last policy, the controller\r\n  if (req.session.authenticated) {\r\n    res.redirect('/login');\r\n    return next();\r\n  }\r\n\r\n  // User is not allowed\r\n  // (default res.forbidden() behavior can be overridden in `config/403.js`)\r\n  return res.forbidden('You are not permitted to perform this action.');\r\n};\r\n"
+  },
+  {
+    "__docId__": 18,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/policies/sessionAuth.js",
+    "longname": "api/policies/sessionAuth.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/policies/sessionAuth.js",
+    "importStyle": null,
+    "description": "sessionAuth",
+    "lineNumber": 10,
+    "unknown": [
+      {
+        "tagName": "@module",
+        "tagValue": "     :: Policy"
+      },
+      {
+        "tagName": "@description",
+        "tagValue": ":: Simple policy to allow any authenticated user\n                Assumes that your login action in one of your controllers sets `req.session.authenticated = true;`"
+      },
+      {
+        "tagName": "@docs",
+        "tagValue": "       :: http://sailsjs.org/#!/documentation/concepts/Policies"
+      }
+    ],
+    "params": [
+      {
+        "name": "req",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "res",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "next",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 19,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/responses/badRequest.js",
+    "memberof": null,
+    "longname": "api/responses/badRequest.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "content": "/**\r\n * 400 (Bad Request) Handler\r\n *\r\n * Usage:\r\n * return res.badRequest();\r\n * return res.badRequest(data);\r\n * return res.badRequest(data, 'some/specific/badRequest/view');\r\n *\r\n * e.g.:\r\n * ```\r\n * return res.badRequest(\r\n *   'Please choose a valid `password` (6-12 characters)',\r\n *   'trial/signup'\r\n * );\r\n * ```\r\n */\r\n\r\nmodule.exports = function badRequest(data, options) {\r\n\r\n  // Get access to `req`, `res`, & `sails`\r\n  const req = this.req;\r\n  const res = this.res;\r\n  const sails = req._sails;\r\n\r\n  // Set status code\r\n  res.status(400);\r\n\r\n  // Log error to console\r\n  if (data !== undefined) {\r\n    sails.log.verbose('Sending 400 (\"Bad Request\") response: \\n', data);\r\n  }\r\n  else sails.log.verbose('Sending 400 (\"Bad Request\") response');\r\n\r\n  // Only include errors in response if application environment\r\n  // is not set to 'production'.  In production, we shouldn't\r\n  // send back any identifying information about errors.\r\n  if (sails.config.environment === 'production') {\r\n    data = undefined;\r\n  }\r\n\r\n  // If the user-agent wants JSON, always respond with JSON\r\n  if (req.wantsJSON) {\r\n    return res.jsonx(data);\r\n  }\r\n\r\n  // If second argument is a string, we take that to mean it refers to a view.\r\n  // If it was omitted, use an empty object (`{}`)\r\n  options = (typeof options === 'string') ? { view: options } : options || {};\r\n\r\n  // If a view was provided in options, serve it.\r\n  // Otherwise try to guess an appropriate view, or if that doesn't\r\n  // work, just send JSON.\r\n  if (options.view) {\r\n    return res.view(options.view, { data: data });\r\n  }\r\n\r\n  // If no second argument provided, try to serve the implied view,\r\n  // but fall back to sending JSON(P) if no view can be inferred.\r\n  else {\r\n    return res.guessView({ data: data }, function couldNotGuessView() {\r\n      return res.jsonx(data);\r\n    });\r\n  }\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 20,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/responses/badRequest.js",
+    "longname": "api/responses/badRequest.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/responses/badRequest.js",
+    "importStyle": null,
+    "description": "400 (Bad Request) Handler\n\nUsage:\nreturn res.badRequest();\nreturn res.badRequest(data);\nreturn res.badRequest(data, 'some/specific/badRequest/view');\n\ne.g.:\n```\nreturn res.badRequest(\n  'Please choose a valid `password` (6-12 characters)',\n  'trial/signup'\n);\n```",
+    "lineNumber": 18,
+    "params": [
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "options",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 21,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/responses/forbidden.js",
+    "memberof": null,
+    "longname": "api/responses/forbidden.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "content": "/**\r\n * 403 (Forbidden) Handler\r\n *\r\n * Usage:\r\n * return res.forbidden();\r\n * return res.forbidden(err);\r\n * return res.forbidden(err, 'some/specific/forbidden/view');\r\n *\r\n * e.g.:\r\n * ```\r\n * return res.forbidden('Access denied.');\r\n * ```\r\n */\r\n\r\nmodule.exports = function forbidden(data, options) {\r\n\r\n  // Get access to `req`, `res`, & `sails`\r\n  const req = this.req;\r\n  const res = this.res;\r\n  const sails = req._sails;\r\n\r\n  // Set status code\r\n  res.status(403);\r\n\r\n  // Log error to console\r\n  if (data !== undefined) {\r\n    sails.log.verbose('Sending 403 (\"Forbidden\") response: \\n', data);\r\n  }\r\n  else sails.log.verbose('Sending 403 (\"Forbidden\") response');\r\n\r\n  // Only include errors in response if application environment\r\n  // is not set to 'production'.  In production, we shouldn't\r\n  // send back any identifying information about errors.\r\n  if (sails.config.environment === 'production') {\r\n    data = undefined;\r\n  }\r\n\r\n  // If the user-agent wants JSON, always respond with JSON\r\n  if (req.wantsJSON) {\r\n    return res.jsonx(data);\r\n  }\r\n\r\n  // If second argument is a string, we take that to mean it refers to a view.\r\n  // If it was omitted, use an empty object (`{}`)\r\n  options = (typeof options === 'string') ? { view: options } : options || {};\r\n\r\n  // If a view was provided in options, serve it.\r\n  // Otherwise try to guess an appropriate view, or if that doesn't\r\n  // work, just send JSON.\r\n  if (options.view) {\r\n    return res.view(options.view, { data: data });\r\n  }\r\n\r\n  // If no second argument provided, try to serve the default view,\r\n  // but fall back to sending JSON(P) if any errors occur.\r\n  else {\r\n    return res.view('403', { data: data }, (err, html) => {\r\n      // If a view error occured, fall back to JSON(P).\r\n      if (err) {\r\n        // Additionally:\r\n        // • If the view was missing, ignore the error but provide a verbose log.\r\n        if (err.code === 'E_VIEW_FAILED') {\r\n          sails.log.verbose('res.forbidden() :: Could not locate view for error page (sending JSON instead).  Details: ', err);\r\n        }\r\n        // Otherwise, if this was a more serious error, log to the console with the details.\r\n        else {\r\n          sails.log.warn('res.forbidden() :: When attempting to render error page view, an error occured (sending JSON instead).  Details: ', err);\r\n        }\r\n        return res.jsonx(data);\r\n      }\r\n\r\n      return res.send(html);\r\n    });\r\n  }\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 22,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/responses/forbidden.js",
+    "longname": "api/responses/forbidden.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/responses/forbidden.js",
+    "importStyle": null,
+    "description": "403 (Forbidden) Handler\n\nUsage:\nreturn res.forbidden();\nreturn res.forbidden(err);\nreturn res.forbidden(err, 'some/specific/forbidden/view');\n\ne.g.:\n```\nreturn res.forbidden('Access denied.');\n```",
+    "lineNumber": 15,
+    "params": [
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "options",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 23,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/responses/notFound.js",
+    "memberof": null,
+    "longname": "api/responses/notFound.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "content": "/**\r\n * 404 (Not Found) Handler\r\n *\r\n * Usage:\r\n * return res.notFound();\r\n * return res.notFound(err);\r\n * return res.notFound(err, 'some/specific/notfound/view');\r\n *\r\n * e.g.:\r\n * ```\r\n * return res.notFound();\r\n * ```\r\n *\r\n * NOTE:\r\n * If a request doesn't match any explicit routes (i.e. `config/routes.js`)\r\n * or route blueprints (i.e. \"shadow routes\", Sails will call `res.notFound()`\r\n * automatically.\r\n */\r\n\r\nmodule.exports = function notFound(data, options) {\r\n\r\n  // Get access to `req`, `res`, & `sails`\r\n  const req = this.req;\r\n  const res = this.res;\r\n  const sails = req._sails;\r\n\r\n  // Set status code\r\n  res.status(404);\r\n\r\n  // Log error to console\r\n  if (data !== undefined) {\r\n    sails.log.verbose('Sending 404 (\"Not Found\") response: \\n', data);\r\n  }\r\n  else sails.log.verbose('Sending 404 (\"Not Found\") response');\r\n\r\n  // Only include errors in response if application environment\r\n  // is not set to 'production'.  In production, we shouldn't\r\n  // send back any identifying information about errors.\r\n  if (sails.config.environment === 'production') {\r\n    data = undefined;\r\n  }\r\n\r\n  // If the user-agent wants JSON, always respond with JSON\r\n  if (req.wantsJSON) {\r\n    return res.jsonx(data);\r\n  }\r\n\r\n  // If second argument is a string, we take that to mean it refers to a view.\r\n  // If it was omitted, use an empty object (`{}`)\r\n  options = (typeof options === 'string') ? { view: options } : options || {};\r\n\r\n  // If a view was provided in options, serve it.\r\n  // Otherwise try to guess an appropriate view, or if that doesn't\r\n  // work, just send JSON.\r\n  if (options.view) {\r\n    return res.view(options.view, { data: data });\r\n  }\r\n\r\n  // If no second argument provided, try to serve the default view,\r\n  // but fall back to sending JSON(P) if any errors occur.\r\n  else {\r\n    return res.view('404', { data: data }, (err, html) => {\r\n      // If a view error occured, fall back to JSON(P).\r\n      if (err) {\r\n        //\r\n        // Additionally:\r\n        // • If the view was missing, ignore the error but provide a verbose log.\r\n        if (err.code === 'E_VIEW_FAILED') {\r\n          sails.log.verbose('res.notFound() :: Could not locate view for error page (sending JSON instead).  Details: ', err);\r\n        }\r\n        // Otherwise, if this was a more serious error, log to the console with the details.\r\n        else {\r\n          sails.log.warn('res.notFound() :: When attempting to render error page view, an error occured (sending JSON instead).  Details: ', err);\r\n        }\r\n        return res.jsonx(data);\r\n      }\r\n\r\n      return res.send(html);\r\n    });\r\n  }\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 24,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/responses/notFound.js",
+    "longname": "api/responses/notFound.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/responses/notFound.js",
+    "importStyle": null,
+    "description": "404 (Not Found) Handler\n\nUsage:\nreturn res.notFound();\nreturn res.notFound(err);\nreturn res.notFound(err, 'some/specific/notfound/view');\n\ne.g.:\n```\nreturn res.notFound();\n```\n\nNOTE:\nIf a request doesn't match any explicit routes (i.e. `config/routes.js`)\nor route blueprints (i.e. \"shadow routes\", Sails will call `res.notFound()`\nautomatically.",
+    "lineNumber": 20,
+    "params": [
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "options",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 25,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/responses/ok.js",
+    "memberof": null,
+    "longname": "api/responses/ok.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 14,
+    "content": "/**\r\n * 200 (OK) Response\r\n *\r\n * Usage:\r\n * return res.ok();\r\n * return res.ok(data);\r\n * return res.ok(data, 'auth/login');\r\n *\r\n * @param  {Object} data\r\n * @param  {String|Object} options\r\n *          - pass string to render specified view\r\n */\r\n\r\nmodule.exports = function sendOK(data, options) {\r\n\r\n  // Get access to `req`, `res`, & `sails`\r\n  const req = this.req;\r\n  const res = this.res;\r\n  const sails = req._sails;\r\n\r\n  sails.log.silly('res.ok() :: Sending 200 (\"OK\") response');\r\n\r\n  // Set status code\r\n  res.status(200);\r\n\r\n  // If appropriate, serve data as JSON(P)\r\n  if (req.wantsJSON) {\r\n    return res.jsonx(data);\r\n  }\r\n\r\n  // If second argument is a string, we take that to mean it refers to a view.\r\n  // If it was omitted, use an empty object (`{}`)\r\n  options = (typeof options === 'string') ? { view: options } : options || {};\r\n\r\n  // If a view was provided in options, serve it.\r\n  // Otherwise try to guess an appropriate view, or if that doesn't\r\n  // work, just send JSON.\r\n  if (options.view) {\r\n    return res.view(options.view, { data: data });\r\n  }\r\n  // If no second argument provided, try to serve the implied view,\r\n  // but fall back to sending JSON(P) if no view can be inferred.\r\n  else {\r\n    return res.guessView({ data: data }, function couldNotGuessView() {\r\n      return res.jsonx(data);\r\n    });\r\n  }\r\n};\r\n"
+  },
+  {
+    "__docId__": 26,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/responses/ok.js",
+    "longname": "api/responses/ok.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/responses/ok.js",
+    "importStyle": null,
+    "description": "200 (OK) Response\n\nUsage:\nreturn res.ok();\nreturn res.ok(data);\nreturn res.ok(data, 'auth/login');",
+    "lineNumber": 14,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "data",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String",
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options",
+        "description": "pass string to render specified view"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 27,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/responses/serverError.js",
+    "memberof": null,
+    "longname": "api/responses/serverError.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "content": "/**\r\n * 500 (Server Error) Response\r\n *\r\n * Usage:\r\n * return res.serverError();\r\n * return res.serverError(err);\r\n * return res.serverError(err, 'some/specific/error/view');\r\n *\r\n * NOTE:\r\n * If something throws in a policy or controller, or an internal\r\n * error is encountered, Sails will call `res.serverError()`\r\n * automatically.\r\n */\r\n\r\nmodule.exports = function serverError(data, options) {\r\n\r\n  // Get access to `req`, `res`, & `sails`\r\n  const req = this.req;\r\n  const res = this.res;\r\n  const sails = req._sails;\r\n\r\n  // Set status code\r\n  res.status(500);\r\n\r\n  // Log error to console\r\n  if (data !== undefined) {\r\n    sails.log.error('Sending 500 (\"Server Error\") response: \\n', data);\r\n  }\r\n  else sails.log.error('Sending empty 500 (\"Server Error\") response');\r\n\r\n  // Only include errors in response if application environment\r\n  // is not set to 'production'.  In production, we shouldn't\r\n  // send back any identifying information about errors.\r\n  if (sails.config.environment === 'production') {\r\n    data = undefined;\r\n  }\r\n\r\n  // If the user-agent wants JSON, always respond with JSON\r\n  if (req.wantsJSON) {\r\n    return res.jsonx(data);\r\n  }\r\n\r\n  // If second argument is a string, we take that to mean it refers to a view.\r\n  // If it was omitted, use an empty object (`{}`)\r\n  options = (typeof options === 'string') ? { view: options } : options || {};\r\n\r\n  // If a view was provided in options, serve it.\r\n  // Otherwise try to guess an appropriate view, or if that doesn't\r\n  // work, just send JSON.\r\n  if (options.view) {\r\n    return res.view(options.view, { data: data });\r\n  }\r\n  // If no second argument provided, try to serve the default view,\r\n  // but fall back to sending JSON(P) if any errors occur.\r\n  else {\r\n    return res.view('500', { data: data }, (err, html) => {\r\n      // If a view error occured, fall back to JSON(P).\r\n      if (err) {\r\n        // Additionally: If the view was missing, ignore the error but provide\r\n        // a verbose log.\r\n        if (err.code === 'E_VIEW_FAILED') {\r\n          sails.log.verbose('res.serverError() :: Could not locate view for error page (sending JSON instead).  Details: ', err);\r\n        }\r\n        // Otherwise, if this was a more serious error, log to the console\r\n        // with the details.\r\n        else {\r\n          sails.log.warn('res.serverError() :: When attempting to render error page view, an error occured (sending JSON instead).  Details: ', err);\r\n        }\r\n        return res.jsonx(data);\r\n      }\r\n      return res.send(html);\r\n    });\r\n  }\r\n};\r\n\r\n"
+  },
+  {
+    "__docId__": 28,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/responses/serverError.js",
+    "longname": "api/responses/serverError.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/responses/serverError.js",
+    "importStyle": null,
+    "description": "500 (Server Error) Response\n\nUsage:\nreturn res.serverError();\nreturn res.serverError(err);\nreturn res.serverError(err, 'some/specific/error/view');\n\nNOTE:\nIf something throws in a policy or controller, or an internal\nerror is encountered, Sails will call `res.serverError()`\nautomatically.",
+    "lineNumber": 15,
+    "params": [
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "options",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 29,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/passport.js",
+    "memberof": null,
+    "longname": "api/services/passport.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "const url = require('url');\r\nconst passport = require('passport');\r\n\r\n/**\r\n * Passport Service\r\n *\r\n * A painless Passport.js service for your Sails app that is guaranteed to\r\n * Rock Your Socks™. It takes all the hassle out of setting up Passport.js by\r\n * encapsulating all the boring stuff in two functions:\r\n *\r\n *   passport.endpoint()\r\n *   passport.callback()\r\n *\r\n * The former sets up an endpoint (/auth/:provider) for redirecting a user to a\r\n * third-party provider for authentication, while the latter sets up a callback\r\n * endpoint (/auth/:provider/callback) for receiving the response from the\r\n * third-party provider. All you have to do is define in the configuration which\r\n * third-party providers you'd like to support. It's that easy!\r\n *\r\n * Behind the scenes, the service stores all the data it needs within \"Pass-\r\n * ports\". These contain all the information required to associate a local user\r\n * with a profile from a third-party provider. This even holds true for the good\r\n * ol' password authentication scheme – the Authentication Service takes care of\r\n * encrypting passwords and storing them in Passports, allowing you to keep your\r\n * User model free of bloat.\r\n */\r\n\r\n// Load authentication protocols\r\npassport.protocols = require('./protocols');\r\n\r\n/**\r\n * Connect a third-party profile to a local user\r\n *\r\n * This is where most of the magic happens when a user is authenticating with a\r\n * third-party provider. What it does, is the following:\r\n *\r\n *   1. Given a provider and an identifier, find a matching Passport.\r\n *   2. From here, the logic branches into two paths.\r\n *\r\n *     - A user is not currently logged in:\r\n *       1. If a Passport wasn't found, create a new user as well as a new\r\n *          Passport that will be assigned to the user.\r\n *       2. If a Passport was found, get the user associated with the passport.\r\n *\r\n *     - A user is currently logged in:\r\n *       1. If a Passport wasn't found, create a new Passport and associate it\r\n *          with the already logged in user (ie. \"Connect\")\r\n *       2. If a Passport was found, nothing needs to happen.\r\n *\r\n * As you can see, this function handles both \"authentication\" and \"authori-\r\n * zation\" at the same time. This is due to the fact that we pass in\r\n * `passReqToCallback: true` when loading the strategies, allowing us to look\r\n * for an existing session in the request and taking action based on that.\r\n *\r\n * For more information on auth(entication|rization) in Passport.js, check out:\r\n * http://passportjs.org/guide/authenticate/\r\n * http://passportjs.org/guide/authorize/\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   query\r\n * @param {Object}   profile\r\n * @param {Function} next\r\n */\r\npassport.connect = function(req, query, profile, next) {\r\n  const user = {};\r\n  let provider;\r\n\r\n  // Get the authentication provider from the query.\r\n  query.provider = req.param('provider');\r\n\r\n  // Use profile.provider or fallback to the query.provider if it is undefined\r\n  // as is the case for OpenID, for example\r\n  provider = profile.provider || query.provider;\r\n\r\n  // If the provider cannot be identified we cannot match it to a passport so\r\n  // throw an error and let whoever's next in line take care of it.\r\n  if (!provider) {\r\n    return next(new Error('No authentication provider was identified.'));\r\n  }\r\n\r\n  // If the profile object contains a list of emails, grab the first one and\r\n  // add it to the user.\r\n  if (profile.hasOwnProperty('emails')) {\r\n    user.email = profile.emails[0].value;\r\n  }\r\n  // If the profile object contains a username, add it to the user.\r\n  if (profile.hasOwnProperty('username')) {\r\n    user.username = profile.username;\r\n  }\r\n\r\n  // If neither an email or a username was available in the profile, we don't\r\n  // have a way of identifying the user in the future. Throw an error and let\r\n  // whoever's next in the line take care of it.\r\n  if (!user.username && !user.email) {\r\n    return next(new Error('Neither a username nor email was available'));\r\n  }\r\n\r\n  Passport.findOne({\r\n    provider: provider,\r\n    identifier: query.identifier.toString(),\r\n  }, function(findErr, passport) {\r\n    if (findErr) {\r\n      return next(findErr);\r\n    }\r\n\r\n    if (!req.user) {\r\n      // Scenario: A new user is attempting to sign up using a third-party\r\n      //           authentication provider.\r\n      // Action:   Create a new user and assign them a passport.\r\n      if (!passport) {\r\n        User.create(user, function(userCreateErr) {\r\n          if (userCreateErr) {\r\n            if (userCreateErr.code === 'E_VALIDATION') {\r\n              if (userCreateErr.invalidAttributes.email) {\r\n                req.flash('error', 'Error.Passport.Email.Exists');\r\n              }\r\n              else {\r\n                req.flash('error', 'Error.Passport.User.Exists');\r\n              }\r\n            }\r\n            return next(userCreateErr);\r\n          }\r\n\r\n          query.user = user.id;\r\n\r\n          Passport.create(query, function(passCreateErr) {\r\n            // If a passport wasn't created, bail out\r\n            if (passCreateErr) {\r\n              return next(passCreateErr);\r\n            }\r\n            next(passCreateErr, user);\r\n          });\r\n        });\r\n      }\r\n      // Scenario: An existing user is trying to log in using an already\r\n      //           connected passport.\r\n      // Action:   Get the user associated with the passport.\r\n      else {\r\n        // If the tokens have changed since the last session, update them\r\n        if (query.hasOwnProperty('tokens') && query.tokens !== passport.tokens) {\r\n          passport.tokens = query.tokens;\r\n        }\r\n\r\n        // Save any updates to the Passport before moving on\r\n        passport.save(function(saveErr, passport) {\r\n          if (saveErr) {\r\n            return next(saveErr);\r\n          }\r\n\r\n          // Fetch the user associated with the Passport\r\n          User.findOne(passport.user.id, next);\r\n        });\r\n      }\r\n    }\r\n    else {\r\n      // Scenario: A user is currently logged in and trying to connect a new\r\n      //           passport.\r\n      // Action:   Create and assign a new passport to the user.\r\n      if (!passport) {\r\n        query.user = req.user.id;\r\n\r\n        Passport.create(query, function(err) {\r\n          // If a passport wasn't created, bail out\r\n          if (err) {\r\n            return next(err);\r\n          }\r\n          next(err, req.user);\r\n        });\r\n      }\r\n      // Scenario: The user is a nutjob or spammed the back-button.\r\n      // Action:   Simply pass along the already established session.\r\n      else {\r\n        next(null, req.user);\r\n      }\r\n    }\r\n  });\r\n};\r\n\r\n/**\r\n * Create an authentication endpoint\r\n *\r\n * For more information on authentication in Passport.js, check out:\r\n * http://passportjs.org/guide/authenticate/\r\n *\r\n * @param  {Object} req\r\n * @param  {Object} res\r\n */\r\npassport.endpoint = function(req, res) {\r\n  const strategies = sails.config.passport;\r\n  const provider = req.param('provider');\r\n  const options = {};\r\n\r\n  // If a provider doesn't exist for this endpoint, send the user back to the\r\n  // login page\r\n  if (!strategies.hasOwnProperty(provider)) {\r\n    return res.redirect('/login');\r\n  }\r\n\r\n  // Attach scope if it has been set in the config\r\n  if (strategies[provider].hasOwnProperty('scope')) {\r\n    options.scope = strategies[provider].scope;\r\n  }\r\n\r\n  // Redirect the user to the provider for authentication. When complete,\r\n  // the provider will redirect the user back to the application at\r\n  //     /auth/:provider/callback\r\n  this.authenticate(provider, options)(req, res, req.next);\r\n};\r\n\r\n/**\r\n * Create an authentication callback endpoint\r\n *\r\n * For more information on authentication in Passport.js, check out:\r\n * http://passportjs.org/guide/authenticate/\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n */\r\npassport.callback = function(req, res, next) {\r\n  const provider = req.param('provider', 'local');\r\n  const action = req.param('action');\r\n\r\n  // Passport.js wasn't really built for local user registration, but it's nice\r\n  // having it tied into everything else.\r\n  if (provider === 'local' && action !== undefined) {\r\n    if (action === 'register' && !req.user) {\r\n      this.protocols.local.register(req, res, next);\r\n    }\r\n    else if (action === 'connect' && req.user) {\r\n      this.protocols.local.connect(req, res, next);\r\n    }\r\n    else if (action === 'disconnect' && req.user) {\r\n      this.disconnect(req, res, next);\r\n    }\r\n    else {\r\n      next(new Error('Invalid action'));\r\n    }\r\n  }\r\n  else {\r\n    if (action === 'disconnect' && req.user) {\r\n      this.disconnect(req, res, next);\r\n    }\r\n    else {\r\n      // The provider will redirect the user to this URL after approval. Finish\r\n      // the authentication process by attempting to obtain an access token. If\r\n      // access was granted, the user will be logged in. Otherwise, authentication\r\n      // has failed.\r\n      this.authenticate(provider, next)(req, res, req.next);\r\n    }\r\n  }\r\n};\r\n\r\n/**\r\n * Load all strategies defined in the Passport configuration\r\n *\r\n * For example, we could add this to our config to use the GitHub strategy\r\n * with permission to access a users email address (even if it's marked as\r\n * private) as well as permission to add and update a user's Gists:\r\n *\r\n    github: {\r\n      name: 'GitHub',\r\n      protocol: 'oauth2',\r\n      strategy: require('passport-github').Strategy\r\n      scope: [ 'user', 'gist' ]\r\n      options: {\r\n        clientID: 'CLIENT_ID',\r\n        clientSecret: 'CLIENT_SECRET'\r\n      }\r\n    }\r\n *\r\n * For more information on the providers supported by Passport.js, check out:\r\n * http://passportjs.org/guide/providers/\r\n *\r\n */\r\npassport.loadStrategies = function() {\r\n  const self = this;\r\n  const strategies = sails.config.passport;\r\n\r\n  Object.keys(strategies).forEach(function(key) {\r\n    const options = { passReqToCallback: true };\r\n    let Strategy;\r\n\r\n    if (key === 'local') {\r\n      // Since we need to allow users to login using both usernames as well as\r\n      // emails, we'll set the username field to something more generic.\r\n      _.extend(options, { usernameField: 'identifier' });\r\n\r\n      // Let users override the username and passwordField from the options\r\n      _.extend(options, strategies[key].options || {});\r\n\r\n      // Only load the local strategy if it's enabled in the config\r\n      if (strategies.local) {\r\n        Strategy = strategies[key].strategy;\r\n\r\n        self.use(new Strategy(options, self.protocols.local.login));\r\n      }\r\n    }\r\n    else if (key === 'bearer') {\r\n\r\n      if (strategies.bearer) {\r\n        Strategy = strategies[key].strategy;\r\n        self.use(new Strategy(self.protocols.bearer.authorize));\r\n      }\r\n\r\n    }\r\n    else {\r\n      const protocol = strategies[key].protocol;\r\n      let callback = strategies[key].callback;\r\n\r\n      if (!callback) {\r\n        callback = 'auth/' + key + '/callback';\r\n      }\r\n\r\n      Strategy = strategies[key].strategy;\r\n\r\n      const baseUrl = sails.getBaseurl();\r\n\r\n      switch (protocol) {\r\n      case 'oauth':\r\n      case 'oauth2':\r\n        options.callbackURL = url.resolve(baseUrl, callback);\r\n        break;\r\n      case 'openid':\r\n        options.returnURL = url.resolve(baseUrl, callback);\r\n        options.realm = baseUrl;\r\n        options.profile = true;\r\n        break;\r\n      }\r\n\r\n      // Merge the default options with any options defined in the config. All\r\n      // defaults can be overriden, but I don't see a reason why you'd want to\r\n      // do that.\r\n      _.extend(options, strategies[key].options);\r\n\r\n      self.use(new Strategy(options, self.protocols[protocol]));\r\n    }\r\n  });\r\n};\r\n\r\n/**\r\n * Disconnect a passport from a user\r\n *\r\n * @param  {Object} req\r\n * @param  {Object} res\r\n */\r\npassport.disconnect = function(req, res, next) {\r\n  const user = req.user;\r\n  const provider = req.param('provider', 'local');\r\n  const query = {};\r\n\r\n  query.user = user.id;\r\n  query[provider === 'local' ? 'protocol' : 'provider'] = provider;\r\n\r\n  Passport.findOne(query, function(findErr, passport) {\r\n    if (findErr) {\r\n      return next(findErr);\r\n    }\r\n\r\n    Passport.destroy(passport.id, function(destroyErr) {\r\n      if (destroyErr) {\r\n        return next(destroyErr);\r\n      }\r\n\r\n      next(null, user);\r\n    });\r\n  });\r\n};\r\n\r\npassport.serializeUser(function(user, next) {\r\n  next(null, user.id);\r\n});\r\n\r\npassport.deserializeUser(function(id, next) {\r\n  User.findOne(id, next);\r\n});\r\n\r\nmodule.exports = passport;\r\n"
+  },
+  {
+    "__docId__": 30,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "url",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~url",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 1,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 31,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "passport",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~passport",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 32,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "connect",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~connect",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": "Connect a third-party profile to a local user\n\nThis is where most of the magic happens when a user is authenticating with a\nthird-party provider. What it does, is the following:\n\n  1. Given a provider and an identifier, find a matching Passport.\n  2. From here, the logic branches into two paths.\n\n    - A user is not currently logged in:\n      1. If a Passport wasn't found, create a new user as well as a new\n         Passport that will be assigned to the user.\n      2. If a Passport was found, get the user associated with the passport.\n\n    - A user is currently logged in:\n      1. If a Passport wasn't found, create a new Passport and associate it\n         with the already logged in user (ie. \"Connect\")\n      2. If a Passport was found, nothing needs to happen.\n\nAs you can see, this function handles both \"authentication\" and \"authori-\nzation\" at the same time. This is due to the fact that we pass in\n`passReqToCallback: true` when loading the strategies, allowing us to look\nfor an existing session in the request and taking action based on that.\n\nFor more information on auth(entication|rization) in Passport.js, check out:\nhttp://passportjs.org/guide/authenticate/\nhttp://passportjs.org/guide/authorize/",
+    "lineNumber": 64,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "query",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "profile",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 33,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "endpoint",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~endpoint",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": "Create an authentication endpoint\n\nFor more information on authentication in Passport.js, check out:\nhttp://passportjs.org/guide/authenticate/",
+    "lineNumber": 188,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 34,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "callback",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~callback",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": "Create an authentication callback endpoint\n\nFor more information on authentication in Passport.js, check out:\nhttp://passportjs.org/guide/authenticate/",
+    "lineNumber": 220,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 35,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "loadStrategies",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~loadStrategies",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": "Load all strategies defined in the Passport configuration\n\nFor example, we could add this to our config to use the GitHub strategy\nwith permission to access a users email address (even if it's marked as\nprivate) as well as permission to add and update a user's Gists:\n\n   github: {\n     name: 'GitHub',\n     protocol: 'oauth2',\n     strategy: require('passport-github').Strategy\n     scope: [ 'user', 'gist' ]\n     options: {\n       clientID: 'CLIENT_ID',\n       clientSecret: 'CLIENT_SECRET'\n     }\n   }\n\nFor more information on the providers supported by Passport.js, check out:\nhttp://passportjs.org/guide/providers/",
+    "lineNumber": 276,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 36,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "disconnect",
+    "memberof": "api/services/passport.js",
+    "longname": "api/services/passport.js~disconnect",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/passport.js",
+    "importStyle": null,
+    "description": "Disconnect a passport from a user",
+    "lineNumber": 347,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 37,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/bearer.js",
+    "memberof": null,
+    "longname": "api/services/protocols/bearer.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 11,
+    "content": "/*\r\n * Bearer Authentication Protocol\r\n *\r\n * Bearer Authentication is for authorizing API requests. Once\r\n * a user is created, a token is also generated for that user\r\n * in its passport. This token can be used to authenticate\r\n * API requests.\r\n *\r\n */\r\n\r\nexports.authorize = function(token, done) {\r\n  Passport.findOne({ accessToken: token }, function(passFindErr, passport) {\r\n    if (passFindErr) { return done(passFindErr); }\r\n    if (!passport) { return done(null, false); }\r\n\r\n    User.findOneById(passport.user, function(userFindErr, user) {\r\n      if (userFindErr) { return done(userFindErr); }\r\n      if (!user) { return done(null, false); }\r\n      return done(null, user, { scope: 'all' });\r\n    });\r\n  });\r\n};\r\n"
+  },
+  {
+    "__docId__": 38,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "authorize",
+    "memberof": "api/services/protocols/bearer.js",
+    "longname": "api/services/protocols/bearer.js~authorize",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/bearer.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "params": [
+      {
+        "name": "token",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "done",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 39,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/cas.js",
+    "memberof": null,
+    "longname": "api/services/protocols/cas.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 11,
+    "content": "/**\r\n * Central Authentication Service (CAS) Authentication Protocol\r\n *\r\n * CAS is a single sign-on protocol meant to give a user access to\r\n * more than one application by only submitting their credentials once.\r\n *\r\n * @param {Object}   req\r\n * @param {string}   identifier\r\n * @param {Function} next\r\n */\r\nmodule.exports = function(req, identifier, next) {\r\n  const query = {\r\n    identifier: identifier,\r\n    protocol: 'cas',\r\n  };\r\n\r\n  passport.connect(req, query, {username: identifier}, next);\r\n};\r\n"
+  },
+  {
+    "__docId__": 40,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/services/protocols/cas.js",
+    "longname": "api/services/protocols/cas.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/cas.js",
+    "importStyle": null,
+    "description": "Central Authentication Service (CAS) Authentication Protocol\n\nCAS is a single sign-on protocol meant to give a user access to\nmore than one application by only submitting their credentials once.",
+    "lineNumber": 11,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "identifier",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 41,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/index.js",
+    "memberof": null,
+    "longname": "api/services/protocols/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 14,
+    "content": "/**\r\n * Authentication Protocols\r\n *\r\n * Protocols where introduced to patch all the little inconsistencies between\r\n * the different authentication APIs. While the local authentication strategy\r\n * is as straigt-forward as it gets, there are some differences between the\r\n * services that expose an API for authentication.\r\n *\r\n * For example, OAuth 1.0 and OAuth 2.0 both handle delegated authentication\r\n * using tokens, but the tokens have changed between the two versions. This\r\n * is accomodated by having a single `token` object in the Passport model that\r\n * can contain any combination of tokens issued by the authentication API.\r\n */\r\nmodule.exports = {\r\n  local: require('./local'),\r\n  oauth: require('./oauth'),\r\n  oauth2: require('./oauth2'),\r\n  openid: require('./openid'),\r\n  bearer: require('./bearer'),\r\n  cas: require('./cas'),\r\n};\r\n"
+  },
+  {
+    "__docId__": 42,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/local.js",
+    "memberof": null,
+    "longname": "api/services/protocols/local.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "const validator = require('validator');\r\nconst crypto = require('crypto');\r\n\r\n/**\r\n * Local Authentication Protocol\r\n *\r\n * The most widely used way for websites to authenticate users is via a username\r\n * and/or email as well as a password. This module provides functions both for\r\n * registering entirely new users, assigning passwords to already registered\r\n * users and validating login requesting.\r\n *\r\n * For more information on local authentication in Passport.js, check out:\r\n * http://passportjs.org/guide/username-password/\r\n */\r\n\r\n/**\r\n * Register a new user\r\n *\r\n * This method creates a new user from a specified email, username and password\r\n * and assign the newly created user a local Passport.\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n */\r\nexports.register = function(req, res, next) {\r\n  const email = req.param('email');\r\n  const username = req.param('username');\r\n  const password = req.param('password');\r\n  let token;\r\n\r\n  if (!email) {\r\n    req.flash('error', 'Error.Passport.Email.Missing');\r\n    return next(new Error('No email was entered.'));\r\n  }\r\n\r\n  if (!username) {\r\n    req.flash('error', 'Error.Passport.Username.Missing');\r\n    return next(new Error('No username was entered.'));\r\n  }\r\n\r\n  if (!password) {\r\n    req.flash('error', 'Error.Passport.Password.Missing');\r\n    return next(new Error('No password was entered.'));\r\n  }\r\n\r\n  User.create({\r\n    username: username,\r\n    email: email,\r\n  }, function(userCreateErr, user) {\r\n    if (userCreateErr) {\r\n      if (userCreateErr.code === 'E_VALIDATION') {\r\n        if (userCreateErr.invalidAttributes.email) {\r\n          req.flash('error', 'Error.Passport.Email.Exists');\r\n        }\r\n        else {\r\n          req.flash('error', 'Error.Passport.User.Exists');\r\n        }\r\n      }\r\n\r\n      return next(userCreateErr);\r\n    }\r\n\r\n    // Generating accessToken for API authentication\r\n    token = crypto.randomBytes(48).toString('base64');\r\n\r\n    Passport.create({\r\n      protocol: 'local',\r\n      password: password,\r\n      user: user.id,\r\n      accessToken: token,\r\n    }, function(passCreateErr) {\r\n      if (passCreateErr) {\r\n        if (passCreateErr.code === 'E_VALIDATION') {\r\n          req.flash('error', 'Error.Passport.Password.Invalid');\r\n        }\r\n\r\n        return user.destroy(function(destroyErr) {\r\n          next(destroyErr || passCreateErr);\r\n        });\r\n      }\r\n\r\n      next(null, user);\r\n    });\r\n  });\r\n};\r\n\r\n/**\r\n * Assign local Passport to user\r\n *\r\n * This function can be used to assign a local Passport to a user who doens't\r\n * have one already. This would be the case if the user registered using a\r\n * third-party service and therefore never set a password.\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n */\r\nexports.connect = function(req, res, next) {\r\n  const user = req.user;\r\n  const password = req.param('password');\r\n\r\n  Passport.findOne({\r\n    protocol: 'local',\r\n    user: user.id,\r\n  }, function(passFindErr, passport) {\r\n    if (passFindErr) { return next(passFindErr); }\r\n\r\n    if (!passport) {\r\n      Passport.create({\r\n        protocol: 'local',\r\n        password: password,\r\n        user: user.id,\r\n      }, function(passCreateErr) {\r\n        next(passCreateErr, user);\r\n      });\r\n    }\r\n    else {\r\n      next(null, user);\r\n    }\r\n  });\r\n};\r\n\r\n/**\r\n * Validate a login request\r\n *\r\n * Looks up a user using the supplied identifier (email or username) and then\r\n * attempts to find a local Passport associated with the user. If a Passport is\r\n * found, its password is checked against the password supplied in the form.\r\n *\r\n * @param {Object}   req\r\n * @param {string}   identifier\r\n * @param {string}   password\r\n * @param {Function} next\r\n */\r\nexports.login = function(req, identifier, password, next) {\r\n  const isEmail = validator.isEmail(identifier);\r\n  const query = {};\r\n\r\n  if (isEmail) {\r\n    query.email = identifier;\r\n  }\r\n  else {\r\n    query.username = identifier;\r\n  }\r\n\r\n  User.findOne(query, function(userFindErr, user) {\r\n    if (userFindErr) {\r\n      return next(userFindErr);\r\n    }\r\n\r\n    if (!user) {\r\n      if (isEmail) {\r\n        req.flash('error', 'Error.Passport.Email.NotFound');\r\n      }\r\n      else {\r\n        req.flash('error', 'Error.Passport.Username.NotFound');\r\n      }\r\n\r\n      return next(null, false);\r\n    }\r\n\r\n    Passport.findOne({\r\n      protocol: 'local',\r\n      user: user.id,\r\n    }, function(err, passport) {\r\n      if (passport) {\r\n        passport.validatePassword(password, function(passFindErr, res) {\r\n          if (passFindErr) {\r\n            return next(passFindErr);\r\n          }\r\n\r\n          if (!res) {\r\n            req.flash('error', 'Error.Passport.Password.Wrong');\r\n            return next(null, false);\r\n          }\r\n          else {\r\n            return next(null, user);\r\n          }\r\n        });\r\n      }\r\n      else {\r\n        req.flash('error', 'Error.Passport.Password.NotSet');\r\n        return next(null, false);\r\n      }\r\n    });\r\n  });\r\n};\r\n"
+  },
+  {
+    "__docId__": 43,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "validator",
+    "memberof": "api/services/protocols/local.js",
+    "longname": "api/services/protocols/local.js~validator",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/local.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 1,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 44,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "crypto",
+    "memberof": "api/services/protocols/local.js",
+    "longname": "api/services/protocols/local.js~crypto",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/local.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 45,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "register",
+    "memberof": "api/services/protocols/local.js",
+    "longname": "api/services/protocols/local.js~register",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/local.js",
+    "importStyle": null,
+    "description": "Register a new user\n\nThis method creates a new user from a specified email, username and password\nand assign the newly created user a local Passport.",
+    "lineNumber": 26,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 46,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "connect",
+    "memberof": "api/services/protocols/local.js",
+    "longname": "api/services/protocols/local.js~connect",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/local.js",
+    "importStyle": null,
+    "description": "Assign local Passport to user\n\nThis function can be used to assign a local Passport to a user who doens't\nhave one already. This would be the case if the user registered using a\nthird-party service and therefore never set a password.",
+    "lineNumber": 99,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "res",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 47,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "login",
+    "memberof": "api/services/protocols/local.js",
+    "longname": "api/services/protocols/local.js~login",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/local.js",
+    "importStyle": null,
+    "description": "Validate a login request\n\nLooks up a user using the supplied identifier (email or username) and then\nattempts to find a local Passport associated with the user. If a Passport is\nfound, its password is checked against the password supplied in the form.",
+    "lineNumber": 136,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "identifier",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "password",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 48,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/oauth.js",
+    "memberof": null,
+    "longname": "api/services/protocols/oauth.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "content": "/**\r\n * OAuth Authentication Protocol\r\n *\r\n * OAuth 1.0 is a delegated authentication strategy that involves multiple\r\n * steps. First, a request token must be obtained. Next, the user is redirected\r\n * to the service provider to authorize access. Finally, after authorization has\r\n * been granted, the user is redirected back to the application and the request\r\n * token can be exchanged for an access token. The application requesting access,\r\n * known as a consumer, is identified by a consumer key and consumer secret.\r\n *\r\n * For more information on OAuth in Passport.js, check out:\r\n * http://passportjs.org/guide/oauth/\r\n *\r\n * @param {Object}   req\r\n * @param {string}   token\r\n * @param {string}   tokenSecret\r\n * @param {Object}   profile\r\n * @param {Function} next\r\n */\r\nmodule.exports = function(req, token, tokenSecret, profile, next) {\r\n  const query = {\r\n    identifier: profile.id,\r\n    protocol: 'oauth',\r\n    tokens: { token: token },\r\n  };\r\n\r\n  if (tokenSecret !== undefined) {\r\n    query.tokens.tokenSecret = tokenSecret;\r\n  }\r\n\r\n  passport.connect(req, query, profile, next);\r\n};\r\n"
+  },
+  {
+    "__docId__": 49,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/services/protocols/oauth.js",
+    "longname": "api/services/protocols/oauth.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/oauth.js",
+    "importStyle": null,
+    "description": "OAuth Authentication Protocol\n\nOAuth 1.0 is a delegated authentication strategy that involves multiple\nsteps. First, a request token must be obtained. Next, the user is redirected\nto the service provider to authorize access. Finally, after authorization has\nbeen granted, the user is redirected back to the application and the request\ntoken can be exchanged for an access token. The application requesting access,\nknown as a consumer, is identified by a consumer key and consumer secret.\n\nFor more information on OAuth in Passport.js, check out:\nhttp://passportjs.org/guide/oauth/",
+    "lineNumber": 20,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "token",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "tokenSecret",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "profile",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 50,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/oauth2.js",
+    "memberof": null,
+    "longname": "api/services/protocols/oauth2.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "content": "/**\r\n * OAuth 2.0 Authentication Protocol\r\n *\r\n * OAuth 2.0 is the successor to OAuth 1.0, and is designed to overcome\r\n * perceived shortcomings in the earlier version. The authentication flow is\r\n * essentially the same. The user is first redirected to the service provider\r\n * to authorize access. After authorization has been granted, the user is\r\n * redirected back to the application with a code that can be exchanged for an\r\n * access token. The application requesting access, known as a client, is iden-\r\n * tified by an ID and secret.\r\n *\r\n * For more information on OAuth in Passport.js, check out:\r\n * http://passportjs.org/guide/oauth/\r\n *\r\n * @param {Object}   req\r\n * @param {string}   accessToken\r\n * @param {string}   refreshToken\r\n * @param {Object}   profile\r\n * @param {Function} next\r\n */\r\nmodule.exports = function(req, accessToken, refreshToken, profile, next) {\r\n  const query = {\r\n    identifier: profile.id,\r\n    protocol: 'oauth2',\r\n    tokens: { accessToken: accessToken },\r\n  };\r\n\r\n  if (refreshToken !== undefined) {\r\n    query.tokens.refreshToken = refreshToken;\r\n  }\r\n\r\n  passport.connect(req, query, profile, next);\r\n};\r\n"
+  },
+  {
+    "__docId__": 51,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/services/protocols/oauth2.js",
+    "longname": "api/services/protocols/oauth2.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/oauth2.js",
+    "importStyle": null,
+    "description": "OAuth 2.0 Authentication Protocol\n\nOAuth 2.0 is the successor to OAuth 1.0, and is designed to overcome\nperceived shortcomings in the earlier version. The authentication flow is\nessentially the same. The user is first redirected to the service provider\nto authorize access. After authorization has been granted, the user is\nredirected back to the application with a code that can be exchanged for an\naccess token. The application requesting access, known as a client, is iden-\ntified by an ID and secret.\n\nFor more information on OAuth in Passport.js, check out:\nhttp://passportjs.org/guide/oauth/",
+    "lineNumber": 21,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "accessToken",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "refreshToken",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "profile",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 52,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "api/services/protocols/openid.js",
+    "memberof": null,
+    "longname": "api/services/protocols/openid.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "content": "/**\r\n * OpenID Authentication Protocol\r\n *\r\n * OpenID is an open standard for federated authentication. When visiting a\r\n * website, users present their OpenID to sign in. The user then authenticates\r\n * with their chosen OpenID provider, which issues an assertion to confirm the\r\n * user's identity. The website verifies this assertion in order to sign the\r\n * user in.\r\n *\r\n * For more information on OpenID in Passport.js, check out:\r\n * http://passportjs.org/guide/openid/\r\n *\r\n * @param {Object}   req\r\n * @param {string}   identifier\r\n * @param {Object}   profile\r\n * @param {Function} next\r\n */\r\nmodule.exports = function(req, identifier, profile, next) {\r\n  const query    = {\r\n    identifier: identifier,\r\n    protocol: 'openid',\r\n  };\r\n\r\n  passport.connect(req, query, profile, next);\r\n};\r\n"
+  },
+  {
+    "__docId__": 53,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "exports",
+    "memberof": "api/services/protocols/openid.js",
+    "longname": "api/services/protocols/openid.js~exports",
+    "access": null,
+    "export": false,
+    "importPath": "StormServer/api/services/protocols/openid.js",
+    "importStyle": null,
+    "description": "OpenID Authentication Protocol\n\nOpenID is an open standard for federated authentication. When visiting a\nwebsite, users present their OpenID to sign in. The user then authenticates\nwith their chosen OpenID provider, which issues an assertion to confirm the\nuser's identity. The website verifies this assertion in order to sign the\nuser in.\n\nFor more information on OpenID in Passport.js, check out:\nhttp://passportjs.org/guide/openid/",
+    "lineNumber": 18,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "req",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "identifier",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "profile",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "next",
+        "description": ""
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 55,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 56,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 57,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 58,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 59,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 61,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 66,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 75,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 76,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 77,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 78,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 105,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 108,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 109,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  }
+]

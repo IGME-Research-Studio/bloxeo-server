@@ -1,0 +1,520 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "Identifier",
+            "name": "module",
+            "range": [
+              485,
+              491
+            ],
+            "loc": {
+              "start": {
+                "line": 15,
+                "column": 0
+              },
+              "end": {
+                "line": 15,
+                "column": 6
+              }
+            }
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "exports",
+            "range": [
+              492,
+              499
+            ],
+            "loc": {
+              "start": {
+                "line": 15,
+                "column": 7
+              },
+              "end": {
+                "line": 15,
+                "column": 14
+              }
+            }
+          },
+          "range": [
+            485,
+            499
+          ],
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 0
+            },
+            "end": {
+              "line": 15,
+              "column": 14
+            }
+          }
+        },
+        "right": {
+          "type": "FunctionExpression",
+          "id": {
+            "type": "Identifier",
+            "name": "exports",
+            "range": [
+              492,
+              499
+            ],
+            "loc": {
+              "start": {
+                "line": 15,
+                "column": 7
+              },
+              "end": {
+                "line": 15,
+                "column": 14
+              }
+            }
+          },
+          "params": [
+            {
+              "type": "Identifier",
+              "name": "req",
+              "range": [
+                511,
+                514
+              ],
+              "loc": {
+                "start": {
+                  "line": 15,
+                  "column": 26
+                },
+                "end": {
+                  "line": 15,
+                  "column": 29
+                }
+              }
+            },
+            {
+              "type": "Identifier",
+              "name": "res",
+              "range": [
+                516,
+                519
+              ],
+              "loc": {
+                "start": {
+                  "line": 15,
+                  "column": 31
+                },
+                "end": {
+                  "line": 15,
+                  "column": 34
+                }
+              }
+            },
+            {
+              "type": "Identifier",
+              "name": "next",
+              "range": [
+                521,
+                525
+              ],
+              "loc": {
+                "start": {
+                  "line": 15,
+                  "column": 36
+                },
+                "end": {
+                  "line": 15,
+                  "column": 40
+                }
+              }
+            }
+          ],
+          "body": {
+            "type": "BlockStatement",
+            "body": [
+              {
+                "type": "ReturnStatement",
+                "argument": {
+                  "type": "CallExpression",
+                  "callee": {
+                    "type": "CallExpression",
+                    "callee": {
+                      "type": "MemberExpression",
+                      "computed": false,
+                      "object": {
+                        "type": "Identifier",
+                        "name": "passport",
+                        "range": [
+                          541,
+                          549
+                        ],
+                        "loc": {
+                          "start": {
+                            "line": 17,
+                            "column": 9
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 17
+                          }
+                        }
+                      },
+                      "property": {
+                        "type": "Identifier",
+                        "name": "authenticate",
+                        "range": [
+                          550,
+                          562
+                        ],
+                        "loc": {
+                          "start": {
+                            "line": 17,
+                            "column": 18
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 30
+                          }
+                        }
+                      },
+                      "range": [
+                        541,
+                        562
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 17,
+                          "column": 9
+                        },
+                        "end": {
+                          "line": 17,
+                          "column": 30
+                        }
+                      }
+                    },
+                    "arguments": [
+                      {
+                        "type": "Literal",
+                        "value": "bearer",
+                        "raw": "'bearer'",
+                        "range": [
+                          563,
+                          571
+                        ],
+                        "loc": {
+                          "start": {
+                            "line": 17,
+                            "column": 31
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 39
+                          }
+                        }
+                      },
+                      {
+                        "type": "ObjectExpression",
+                        "properties": [
+                          {
+                            "type": "Property",
+                            "key": {
+                              "type": "Identifier",
+                              "name": "session",
+                              "range": [
+                                575,
+                                582
+                              ],
+                              "loc": {
+                                "start": {
+                                  "line": 17,
+                                  "column": 43
+                                },
+                                "end": {
+                                  "line": 17,
+                                  "column": 50
+                                }
+                              }
+                            },
+                            "value": {
+                              "type": "Literal",
+                              "value": false,
+                              "raw": "false",
+                              "range": [
+                                584,
+                                589
+                              ],
+                              "loc": {
+                                "start": {
+                                  "line": 17,
+                                  "column": 52
+                                },
+                                "end": {
+                                  "line": 17,
+                                  "column": 57
+                                }
+                              }
+                            },
+                            "kind": "init",
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "range": [
+                              575,
+                              589
+                            ],
+                            "loc": {
+                              "start": {
+                                "line": 17,
+                                "column": 43
+                              },
+                              "end": {
+                                "line": 17,
+                                "column": 57
+                              }
+                            }
+                          }
+                        ],
+                        "range": [
+                          573,
+                          591
+                        ],
+                        "loc": {
+                          "start": {
+                            "line": 17,
+                            "column": 41
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 59
+                          }
+                        }
+                      }
+                    ],
+                    "range": [
+                      541,
+                      592
+                    ],
+                    "loc": {
+                      "start": {
+                        "line": 17,
+                        "column": 9
+                      },
+                      "end": {
+                        "line": 17,
+                        "column": 60
+                      }
+                    }
+                  },
+                  "arguments": [
+                    {
+                      "type": "Identifier",
+                      "name": "req",
+                      "range": [
+                        593,
+                        596
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 17,
+                          "column": 61
+                        },
+                        "end": {
+                          "line": 17,
+                          "column": 64
+                        }
+                      }
+                    },
+                    {
+                      "type": "Identifier",
+                      "name": "res",
+                      "range": [
+                        598,
+                        601
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 17,
+                          "column": 66
+                        },
+                        "end": {
+                          "line": 17,
+                          "column": 69
+                        }
+                      }
+                    },
+                    {
+                      "type": "Identifier",
+                      "name": "next",
+                      "range": [
+                        603,
+                        607
+                      ],
+                      "loc": {
+                        "start": {
+                          "line": 17,
+                          "column": 71
+                        },
+                        "end": {
+                          "line": 17,
+                          "column": 75
+                        }
+                      }
+                    }
+                  ],
+                  "range": [
+                    541,
+                    608
+                  ],
+                  "loc": {
+                    "start": {
+                      "line": 17,
+                      "column": 9
+                    },
+                    "end": {
+                      "line": 17,
+                      "column": 76
+                    }
+                  }
+                },
+                "range": [
+                  534,
+                  609
+                ],
+                "loc": {
+                  "start": {
+                    "line": 17,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 17,
+                    "column": 77
+                  }
+                }
+              }
+            ],
+            "range": [
+              527,
+              612
+            ],
+            "loc": {
+              "start": {
+                "line": 15,
+                "column": 42
+              },
+              "end": {
+                "line": 18,
+                "column": 1
+              }
+            }
+          },
+          "generator": false,
+          "expression": false,
+          "range": [
+            502,
+            612
+          ],
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 17
+            },
+            "end": {
+              "line": 18,
+              "column": 1
+            }
+          }
+        },
+        "range": [
+          485,
+          612
+        ],
+        "loc": {
+          "start": {
+            "line": 15,
+            "column": 0
+          },
+          "end": {
+            "line": 18,
+            "column": 1
+          }
+        }
+      },
+      "range": [
+        485,
+        613
+      ],
+      "loc": {
+        "start": {
+          "line": 15,
+          "column": 0
+        },
+        "end": {
+          "line": 18,
+          "column": 2
+        }
+      },
+      "leadingComments": [
+        {
+          "type": "Block",
+          "value": "*\r\n* bearerAuth Policy\r\n *\r\n * Policy for authorizing API requests. The request is authenticated if the\r\n * it contains the accessToken in header, body or as a query param.\r\n * Unlike other strategies bearer doesn't require a session.\r\n * Add this policy (in config/policies.js) to controller actions which are not\r\n * accessed through a session. For example: API request from another client\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n ",
+          "range": [
+            0,
+            481
+          ],
+          "loc": {
+            "start": {
+              "line": 1,
+              "column": 0
+            },
+            "end": {
+              "line": 13,
+              "column": 3
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "sourceType": "module",
+  "range": [
+    485,
+    613
+  ],
+  "loc": {
+    "start": {
+      "line": 15,
+      "column": 0
+    },
+    "end": {
+      "line": 18,
+      "column": 2
+    }
+  },
+  "comments": [
+    {
+      "type": "Block",
+      "value": "*\r\n* bearerAuth Policy\r\n *\r\n * Policy for authorizing API requests. The request is authenticated if the\r\n * it contains the accessToken in header, body or as a query param.\r\n * Unlike other strategies bearer doesn't require a session.\r\n * Add this policy (in config/policies.js) to controller actions which are not\r\n * accessed through a session. For example: API request from another client\r\n *\r\n * @param {Object}   req\r\n * @param {Object}   res\r\n * @param {Function} next\r\n ",
+      "range": [
+        0,
+        481
+      ],
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 0
+        },
+        "end": {
+          "line": 13,
+          "column": 3
+        }
+      }
+    }
+  ]
+}
