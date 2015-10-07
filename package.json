@@ -7,6 +7,8 @@
     "start": "sails lift",
     "test": "grunt test",
     "lint": "grunt lint",
+    "doc" : "grunt doc",
+    "doc-deploy": "grunt doc-deploy",
     "watch": "grunt watch"
   },
   "main": "app.js",
