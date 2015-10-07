@@ -20,6 +20,23 @@ module.exports = function (grunt) {
         src: testFiles
       }
     },
+      
+    jsdoc : {
+      dist : {
+		src: [srcFiles],
+        options: {
+          destination: './doc',
+		  configure : './config/jsdoc.json'
+        }
+      }
+    },
+      
+    'gh-pages': {
+      options: {
+        base: 'doc'
+      },
+      src: ['**']
+    },
 
     watch: {
       js: {
@@ -36,4 +53,6 @@ module.exports = function (grunt) {
   grunt.registerTask('default', ['lint', 'test']);
   grunt.registerTask('lint', 'eslint');
   grunt.registerTask('test', 'mochaTest');
+  grunt.registerTask('doc', 'jsdoc');
+  grunt.registerTask('doc-deploy', ['doc', 'gh-pages']);
 };
