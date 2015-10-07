@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: policies/sessionAuth.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,40 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: policies/sessionAuth.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * sessionAuth
+ *
+ * @module      :: Policy
+ * @description :: Simple policy to allow any authenticated user
+ *                 Assumes that your login action in one of your controllers sets `req.session.authenticated = true;`
+ * @docs        :: http://sailsjs.org/#!/documentation/concepts/Policies
+ *
+ */
+module.exports = function(req, res, next) {
 
+  // User is allowed, proceed to the next policy,
+  // or if this is the last policy, the controller
+  if (req.session.authenticated) {
+    res.redirect('/login');
+    return next();
+  }
 
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
+  // User is not allowed
+  // (default res.forbidden() behavior can be overridden in `config/403.js`)
+  return res.forbidden('You are not permitted to perform this action.');
+};
+</code></pre>
+        </article>
+    </section>
 
 
 
