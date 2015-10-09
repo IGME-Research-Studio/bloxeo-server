@@ -9,7 +9,7 @@ deployment:
   release:
     tag: /v.*/
     commands:
-      - git push -f git@heroku.com:storm-server-prod.git $CIRCLE_SHA1:master
+      - git push -f git@heroku.com:storm-server-prod.git $CIRCLE_SHA1:refs/heads/master
 
   staging:
     branch: stage
