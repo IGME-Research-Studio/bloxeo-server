@@ -13,6 +13,10 @@ module.exports = {
 
   attributes: {
 
+    name: {
+      type: 'string',
+    },
+
     roomId: {
 
       type: 'string',
@@ -24,9 +28,15 @@ module.exports = {
       required: true,
     },
 
+    owner: {
+    
+      model: 'user',
+      required: true,
+    },
+    
     admin: {
 
-      model: 'user',
+      collection: 'user',
     },
 
     users: {

@@ -11,6 +11,7 @@ describe('RoomModel', () => {
 
         roomId: 'abc123',
         isPublic: true,
+        owner: 10,
       })
 
       .then((room) => {

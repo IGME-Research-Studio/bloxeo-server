@@ -3,8 +3,9 @@
     "uid":18,
     "roomId":"xyz123",
     "isPublic":true,
-    "admin":10,
-    "users":[10, 11],
+    "owner":10,
+    "admin":[10, 11],
+    "users":[10, 11, 12],
     "ideas":[13, 14],
     "collections":[16]
   },
@@ -12,7 +13,8 @@
     "uid":19,
     "roomId":"xyz123",
     "isPublic":true,
-    "admin":12,
+    "owner":12,
+    "admin":[12],
     "users":[12],
     "ideas":[15],
     "collections":[17]
