@@ -11,7 +11,7 @@
 
 module.exports.models = {
 
-  connection: 'localMongo',
+  connection: 'mongo',
 
   /**
   * How and whether Sails will attempt to automatically rebuild the

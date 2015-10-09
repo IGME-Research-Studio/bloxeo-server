@@ -12,7 +12,7 @@
 module.exports = {
 
    models: {
-     connection: 'remoteMongo'
+     connection: 'mongo'
    },
 
   log: {
