@@ -8,12 +8,11 @@
 deployment:
   release:
     tag: /release-.*/
-    heroku:
-      appname: storm-server-prod
+    commands:
+      - git push -f git@heroku.com:storm-server-prod.git $CIRCLE_SHA1:master
 
   staging:
     branch: stage
-    heroku:
-      appname: storm-server-stage
-
-## Customize the test machine
+    commands:
+      - git push -f git@heroku.com:storm-server-stage.git $CIRCLE_SHA1:master
+# Customize the test machine
