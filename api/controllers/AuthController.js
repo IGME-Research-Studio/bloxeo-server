@@ -10,6 +10,7 @@ const CipherService = require('../services/CipherService');
 
 /**
 * Triggers when user authenticates via passport
+* TODO: move out of the controller to a service
 * @private
 */
 function _onPassportAuth(req, res, error, user, info) {
@@ -39,7 +40,6 @@ module.exports = {
   signup: function(req, res) {
     const values = _.omit(req.allParams(), 'id');
 
-    sails.log('On signup', values);
     User
       .create(values)
       .then(function(user) {
