@@ -1,0 +1,18 @@
+## Dependencies
+
+## Database setup
+
+## Test commands
+
+## Deployment commands
+deployment:
+  release:
+    tag: /release-.*/
+    commands:
+      - git push -f git@heroku.com:storm-server-prod.git $CIRCLE_SHA1:master
+
+  staging:
+    branch: stage
+    commands:
+      - git push -f git@heroku.com:storm-server-stage.git $CIRCLE_SHA1:master
+# Customize the test machine

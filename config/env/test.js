@@ -1,5 +1,5 @@
 /**
-* Development environment settings, occurs when NODE_ENV=development
+* Testing environment settings, occurs when NODE_ENV=test
 *
 * This file can include shared settings for a development team,
 * such as API keys or remote database passwords.  If you're using
@@ -12,6 +12,25 @@
 module.exports = {
 
   models: {
-    connection: 'mongo',
+    connection: 'test',
+    migrate: 'drop',
+  },
+
+  /**
+  * Set the port in the testing environment different than the development so
+  * that tests can be run simultaneously.
+  */
+  port: 1338,
+
+  hooks: {
+    csrf: false,
+    grunt: false,
+    i18n: false,
+    session: false,
+    views: false,
+  },
+
+  log: {
+    level: 'silent',
   },
 };
