@@ -31,16 +31,9 @@ module.exports.connections = {
     migrate: 'drop',
   },
 
-  remoteMongo: {
+  mongo: {
     adapter: 'sails-mongo',
-    url: process.env.MONGOLAB_URI,
-    migrate: 'alter',
-  },
-
-  localMongo: {
-    adapter: 'sails-mongo',
-    host: process.env.MONGO_HOST || 'localhost',
-    port: process.env.MONGO_PORT || '27017',
+    url: process.env.MONGOLAB_URI || 'localhost:27017',
     migrate: 'alter',
   },
 };
