@@ -6,6 +6,7 @@
     "debug": "sails lift --verbose",
     "start": "sails lift",
     "test": "grunt test",
+    "unit-test": "grunt unit-test",
     "lint": "grunt lint",
     "watch": "grunt watch"
   },
