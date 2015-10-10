@@ -36,7 +36,8 @@ module.exports = function (grunt) {
   // Load plugins
   require('load-grunt-tasks')(grunt);
 
-  grunt.registerTask('default', ['lint', 'test']);
+  grunt.registerTask('default', 'test');
   grunt.registerTask('lint', 'eslint');
-  grunt.registerTask('test', 'mochaTest');
+  grunt.registerTask('unit-test', 'mochaTest');
+  grunt.registerTask('test', ['lint', 'unit-test']);
 };
