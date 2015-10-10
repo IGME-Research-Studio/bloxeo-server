@@ -5,6 +5,9 @@ module.exports = function (grunt) {
       srcFiles = ['api/**/*.js'],
       jsFiles = srcFiles.concat(testFiles);
 
+  // Set test environment here for cross-platform
+  process.env.NODE_ENV='test';
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
