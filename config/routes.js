@@ -49,10 +49,12 @@ module.exports.routes = {
   'get /logout': 'AuthController.logout',
   'get /register': 'AuthController.register',
 
+
   'post /createUser': 'UserController.createUser',
 
-  'post /createRoom/:socketId': 'RoomController.createRoom',
-  //'post /joinRoom': 'RoomController.joinRoom',
+  'post /createRoom': 'RoomController.createRoom',
+  'post /joinRoom': 'RoomController.joinRoom',
+  'post /leaveRoom': 'RoomController.leaveRoom',
 
   'post /auth/local': 'AuthController.callback',
   'post /auth/local/:action': 'AuthController.callback',
