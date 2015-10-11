@@ -33,7 +33,7 @@ module.exports.connections = {
 
   mongo: {
     adapter: 'sails-mongo',
-    url: process.env.MONGOLAB_URI || 'localhost:27017',
+    url: process.env.MONGOLAB_URI || 'mongodb://localhost:27017',
     migrate: 'alter',
   },
 };
