@@ -15,17 +15,14 @@ module.exports = {
 
       type: 'string',
       required: true,
-    },
-
-    room: {
-
-      model: 'room',
+      notRegex: /^\s*$/,
     },
 
     user: {
 
       model: 'user',
     },
+
   },
 };
 

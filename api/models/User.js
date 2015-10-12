@@ -20,31 +20,26 @@ module.exports = {
     username: {
 
       type: 'string',
-      unique: true,
+      required: true,
     },
 
     password: {
 
       type: 'string',
+      required: function() {
+        return this.isFullAccount;
+      },
     },
 
     email: {
 
       type: 'email',
       unique: true,
+      required: function() {
+        return this.isFullAccount;
+      },
     },
 
-    rooms: {
-
-      collection: 'room',
-      via: 'users',
-    },
-
-    ideas: {
-
-      collection: 'idea',
-      via: 'user',
-    },
   },
 };
 

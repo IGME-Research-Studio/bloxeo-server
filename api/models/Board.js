@@ -13,23 +13,50 @@ module.exports = {
 
   attributes: {
 
+    name: {
+      type: 'string',
+    },
+
     roomId: {
 
       type: 'string',
-      // required: true,
-      // unique: true,
+    },
+
+    isPublic: {
+
+      type: 'boolean',
+      required: true,
+    },
+
+    owner: {
+
+      model: 'user',
+      required: true,
+    },
+
+    admins: {
+
+      collection: 'user',
     },
 
     users: {
 
       collection: 'user',
-      via: 'rooms',
+    },
+
+    pendingUsers: {
+
+      collection: 'user',
     },
 
     ideas: {
 
       collection: 'idea',
-      via: 'room',
+    },
+
+    collections: {
+
+      collection: 'ideaCollection',
     },
   },
 

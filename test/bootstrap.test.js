@@ -1,4 +1,5 @@
 const Sails = require('sails');
+const Barrels = require('barrels');
 
 const options = {
   loose: 'all',
@@ -13,7 +14,7 @@ global.babel = require('sails-hook-babel/node_modules/babel/register')(options);
 before(function(done) {
 
   // Increase the Mocha timeout so that Sails has enough time to lift.
-  this.timeout(5000);
+  this.timeout(10000);
 
   Sails.lift({
     // configuration for testing purposes
@@ -21,7 +22,10 @@ before(function(done) {
     const sails = server;
     if (err) return done(err);
     // here you can load fixtures, etc.
-    done(err, sails);
+    const barrels = new Barrels();
+    fixtures = barrels.data;
+
+    barrels.populate(function() {done(err, sails);});
   });
 });
 
