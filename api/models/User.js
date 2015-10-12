@@ -1,9 +1,11 @@
 /**
 * User.js
 *
-* @description :: TODO: You might write a short summary of how this model works and what it represents here.
+* @description :: Model for storing users
 * @docs        :: http://sailsjs.org/#!documentation/models
 */
+
+const HashService = require('../services/HashService');
 
 module.exports = {
 
@@ -20,7 +22,7 @@ module.exports = {
     username: {
 
       type: 'string',
-      unique: true,
+      alphanumericdashed: true,
     },
 
     password: {
@@ -34,6 +36,24 @@ module.exports = {
       unique: true,
     },
 
+    firstName: {
+
+      type: 'string',
+      defaultsTo: '',
+    },
+
+    lastName: {
+
+      type: 'string',
+      defaultsTo: '',
+    },
+
+    socialProfiles: {
+
+      type: 'object',
+      defaultsTo: {},
+    },
+
     rooms: {
 
       collection: 'room',
@@ -45,6 +65,44 @@ module.exports = {
       collection: 'idea',
       via: 'user',
     },
+
+    // When returning JSON don't include users password or social profiles
+    toJSON: function() {
+      const obj = this.toObject;
+
+      delete obj.password;
+      delete obj.socialProfiles;
+
+      return obj;
+    },
+  },
+
+  beforeUpdate: function(values, next) {
+    const id = values.id;
+    const password = values.password;
+
+    if (id && password) {
+      return User
+        .findOne({id: id})
+        .then(user => {
+          if (password === user.password) {
+            return next();
+          }
+          else {
+            values.password = HashService.bcrypt.hashSync(password);
+            return next();
+          }
+        })
+        .catch(next);
+    }
+    else {
+      next();
+    }
+  },
+
+  beforeCreate: function(values, next) {
+    values.password = HashService.bcrypt.hashSync(values.password);
+    next();
   },
 };
 

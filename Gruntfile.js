@@ -2,7 +2,7 @@ module.exports = function (grunt) {
   'use strict';
 
   var testFiles = ['test/**/*.js'],
-      srcFiles = ['api/**/*.js'],
+      srcFiles = ['api/**/*.js', 'config/**/*.js'],
       jsFiles = srcFiles.concat(testFiles);
 
   // Set test environment here for cross-platform
@@ -16,9 +16,6 @@ module.exports = function (grunt) {
     },
 
     mochaTest: {
-      // options: {
-      //   require: ['sails-hook-babel/node_modules/babel/register']
-      // },
       test: {
         src: testFiles
       }

@@ -11,11 +11,32 @@
 
 module.exports = {
 
-   models: {
-     connection: 'mongo'
-   },
+  /**
+  * Set the default database connection for models in the production
+  * environment (see config/connections.js and config/models.js )
+  */
+  models: {
+    connection: 'mongo',
+  },
 
+  hooks: {
+    csrf: false,
+    grunt: false,
+    i18n: false,
+    session: false,
+    views: false,
+  },
+
+  /**
+  * Set the port in the production environment to 80
+  */
+  port: process.env.port || 80,
+
+  /**
+  * Set the log level in production environment to "silent"
+  */
   log: {
-    level: "silent",
+    level: 'info',
   },
 };
+

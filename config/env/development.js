@@ -11,7 +11,27 @@
 
 module.exports = {
 
+  /**
+  * Set the default database connection for models in the development
+  * environment (see config/connections.js and config/models.js )
+  */
   models: {
     connection: 'mongo',
+    migrate: 'drop',
+  },
+
+  port: process.env.port || 1337,
+
+  hooks: {
+    csrf: false,
+    grunt: false,
+    i18n: false,
+    session: false,
+    views: false,
+  },
+
+  log: {
+    level: 'silly',
   },
 };
+
