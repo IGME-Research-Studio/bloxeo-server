@@ -15,6 +15,7 @@ module.exports = {
 
       type: 'string',
       required: true,
+      notRegex: /^\s*$/,
     },
 
     user: {

@@ -21,7 +21,7 @@ module.exports = {
 
       type: 'string',
     },
-    
+
     isPublic: {
 
       type: 'boolean',
@@ -29,12 +29,12 @@ module.exports = {
     },
 
     owner: {
-    
+
       model: 'user',
       required: true,
     },
-    
-    admin: {
+
+    admins: {
 
       collection: 'user',
     },
@@ -43,13 +43,10 @@ module.exports = {
 
       collection: 'user',
     },
-    
-    whiteList: {
+
+    pendingUsers: {
 
       collection: 'user',
-      required: function(){
-        return !this.isPublic;
-      }
     },
 
     ideas: {

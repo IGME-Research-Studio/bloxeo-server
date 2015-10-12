@@ -1,5 +1,5 @@
 const Sails = require('sails');
-var Barrels = require('barrels');
+const Barrels = require('barrels');
 
 const options = {
   loose: 'all',
@@ -22,10 +22,10 @@ before(function(done) {
     const sails = server;
     if (err) return done(err);
     // here you can load fixtures, etc.
-    var barrels = new Barrels();
+    const barrels = new Barrels();
     fixtures = barrels.data;
 
-    barrels.populate(function(){done(err, sails);});
+    barrels.populate(function() {done(err, sails);});
   });
 });
 

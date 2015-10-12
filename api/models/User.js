@@ -26,18 +26,18 @@ module.exports = {
     password: {
 
       type: 'string',
-      required: function(){
+      required: function() {
         return this.isFullAccount;
-      }
+      },
     },
 
     email: {
 
       type: 'email',
       unique: true,
-      required: function(){
+      required: function() {
         return this.isFullAccount;
-      }
+      },
     },
 
   },

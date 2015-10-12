@@ -21,7 +21,7 @@ describe('IdeaModel', () => {
 
       .catch(done);
     });
-    
+
     it('Should not create an Idea w/o content', (done) => {
 
       Idea.create()
@@ -32,9 +32,21 @@ describe('IdeaModel', () => {
         should.not.exist(idea);
         done();
       });
-    }); 
-  }); 
-  
+    });
+
+    it('Should not create an Idea with only whitespace content', (done) => {
+
+      Idea.create({content: '      '})
+
+      .exec(function(err, idea) {
+
+        should.exist(err);
+        should.not.exist(idea);
+        done();
+      });
+    });
+  });
+
   describe('#find()', () => {
 
     it('Should check the find function', (done) => {
@@ -43,24 +55,24 @@ describe('IdeaModel', () => {
 
       .then((ideas) => {
 
-        for(var i=0; i < ideas.length; i++){
-            expect(ideas[i].content).to.be.a('string');
-         }
+        for (let i = 0; i < ideas.length; i++) {
+          expect(ideas[i].content).to.be.a('string');
+        }
         done();
       })
 
       .catch(done);
     });
   });
-  
+
   describe('#findOne()', () => {
 
     it('Should check the findOne function', (done) => {
 
-      Idea.findOne({content:'Purple'})
-      
+      Idea.findOne({content: 'Purple'})
+
       .then((idea) => {
-      
+
         expect(idea.content).to.equal('Purple');
         done();
       })

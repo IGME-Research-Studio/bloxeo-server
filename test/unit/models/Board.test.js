@@ -1,58 +1,58 @@
 const expect = require('chai').expect;
 const should = require('chai').should();
 
-describe('RoomModel', () => {
+describe('BoardModel', () => {
 
   describe('#create()', () => {
 
-    it('Should create a Room', (done) => {
+    it('Should create a Board', (done) => {
 
-      Room.create({
+      Board.create({
 
         roomId: 'abc123',
         isPublic: true,
         owner: 10,
       })
 
-      .then((room) => {
+      .then((board) => {
 
-        expect(room.roomId).to.be.a('string');
+        expect(board.roomId).to.be.a('string');
 
         done();
       })
 
       .catch(done);
     });
-    
-    it('Should not create an incomplete Room', (done) => {
 
-      Room.create({
+    it('Should not create an incomplete Board', (done) => {
+
+      Board.create({
 
         roomId: 'abc124',
       })
 
-      .exec(function(err, room) {
+      .exec(function(err, board) {
 
         should.exist(err);
-        should.not.exist(room);
+        should.not.exist(board);
 
         done();
       });
     });
   });
-  
+
   describe('#find()', () => {
 
     it('Should check the find function', (done) => {
 
-      Room.find()
+      Board.find()
 
       .then((rooms) => {
 
-        for(var i=0; i < rooms.length; i++){
+        for (let i = 0; i < rooms.length; i++) {
           expect(rooms[i].roomId).to.be.a('string');
-         }
-      
+        }
+
         done();
       })
 
@@ -62,9 +62,9 @@ describe('RoomModel', () => {
 
   describe('#update()', () => {
 
-    it('Should update a Room', (done) => {
+    it('Should update a Board', (done) => {
 
-      Room.update({roomId: 'abc123'}, {roomId: 'abc12345'})
+      Board.update({roomId: 'abc123'}, {roomId: 'abc12345'})
 
       .then(() => {
 
@@ -77,9 +77,9 @@ describe('RoomModel', () => {
 
   describe('#destroy()', () => {
 
-    it('Should destroy a Room', (done) => {
+    it('Should destroy a Board', (done) => {
 
-      Room.destroy({roomID: 'abc12345'})
+      Board.destroy({roomID: 'abc12345'})
 
       .then(() => {
 

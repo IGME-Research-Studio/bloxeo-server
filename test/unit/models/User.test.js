@@ -27,9 +27,9 @@ describe('UserModel', () => {
 
       .catch(done);
     });
-    
+
     it('Should create a temp user', (done) => {
-      
+
       User.create({
 
         isFullAccount: false,
@@ -46,9 +46,9 @@ describe('UserModel', () => {
 
       .catch(done);
     });
-    
+
     it('Should not create an incomplete user', (done) => {
-      
+
       User.create({
 
         isFullAccount: true,
@@ -56,16 +56,16 @@ describe('UserModel', () => {
         email: 'braxtonissokewl@yahoo.com',
       })
 
-      .exec(function(err, user){
-        
+      .exec(function(err, user) {
+
         should.exist(err);
         should.not.exist(user);
-        
+
         done();
       });
     });
   });
-  
+
   describe('#find()', () => {
 
     it('Should check the find function', (done) => {
@@ -73,7 +73,7 @@ describe('UserModel', () => {
       User.find()
 
         .then((users) => {
-          for(var i=0; i < users.length; i++){
+          for (let i = 0; i < users.length; i++) {
             expect(users[i].isFullAccount).to.be.a('boolean');
             expect(users[i].username).to.be.a('string');
           }
@@ -83,12 +83,12 @@ describe('UserModel', () => {
       .catch(done);
     });
   });
-  
+
   describe('#findOne()', () => {
 
     it('Should check the findOne function', (done) => {
 
-      User.findOne({username:'braxtonissokewl'})
+      User.findOne({username: 'braxtonissokewl'})
 
         .then((user) => {
           expect(user.username).is.equal('braxtonissokewl');
