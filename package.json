@@ -2,15 +2,17 @@
   "name": "StormServer",
   "version": "0.0.3",
   "description": "Storm app server",
+  "main": "app.js",
   "scripts": {
     "debug": "sails lift --verbose",
     "start": "sails lift",
     "test": "grunt test",
     "unit-test": "grunt unit-test",
     "lint": "grunt lint",
-    "watch": "grunt watch"
+    "watch": "grunt watch",
+    "console": "sails console",
+    "clean": "rm -rf ./.tmp"
   },
-  "main": "app.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/IGME-Research-Studio/StormServer.git"
@@ -20,12 +22,13 @@
   "license": "UNLICENSED",
   "dependencies": {
     "async": "^1.4.2",
+    "babel": "^5.8.23",
     "bcryptjs": "^2.2.2",
+    "bluebird": "^2.10.1",
     "ejs": "~0.8.4",
     "load-grunt-tasks": "^3.2.0",
     "grunt": "0.4.2",
     "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-coffee": "~0.10.1",
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-copy": "~0.5.0",
     "grunt-contrib-cssmin": "~0.9.0",
@@ -37,20 +40,25 @@
     "grunt-sync": "~0.0.4",
     "include-all": "~0.1.3",
     "lodash": "^3.10.1",
+    "mkdirp": "^0.5.1",
     "passport": "^0.3.0",
-    "passport-facebook": "^2.0.0",
-    "passport-google-oauth": "^0.2.0",
-    "passport-http-bearer": "^1.0.1",
+    "passport-facebook-token": "^2.3.0",
+    "passport-github-token": "^1.1.0",
+    "passport-google-plus-token": "^1.7.1",
+    "passport-jwt": "^1.2.1",
     "passport-local": "^1.0.0",
-    "passport-twitter": "^1.0.3",
+    "passport-vkontakte-token": "^1.0.3",
     "rc": "~0.5.0",
     "sails": "~0.11.0",
     "sails-disk": "~0.10.0",
-    "sails-generate-auth": "^0.3.1",
-    "sails-hook-babel": "^5.0.1",
     "sails-mongo": "^0.11.4",
+    "sails-service-cipher": "^3.0.2",
+    "sails-service-error-codes": "^1.0.5",
+    "sails-service-hash": "^3.0.2",
+    "sails-service-storage": "^3.0.2",
     "shortid": "^2.2.2",
-    "validator": "^4.0.6"
+    "validator": "^4.0.6",
+    "winston": "^1.0.2"
   },
   "devDependencies": {
     "eslint": "^1.5.0",
@@ -61,6 +69,8 @@
     "grunt-mocha-test": "^0.12.7",
     "sails-memory": "^0.10.5",
     "chai": "^3.3.0",
+    "istanbul": "^0.3.17",
+    "sinon": "^1.15.4",
     "supertest": "^1.1.0"
   }
 }
