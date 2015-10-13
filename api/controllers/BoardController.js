@@ -11,7 +11,7 @@ module.exports = {
 
     const userSocketId = req.socket;
 
-  // cannot subscribe if the request is not through socket.io
+    // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
@@ -33,7 +33,7 @@ module.exports = {
       Board.subscribe(req, [boardId]);
       Board.publishUpdate(boardId);
 
-      sails.sockets.broadcast(boardId, 'boardoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});
+      sails.sockets.broadcast(boardId, 'boarJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});
     });
   },
 
