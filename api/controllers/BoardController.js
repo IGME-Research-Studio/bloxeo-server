@@ -7,75 +7,75 @@
 
 module.exports = {
 
-  createRoom: function(req, res) {
+  create: function(req, res) {
 
-  	var userSocketId = req.socket;
-  	console.log('RoomController userSocketId has value: ' + userSocketId);
+    const userSocketId = req.socket;
 
-  	// cannot subscribe if the request is not through socket.io
+  // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
-      return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
+      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-    Room.create({}).exec(function(err, created) {
+    Board.create(req.body).exec(function(err, created) {
 
-      var roomId = created.roomId;
+      const boardId = created.boardId;
 
       res.json({
 
-        message: 'Server: Room created with room id: ' + roomId,
-        roomId: created.roomId,
+        message: 'Server: Board created with board id: ' + boardId,
+        boardId: created.boardId,
       });
 
-      sails.sockets.join(userSocketId, roomId);
+      sails.sockets.join(userSocketId, boardId);
 
       // subscribe the user to the room (works)
-      Room.subscribe(req, [roomId]);
-      Room.publishUpdate(roomId);
+      Board.subscribe(req, [boardId]);
+      Board.publishUpdate(boardId);
 
-      sails.sockets.broadcast(roomId, 'roomJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});   	
+      sails.sockets.broadcast(boardId, 'boardoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});
     });
-  },  
+  },
 
-  joinRoom: function(req, res) {
+  join: function(req, res) {
 
-  	var userSocketId = req.socket;
-    var roomId = req.body.roomIdentifier;
+    const userSocketId = req.socket;
+    const boardId = req.body.boardIdentifier;
 
     // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
-      return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
+      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-    sails.sockets.join(userSocketId, roomId);
+    sails.sockets.join(userSocketId, boardId);
 
-    sails.sockets.broadcast(roomId, 'roomJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});
+    sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the board!'});
 
-    Room.subscribe(req, [roomId]);
+    Board.subscribe(req, [boardId]);
 
     res.json({
-      message: 'User ' + userId + ' subscribed to: ' + roomId,
+
+      message: 'User ' + userSocketId.id + ' subscribed to board with board id: ' + boardId,
     });
   },
 
-  leaveRoom: function(req, res) {
+  leave: function(req, res) {
 
-  	var userSocketId = req.socket;
-  	var roomId = req.body.roomIdentifier;
+    const userSocketId = req.socket;
+    const boardId = req.body.boardIdentifier;
 
-  	// cannot subscribe if the request is not through socket.io
+    // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
-      return res.badRequest('Only a client socket can subscribe to Louies.  You, sir, appear to be something... _else_.');
+      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-  	sails.sockets.leave(userSocketId, roomId);
+    sails.sockets.leave(userSocketId, boardId);
 
-  	res.json({
+    res.json({
 
-  	  message: 'Server: User with socket id: ' + userSocketId.id + ' left room with room id: ' + roomId,
-  	});
+      message: 'Server: User with socket id: ' + userSocketId.id + ' left board with board id: ' + boardId,
+    });
   },
 };

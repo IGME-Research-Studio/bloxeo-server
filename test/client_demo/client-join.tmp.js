@@ -3,32 +3,25 @@ const sailsIOClient = require('sails.io.js');
 
 var io = sailsIOClient(socketIOClient);
 
-var uuid;
-var userSocketId;
-var roomId = "NyreUFRke";
+//var uuid;
+var boardId = "NyreUFRke";
 
 io.sails.url = 'http://localhost:1337';
 
-io.socket.get('/user/createUser', function(response) {
-
-	console.log('Client: ' + response.message);
-
-	uuid = response.uuid;
-	userSocketId = response.userSocketId;
-	console.log('response.userSocketId has value: ' + userSocketId);
+io.socket.get('/user/create', {isFullAccount: false, username: 'braxtoniskewl'}, function(response) {
     
-    io.socket.post('/joinRoom', {roomId: roomId, userId: userSocketId}, function(data, jwres){
+    io.socket.post('/board/join', {boardIdentifier: boardId}, function(data, jwres){
 
       console.log(data);
     });
 });
 
-io.socket.on('roomJoined', function(data) {
+io.socket.on('boardJoined', function(data) {
 
 	console.log(data.message);
 });
 
-io.socket.on('room', function(data) {
+io.socket.on('board', function(data) {
   
-  console.log("room updated!");
+  console.log("board updated!");
 });

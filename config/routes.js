@@ -50,11 +50,11 @@ module.exports.routes = {
   'get /register': 'AuthController.register',
 
 
-  'post /createUser': 'UserController.createUser',
+  //'post /createUser': 'UserController.createUser',
 
-  'post /createRoom': 'RoomController.createRoom',
-  'post /joinRoom': 'RoomController.joinRoom',
-  'post /leaveRoom': 'RoomController.leaveRoom',
+  'post /board/create': 'BoardController.create',
+  'post /board/join': 'BoardController.join',
+  'post /board/leave': 'BoardController.leave',
 
   'post /auth/local': 'AuthController.callback',
   'post /auth/local/:action': 'AuthController.callback',

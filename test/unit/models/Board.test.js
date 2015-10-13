@@ -9,14 +9,14 @@ describe('BoardModel', () => {
 
       Board.create({
 
-        roomId: 'abc123',
+        boardId: 'abc123',
         isPublic: true,
-        owner: 10,
+        // owner: 10,
       })
 
       .then((board) => {
 
-        expect(board.roomId).to.be.a('string');
+        expect(board.boardId).to.be.a('string');
 
         done();
       })
@@ -28,7 +28,7 @@ describe('BoardModel', () => {
 
       Board.create({
 
-        roomId: 'abc124',
+        boardId: 'abc124',
       })
 
       .exec(function(err, board) {
@@ -47,10 +47,10 @@ describe('BoardModel', () => {
 
       Board.find()
 
-      .then((rooms) => {
+      .then((boards) => {
 
-        for (let i = 0; i < rooms.length; i++) {
-          expect(rooms[i].roomId).to.be.a('string');
+        for (let i = 0; i < boards.length; i++) {
+          expect(boards[i].boardId).to.be.a('string');
         }
 
         done();
@@ -64,7 +64,7 @@ describe('BoardModel', () => {
 
     it('Should update a Board', (done) => {
 
-      Board.update({roomId: 'abc123'}, {roomId: 'abc12345'})
+      Board.update({boardId: 'abc123'}, {boardId: 'abc12345'})
 
       .then(() => {
 
@@ -79,7 +79,7 @@ describe('BoardModel', () => {
 
     it('Should destroy a Board', (done) => {
 
-      Board.destroy({roomID: 'abc12345'})
+      Board.destroy({boardId: 'abc12345'})
 
       .then(() => {
 
