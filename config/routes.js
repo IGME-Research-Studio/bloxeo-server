@@ -54,6 +54,15 @@ module.exports.routes = {
 
   'post /board/:boardId/create': 'BoardController.create',
   'post /board/:boardId/destroy': 'BoardController.destroy',
+  'post /board/create': 'BoardController.create',
+  'post /board/join': 'BoardController.join',
+  'post /board/leave': 'BoardController.leave',
+
+  'post /idea/create': 'IdeaController.create',
+  'post /idea/delete': 'IdeaController.delete',
+
+  'post /auth/local': 'AuthController.callback',
+  'post /auth/local/:action': 'AuthController.callback',
 
   'get /auth/:provider': 'AuthController.provider',
   'get /auth/:provider/callback': 'AuthController.callback',
