@@ -12,13 +12,10 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
 
     eslint: {
-      target: jsFiles
+      target: jsFiles.concat(['!**/*.tmp.js'])
     },
 
     mochaTest: {
-      // options: {
-      //   require: ['sails-hook-babel/node_modules/babel/register']
-      // },
       test: {
         src: testFiles
       }

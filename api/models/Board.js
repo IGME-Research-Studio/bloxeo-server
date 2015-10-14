@@ -17,7 +17,7 @@ module.exports = {
       type: 'string',
     },
 
-    roomId: {
+    boardId: {
 
       type: 'string',
     },
@@ -28,11 +28,11 @@ module.exports = {
       required: true,
     },
 
-    owner: {
+/*    owner: {
 
       model: 'user',
       required: true,
-    },
+    },*/
 
     admins: {
 
@@ -61,7 +61,7 @@ module.exports = {
   },
 
   beforeCreate: function(model, cb) {
-    model.roomId = shortid.generate();
+    model.boardId = shortid.generate();
     cb();
   },
 };
