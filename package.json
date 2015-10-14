@@ -1,6 +1,6 @@
 {
   "name": "StormServer",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Storm app server",
   "scripts": {
     "debug": "sails lift --verbose",
