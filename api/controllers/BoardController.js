@@ -1,15 +1,15 @@
 /**
- * RoomController
+ * BoardController
  *
  * @description :: Server-side logic for managing rooms
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
+const board = require('../services/BoardService.js');
+
 module.exports = {
 
   create: function(req, res) {
-
-    const userSocketId = req.socket;
 
     // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
@@ -17,23 +17,66 @@ module.exports = {
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-    Board.create(req.body).exec(function(err, created) {
+    board.create(req.body)
+
+    .then(function(created) {
 
       const boardId = created.boardId;
 
-      res.json({
+      sails.sockets.join(req.socket.id, boardId);
+
+      sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + req.socket.id + ' has joined the room!'});
+
+      res.json(200, {
 
         message: 'Server: Board created with board id: ' + boardId,
         boardId: created.boardId,
-      });
+      });      
+    })
+    .catch(function(err)) {
 
-      sails.sockets.join(userSocketId, boardId);
+      if (err) {
 
-      // subscribe the user to the room (works)
-      Board.subscribe(req, [boardId]);
-      Board.publishUpdate(boardId);
+        console.log('An error occurred: ' + err);
 
-      sails.sockets.broadcast(boardId, 'boarJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the room!'});
+        res.json(500, {
+
+          message: 'Server: An error occurred: ' + err,
+        });
+      }    	
+    });
+  },
+
+  destroy: function(req, res) {
+
+  	const boardId = req.body.boardIdentifier;
+
+  	// cannot subscribe if the request is not through socket.io
+    if (!req.isSocket) {
+
+      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
+    }
+
+    board.destroy(boardId)
+
+    .then(function(deleted) {
+
+    	res.json(200, {
+
+    		message: 'Server: Board with boardId: ' + deleted.boardId + ' was destroyed.'
+    	});    	
+    })
+    .catch(function(err) {
+
+    	if (err) {
+
+    	  console.log('An error occurred: ' + err);
+
+        res.json(500, {
+
+          message: 'Server: An error occurred: ' + err,
+        });
+    	}
     });
   },
 
@@ -43,7 +86,7 @@ module.exports = {
     const boardId = req.body.boardIdentifier;
 
     // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
+    if (!isSocket) {
 
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
@@ -52,9 +95,7 @@ module.exports = {
 
     sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the board!'});
 
-    Board.subscribe(req, [boardId]);
-
-    res.json({
+    res.json(200, {
 
       message: 'User ' + userSocketId.id + ' subscribed to board with board id: ' + boardId,
     });
@@ -65,17 +106,11 @@ module.exports = {
     const userSocketId = req.socket;
     const boardId = req.body.boardIdentifier;
 
-    // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
+    res.json(200, {
 
-      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
-    }
+      message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + req.body.boardIdentifier,
+    });
 
     sails.sockets.leave(userSocketId, boardId);
-
-    res.json({
-
-      message: 'Server: User with socket id: ' + userSocketId.id + ' left board with board id: ' + boardId,
-    });
   },
 };
