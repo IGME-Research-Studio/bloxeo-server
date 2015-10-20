@@ -30,6 +30,9 @@ io.sails.url = 'http://localhost:1337';
 
       console.log(data);
     });
+
+    // add a user to the board
+    io.socket.post('/board/addUser', {})
   });
 });
 
