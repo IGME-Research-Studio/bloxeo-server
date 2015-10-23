@@ -13,69 +13,64 @@ module.exports = {
     if (!req.body.user || !req.body.boardId || !req.body.content) {
 
       // if one of the data requirements are missing, return bad request
-      return res.badRequest('Check parameters. Request should send "user, "content" and "boardID"');
+      return res.badRequest('Check create parameters. Request should send "user, "content" and "boardID"');
     }
     else {
 
-      // if all data is present, find the board
-      Board.findOne({boardId: req.body.boardId}).populate('ideas').exec(function(err, board) {
-
-        // if there are any ideas in the board already
-        if (board.ideas.length !== 0) {
-
-          // loop through all ideas
-          for (let i = 0; i < board.ideas.length; i++) {
-
-            // if an idea has the same content as the one the user wants to create
-            if (content.ideas[i].content === req.body.content) {
-
-              // return bad request
-              return res.badRequest('Duplicate idea');
-            }
-          }
-        }
-      });
-
       // call create idea service.
       // values in req.body must be "user", "content"
-      idea.create(req.body.user, req.body.content).exec(function(err, created) {
+      idea.create(req.body.user, req.body.content, req.body.boardId).then(function(created) {
 
-        if (err) {
+        // add the idea to the board
+        // board.addIdea(req.boardId, created);
 
-          // failure
-          res.json(500, {message: 'Something happened while trying to create an idea. Error: ' + err});
-        }
-        else {
+        // idea contents to send back to the user
+        const idea = {
 
-          // add the idea to the board
-          // board.addIdea(req.boardId, created);
+          user: created.user,
+          content: created.content,
+          id: created.id,
+        };
 
-          // server console message to show created entry
-          // console.log('\nidea created with id:');
-          // console.log(idea);
+        // emit the idea back through the socket and
+        // res.json the idea's id with status 200
+        sails.sockets.emit(req.socket.id, 'ideaCreated', idea);
+        res.json(200, {message: 'Idea created with id ' + idea.id});
 
-          // idea contents to send back to the user
-          const idea = {
+      }).catch(function(err) {
 
-            user: created.user,
-            content: created.content,
-            id: created.id,
-          };
-
-          // emit the idea back through the socket and
-          // res.json the idea's id with status 200
-          sails.sockets.emit(req.socket.id, 'ideaCreated', idea);
-          res.json(200, {message: 'Idea created with id ' + idea.id});
-        }
+        // failure
+        res.json(500, {message: 'Something happened while trying to create an idea. Error: ' + err});
       });
     }
   },
 
-  delete: function(req) {
+  delete: function(req, res) {
 
-    idea.delete(req.body.ideaID, function(response) {
+    // check for required data
+    if (!req.body.boardId || !req.body.ideaId) {
 
-      console.log(response);
-    });
+      // if one of the data requirements are missing, return bad request
+      return res.badRequest('Check delete parameters. Request should send "user, "content" and "boardID"');
+    }
+    else {
+
+      // call delete in the idea service
+      idea.delete(req.body.ideaId).then(function(result) {
+
+        // call remove board.removeIdea(boardId, idea);
+        // board.removeIdea(req.body.boardId, result[0]);
+
+        // emit the result
+        // res.json the deleted ideas
+        sails.sockets.emit(req.socket.id, 'ideaDeleted', {ideaId: result.id, success: true});
+        res.json(200, {message: 'Idea deleted with id: ' + result[0].id});
+
+      }).catch(function(err) {
+
+        // res.json the error
+        res.json(500, err);
+      });
+    }
   },
 };

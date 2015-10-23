@@ -4,7 +4,7 @@ const sailsIOClient = require('sails.io.js');
 var io = sailsIOClient(socketIOClient);
 
 //var uuid;
-var boardId = process.env.BOARD_ID || '4ymCmtXWx';
+var boardId = process.env.BOARD_ID || 'V12Nds7be';
 
 io.sails.url = 'http://localhost:1337';
 
@@ -39,7 +39,7 @@ io.socket.on('ideaCreated', function(data){
   
   console.log("idea created");
   console.log(data);
-  io.socket.post('/idea/delete', {ideaID: data.id}, function(response){
+  io.socket.post('/idea/delete', {boardId: boardId, ideaId: data.id}, function(response){
 
     console.log("delete");
     console.log(response);
