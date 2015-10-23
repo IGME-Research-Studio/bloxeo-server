@@ -4,57 +4,72 @@
  * @description :: Server-side logic for managing ideas
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
+const ideaService = require('../services/IdeaService.js');
+const boardService = require('../services/BoardService.js');
 
 module.exports = {
 
   create: function(req, res) {
 
+    // check for required data
     if (!req.body.user || !req.body.boardId || !req.body.content) {
 
-      res.badRequest('Check parameters. Request should send "user, "content" and "boardID"');
+      // if one of the data requirements are missing, return bad request
+      return res.badRequest('Check create parameters. Request should send "user, "content" and "boardID"');
     }
     else {
 
-      Board.findOne({boardId: req.boardId}).exec(function found(err, found) {
-
-        console.log('board:');
-        console.log(found);
-      });
       // call create idea service.
       // values in req.body must be "user", "content"
-      idea.create(req.body.user, req.body.content).exec(function(err, created) {
+      ideaService.create(req.body.user, req.body.content, req.body.boardId).then(function(created) {
 
-        if (err) {
+        // add the idea to the board
+        boardService.addIdea(req.body.boardId, created);
 
-          // failure
-          res.json(500, {messag: 'Something happened while trying to create an idea. Error: ' + err});
-        }
-        else {
+        // idea contents to send back to the user
+        const idea = {
 
-          // idea contents to send back to the user
-          const idea = {
+          user: created.user,
+          content: created.content,
+          id: created.id,
+        };
 
-            user: created.user,
-            content: created.content,
-            id: created.id,
-          };
+        // emit the idea back through the socket and
+        // res.json the idea's id with status 200
+        sails.sockets.emit(req.socket.id, 'ideaCreated', idea);
+        res.json(200, {message: 'Idea created with id ' + idea.id});
 
-          // server console message to show created entry
-          console.log('\nidea created with id:');
-          console.log(idea);
+      }).catch(function(err) {
 
-          sails.sockets.emit(req.socket.id, 'ideaCreated', idea);
-          res.json(200, {message: 'Idea created with id ' + idea.id});
-        }
+        // failure
+        res.json(500, {message: 'Something happened while trying to create an idea. Error: ' + err});
       });
     }
   },
-/*
+
   delete: function(req, res) {
 
-    idea.delete(req.body.ideaID, function(response) {
+    // check for required data
+    if (!req.body.boardId || !req.body.ideaId) {
 
-      console.log(response);
-    });
-  },*/
+      // if one of the data requirements are missing, return bad request
+      return res.badRequest('Check delete parameters. Request should send "user, "content" and "boardId"');
+    }
+    else {
+
+      // call delete in the idea service
+      ideaService.delete(req.body.boardId, req.body.ideaId).then(function(result) {
+
+        // emit the result
+        // res.json the deleted ideas
+        sails.sockets.emit(req.socket.id, 'ideaDeleted', {ideaId: result.id, success: true});
+        res.json(200, {message: 'Idea deleted with id: ' + result[0].id});
+
+      }).catch(function(err) {
+
+        // res.json the error
+        res.json(500, err);
+      });
+    }
+  },
 };
