@@ -64,6 +64,7 @@ module.exports.routes = {
   'post /board/removePendingUser': 'BoardController.removePendingUser',
   'post /board/addIdea': 'BoardController.addIdea',
   'post /board/removeIdea': 'BoardController.removeIdea',
+  'post /board/getUpdatedIdeas': 'BoardController.getUpdatedIdeas',
   'post /board/addIdeaCollection': 'BoardController.addIdeaCollection',
   'post /board/removeIdeaCollection': 'BoardController.removeIdeaCollection',
 
