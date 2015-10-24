@@ -1,32 +1,32 @@
 // Board Service Functionality
-const board = {};
+const boardService = {};
 
 // Create a board in the database
-board.create = function(boardObj) {
+boardService.create = function(boardObj) {
 
   return Board.create(boardObj);
 };
 
 // Join the socket room
-board.join = function() {
+boardService.join = function() {
 
 };
 
 // Disconnect from the socket room
-board.leave = function() {
+boardService.leave = function() {
 
 };
 
 // Remove a board from the database
-board.destroy = function(boardId) {
+boardService.destroy = function(boardId) {
 
   return Board.destroy({boardId: boardId});
 };
 
 // Add a user to the board
-board.addUser = function(boardId, userObj) {
+boardService.addUser = function(boardId, userObj) {
 
-  board.findBoardAndPopulate(boardId, 'users')
+  boardService.findBoardAndPopulate(boardId, 'users')
 
   .then(function(found) {
 
@@ -41,9 +41,9 @@ board.addUser = function(boardId, userObj) {
 };
 
 // Remove a user from the board
-board.removeUser = function(boardId, userObj) {
+boardService.removeUser = function(boardId, userObj) {
 
-  board.findBoardAndPopulate(boardId, 'users')
+  boardService.findBoardAndPopulate(boardId, 'users')
 
   .then(function(found) {
 
@@ -58,9 +58,9 @@ board.removeUser = function(boardId, userObj) {
 };
 
 // Add an admin to the board
-board.addAdmin = function(boardId, userObj) {
+boardService.addAdmin = function(boardId, userObj) {
 
-  board.findBoardAndPopulate(boardId, 'admins')
+  boardService.findBoardAndPopulate(boardId, 'admins')
 
   .then(function(found) {
 
@@ -75,9 +75,9 @@ board.addAdmin = function(boardId, userObj) {
 };
 
 // Remove an admin to the board
-board.removeAdmin = function(boardId, userObj) {
+boardService.removeAdmin = function(boardId, userObj) {
 
-  board.findBoardAndPopulate(boardId, 'admins')
+  boardService.findBoardAndPopulate(boardId, 'admins')
 
   .then(function(found) {
 
@@ -92,9 +92,9 @@ board.removeAdmin = function(boardId, userObj) {
 };
 
 // Add a pending user to the board
-board.addPendingUser = function(boardId, userObj) {
+boardService.addPendingUser = function(boardId, userObj) {
 
-  board.findBoardAndPopulate(boardId, 'pendingUsers')
+  boardService.findBoardAndPopulate(boardId, 'pendingUsers')
 
   .then(function(found) {
 
@@ -109,9 +109,9 @@ board.addPendingUser = function(boardId, userObj) {
 };
 
 // Remove a pending user from the board
-board.removePendingUser = function(boardId, userObj) {
+boardService.removePendingUser = function(boardId, userObj) {
 
-  board.findBoardAndPopulate(boardId, 'pendingUsers')
+  boardService.findBoardAndPopulate(boardId, 'pendingUsers')
 
   .then(function(found) {
 
@@ -126,9 +126,9 @@ board.removePendingUser = function(boardId, userObj) {
 };
 
 // Add an idea to the board
-board.addIdea = function(boardId, ideaObj) {
+boardService.addIdea = function(boardId, ideaObj) {
 
-  board.findBoardAndPopulate(boardId, 'ideas')
+  boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
 
@@ -143,9 +143,9 @@ board.addIdea = function(boardId, ideaObj) {
 };
 
 // Remove an idea to the board
-board.removeIdea = function(boardId, ideaObj) {
+boardService.removeIdea = function(boardId, ideaObj) {
 
-  board.findBoardAndPopulate(boardId, 'ideas')
+  boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
 
@@ -160,9 +160,9 @@ board.removeIdea = function(boardId, ideaObj) {
 };
 
 // Add an idea collection to the board
-board.addIdeaCollection = function(boardId, ideaCollectionObj) {
+boardService.addIdeaCollection = function(boardId, ideaCollectionObj) {
 
-  board.findBoardAndPopulate(boardId, 'collections')
+  boardService.findBoardAndPopulate(boardId, 'collections')
 
   .then(function(found) {
 
@@ -177,9 +177,9 @@ board.addIdeaCollection = function(boardId, ideaCollectionObj) {
 };
 
 // Remove an idea collection from the board
-board.removeIdeaCollection = function(boardId, ideaCollectionObj) {
+boardService.removeIdeaCollection = function(boardId, ideaCollectionObj) {
 
-  board.findBoardAndPopulate(boardId, 'collections')
+  boardService.findBoardAndPopulate(boardId, 'collections')
 
   .then(function(found) {
 
@@ -194,15 +194,15 @@ board.removeIdeaCollection = function(boardId, ideaCollectionObj) {
 };
 
 // Find a board
-board.findBoard = function(boardId) {
+boardService.findBoard = function(boardId) {
 
   return Board.findOne({boardId: boardId});
 };
 
 // Find and populate a board with collection string
-board.findBoardAndPopulate = function(boardId, collection) {
+boardService.findBoardAndPopulate = function(boardId, collection) {
 
   return Board.findOne({boardId: boardId}).populate(collection);
 };
 
-module.exports = board;
+module.exports = boardService;
