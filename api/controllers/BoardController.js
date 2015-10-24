@@ -1,11 +1,11 @@
 /**
- * BoardController
- *
- * @description :: Server-side logic for managing rooms
- * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
- */
+  * BoardController
+*
+  * @description :: Server-side logic for managing rooms
+* @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
+  */
 
-const board = require('../services/BoardService.js');
+const boardService = require('../services/BoardService.js');
 
 module.exports = {
 
@@ -17,7 +17,7 @@ module.exports = {
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-    board.create(req.body)
+    boardService.create(req.body)
 
     .then(function(created) {
 
@@ -31,52 +31,48 @@ module.exports = {
 
         message: 'Server: Board created with board id: ' + boardId,
         boardId: created.boardId,
-      });      
+      });
     })
-    .catch(function(err)) {
+    .catch(function(err) {
 
       if (err) {
-
-        console.log('An error occurred: ' + err);
 
         res.json(500, {
 
           message: 'Server: An error occurred: ' + err,
         });
-      }    	
+      }
     });
   },
 
   destroy: function(req, res) {
 
-  	const boardId = req.body.boardIdentifier;
+    const boardId = req.body.boardIdentifier;
 
-  	// cannot subscribe if the request is not through socket.io
+    // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-    board.destroy(boardId)
+    boardService.destroy(boardId)
 
     .then(function(deleted) {
 
-    	res.json(200, {
+      res.json(200, {
 
-    		message: 'Server: Board with boardId: ' + deleted.boardId + ' was destroyed.'
-    	});    	
+        message: 'Server: Board with boardId: ' + deleted.boardId + ' was destroyed.',
+      });
     })
     .catch(function(err) {
 
-    	if (err) {
-
-    	  console.log('An error occurred: ' + err);
+      if (err) {
 
         res.json(500, {
 
           message: 'Server: An error occurred: ' + err,
         });
-    	}
+      }
     });
   },
 
@@ -112,5 +108,45 @@ module.exports = {
     });
 
     sails.sockets.leave(userSocketId, boardId);
+  },
+
+  addUser: function() {
+
+  },
+
+  removeUser: function() {
+
+  },
+
+  addAdmin: function() {
+
+  },
+
+  removeAdmin: function() {
+
+  },
+
+  addPendingUser: function() {
+
+  },
+
+  removePendingUser: function() {
+
+  },
+
+  addIdea: function() {
+
+  },
+
+  removeIdea: function() {
+
+  },
+
+  addIdeaCollection: function() {
+
+  },
+
+  removeIdeaCollection: function() {
+
   },
 };
