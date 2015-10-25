@@ -30,14 +30,29 @@ boardService.addUser = function(boardId, userObj) {
 
   .then(function(found) {
 
+    console.dir(found);
     found.users.add(userObj);
 
-    return found.save();
+    return found.save(); // error happenning here?
   })
   .catch(function(err) {
 
     throw new Error(err);
   });
+
+/*  .exec(function(err, found) {
+
+    console.dir(found);
+
+    if (err) {
+
+      throw new Error(err);
+    }
+
+    found.users.add(userObj);
+
+    return found.save();
+  });*/
 };
 
 // Remove a user from the board
