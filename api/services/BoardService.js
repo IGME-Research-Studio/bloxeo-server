@@ -26,16 +26,18 @@ boardService.destroy = function(boardId) {
 // Add a user to the board
 boardService.addUser = function(boardId, userObj) {
 
-  boardService.findBoardAndPopulate(boardId, 'users')
+  return boardService.findBoardAndPopulate(boardId, 'users')
 
   .then(function(found) {
 
-    console.dir(found);
+    console.log(found.users.add);
     found.users.add(userObj);
+    console.log('function post');
 
-    return found.save(); // error happenning here?
+    // error happenning here?
+    return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
