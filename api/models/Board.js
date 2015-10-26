@@ -49,7 +49,7 @@ module.exports = {
       via: 'board',
     },
 
-    collections: {
+    ideaCollections: {
 
       collection: 'ideaCollection',
       via: 'board',
