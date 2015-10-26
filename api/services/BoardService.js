@@ -24,187 +24,170 @@ boardService.destroy = function(boardId) {
 };
 
 // Add a user to the board
-boardService.addUser = function(boardId, userObj) {
+boardService.addUser = function(boardId, userId) {
 
   return boardService.findBoardAndPopulate(boardId, 'users')
 
   .then(function(found) {
 
-    console.log(found.users.add);
-    found.users.add(userObj);
-    console.log('function post');
+    found.users.add(userId);
 
-    // error happenning here?
     return found.save();
   })
   .fail((err) => {
 
     throw new Error(err);
   });
-
-/*  .exec(function(err, found) {
-
-    console.dir(found);
-
-    if (err) {
-
-      throw new Error(err);
-    }
-
-    found.users.add(userObj);
-
-    return found.save();
-  });*/
 };
 
 // Remove a user from the board
-boardService.removeUser = function(boardId, userObj) {
+boardService.removeUser = function(boardId, userId) {
 
-  boardService.findBoardAndPopulate(boardId, 'users')
+  return boardService.findBoardAndPopulate(boardId, 'users')
 
   .then(function(found) {
 
-    found.users.remove(userObj);
+    found.users.remove(userId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Add an admin to the board
-boardService.addAdmin = function(boardId, userObj) {
+boardService.addAdmin = function(boardId, userId) {
 
-  boardService.findBoardAndPopulate(boardId, 'admins')
+  return boardService.findBoardAndPopulate(boardId, 'admins')
 
   .then(function(found) {
 
-    found.admins.add(userObj);
+    found.admins.add(userId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Remove an admin to the board
-boardService.removeAdmin = function(boardId, userObj) {
+boardService.removeAdmin = function(boardId, userId) {
 
-  boardService.findBoardAndPopulate(boardId, 'admins')
+  return boardService.findBoardAndPopulate(boardId, 'admins')
 
   .then(function(found) {
 
-    found.admins.remove(userObj);
+    found.admins.remove(userId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Add a pending user to the board
-boardService.addPendingUser = function(boardId, userObj) {
+boardService.addPendingUser = function(boardId, userId) {
 
-  boardService.findBoardAndPopulate(boardId, 'pendingUsers')
+  return boardService.findBoardAndPopulate(boardId, 'pendingUsers')
 
   .then(function(found) {
 
-    found.pendingUsers.add(userObj);
+    found.pendingUsers.add(userId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Remove a pending user from the board
-boardService.removePendingUser = function(boardId, userObj) {
+boardService.removePendingUser = function(boardId, userId) {
 
-  boardService.findBoardAndPopulate(boardId, 'pendingUsers')
+  return boardService.findBoardAndPopulate(boardId, 'pendingUsers')
 
   .then(function(found) {
 
-    found.pendingUsers.remove(userObj);
+    found.pendingUsers.remove(userId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Add an idea to the board
-boardService.addIdea = function(boardId, ideaObj) {
+boardService.addIdea = function(boardId, ideaId) {
 
-  boardService.findBoardAndPopulate(boardId, 'ideas')
+  return boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
 
-    found.ideas.add(ideaObj);
+    found.ideas.add(ideaId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Remove an idea to the board
-boardService.removeIdea = function(boardId, ideaObj) {
+boardService.removeIdea = function(boardId, ideaId) {
 
-  boardService.findBoardAndPopulate(boardId, 'ideas')
+  return boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
 
-    found.ideas.remove(ideaObj);
+    found.ideas.remove(ideaId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Add an idea collection to the board
-boardService.addIdeaCollection = function(boardId, ideaCollectionObj) {
+boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
-  boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'collections')
 
   .then(function(found) {
 
-    found.collections.add(ideaCollectionObj);
+    found.collections.add(ideaCollectionId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Remove an idea collection from the board
-boardService.removeIdeaCollection = function(boardId, ideaCollectionObj) {
+boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
-  boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'collections')
 
   .then(function(found) {
 
-    found.collections.remove(ideaCollectionObj);
+    found.collections.remove(ideaCollectionId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
