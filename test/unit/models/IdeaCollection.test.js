@@ -30,6 +30,7 @@ describe('IdeaCollectionModel', () => {
         _.each(collections, (collection) => {
           expect(collection.votes).to.be.a('number');
         });
+
         done();
       })
 

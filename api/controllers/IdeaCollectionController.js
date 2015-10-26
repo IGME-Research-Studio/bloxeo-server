@@ -140,7 +140,7 @@ module.exports = {
       });
   },
 
-    // move all non-duplicate ideas from one collection to another, destroy second collection
+  // move all non-duplicate ideas from one collection to another, destroy second collection
   merge: function(req, res) {
     return res.json(500, {message: 'function not implemented'});
   },
