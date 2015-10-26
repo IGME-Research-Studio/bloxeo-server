@@ -4,6 +4,8 @@
  * @description :: Server-side logic for managing ideas
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
+const ideaService = require('../services/IdeaService.js');
+const boardService = require('../services/BoardService.js');
 
 module.exports = {
 
@@ -19,10 +21,10 @@ module.exports = {
 
       // call create idea service.
       // values in req.body must be "user", "content"
-      idea.create(req.body.user, req.body.content, req.body.boardId).then(function(created) {
+      ideaService.create(req.body.user, req.body.content, req.body.boardId).then(function(created) {
 
         // add the idea to the board
-        // board.addIdea(req.boardId, created);
+        boardService.addIdea(req.body.boardId, created);
 
         // idea contents to send back to the user
         const idea = {
@@ -51,15 +53,12 @@ module.exports = {
     if (!req.body.boardId || !req.body.ideaId) {
 
       // if one of the data requirements are missing, return bad request
-      return res.badRequest('Check delete parameters. Request should send "user, "content" and "boardID"');
+      return res.badRequest('Check delete parameters. Request should send "user, "content" and "boardId"');
     }
     else {
 
       // call delete in the idea service
-      idea.delete(req.body.ideaId).then(function(result) {
-
-        // call remove board.removeIdea(boardId, idea);
-        // board.removeIdea(req.body.boardId, result[0]);
+      ideaService.delete(req.body.boardId, req.body.ideaId).then(function(result) {
 
         // emit the result
         // res.json the deleted ideas

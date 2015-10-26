@@ -4,7 +4,7 @@ const sailsIOClient = require('sails.io.js');
 var io = sailsIOClient(socketIOClient);
 
 //var uuid;
-var boardId = process.env.BOARD_ID || 'V12Nds7be';
+var boardId = process.env.BOARD_ID || 'N1Wq8LL-l';
 
 io.sails.url = 'http://localhost:1337';
 
