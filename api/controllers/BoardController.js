@@ -23,10 +23,6 @@ module.exports = {
 
       const boardId = created.boardId;
 
-      sails.sockets.join(req.socket.id, boardId);
-
-      sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + req.socket.id + ' has joined the room!'});
-
       res.json(200, {
 
         message: 'Server: Board created with board id: ' + boardId,
@@ -139,6 +135,10 @@ module.exports = {
   },
 
   removeIdea: function() {
+
+  },
+
+  getUpdatedIdeas: function() {
 
   },
 
