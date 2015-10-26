@@ -6,7 +6,7 @@ describe('IdeaCollectionModel', () => {
 
     it('Should create an IdeaCollection', (done) => {
 
-      IdeaCollection.create({weight: 4})
+      IdeaCollection.create({votes: 4})
 
       .then(() => {
 
@@ -24,9 +24,10 @@ describe('IdeaCollectionModel', () => {
 
       .then((collections) => {
 
-        // for (let i = 0; i < collections.length; i++) {
-        //   expect(collections[i].weight).to.be.a('number');
-        // }
+        for (let i = 0; i < collections.length; i++) {
+          expect(collections[i].votes).to.be.a('number');
+        }
+
         done();
       })
 
@@ -38,7 +39,7 @@ describe('IdeaCollectionModel', () => {
 
     it('Should update an IdeaCollection', (done) => {
 
-      IdeaCollection.update({weight: 4}, {weight: 3})
+      IdeaCollection.update({votes: 4}, {votes: 5})
 
       .then(() => {
 
