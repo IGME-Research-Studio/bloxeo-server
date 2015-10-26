@@ -11,12 +11,6 @@ module.exports = {
 
   create: function(req, res) {
 
-    // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
-
-      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
-    }
-
     boardService.create(req.body)
 
     .then(function(created) {
