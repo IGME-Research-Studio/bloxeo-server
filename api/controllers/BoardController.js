@@ -11,21 +11,11 @@ module.exports = {
 
   create: function(req, res) {
 
-    // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
-
-      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
-    }
-
     boardService.create(req.body)
 
     .then(function(created) {
 
       const boardId = created.boardId;
-
-      sails.sockets.join(req.socket.id, boardId);
-
-      sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + req.socket.id + ' has joined the room!'});
 
       res.json(200, {
 
@@ -139,6 +129,10 @@ module.exports = {
   },
 
   removeIdea: function() {
+
+  },
+
+  getUpdatedIdeas: function() {
 
   },
 
