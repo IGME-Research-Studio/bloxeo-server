@@ -138,34 +138,34 @@ boardService.removePendingUser = function(boardId, userObj) {
 };
 
 // Add an idea to the board
-boardService.addIdea = function(boardId, ideaObj) {
+boardService.addIdea = function(boardId, ideaId) {
 
-  boardService.findBoardAndPopulate(boardId, 'ideas')
+  return boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
 
-    found.ideas.add(ideaObj);
+    found.ideas.add(ideaId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
 };
 
 // Remove an idea to the board
-boardService.removeIdea = function(boardId, ideaObj) {
+boardService.removeIdea = function(boardId, ideaId) {
 
-  boardService.findBoardAndPopulate(boardId, 'ideas')
+  return boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
 
-    found.ideas.remove(ideaObj.id);
+    found.ideas.remove(ideaId);
 
     return found.save();
   })
-  .catch(function(err) {
+  .fail((err) => {
 
     throw new Error(err);
   });
