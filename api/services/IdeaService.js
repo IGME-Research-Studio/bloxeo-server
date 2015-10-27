@@ -5,7 +5,7 @@
  * @module services/idea
  */
 
-const boardService = require('./services/BoardService.js');
+const boardService = require('../services/BoardService.js');
 
 const ideaService = {};
 
@@ -14,7 +14,7 @@ const ideaService = {};
  */
 ideaService.create = function(user, content, boardId) {
 
-  boardService.findBoardAndPopulate(boardId, 'ideas').then(function(board) {
+  return boardService.findBoardAndPopulate(boardId, 'ideas').then(function(board) {
 
     // if there are any ideas in the board already
     if (board.ideas.length !== 0) {
@@ -26,18 +26,19 @@ ideaService.create = function(user, content, boardId) {
         if (board.ideas[i].content === content) {
 
           // return bad request
-          throw new Error('Idea exists');
+          throw new Error('Idea Exists');
         }
       }
     }
+
+    // create new Idea
+    return Idea.create({user: user, content: content});
+
   }).catch(function(err) {
 
     // throw error if board cannot be found
     throw new Error(err);
   });
-
-  // create new Idea
-  return Idea.create({user: user, content: content});
 };
 
 /**
@@ -49,7 +50,7 @@ ideaService.delete = function(boardId, ideaId) {
   Idea.findOne({id: ideaId}).then(function(idea) {
 
     // remove the idea from the board
-    boardService.removeIdea(boardId, idea);
+    boardService.removeIdea(boardId, idea.id);
 
     // error handling
   }).catch(function(err) {
