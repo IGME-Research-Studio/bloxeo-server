@@ -16,7 +16,7 @@ module.exports = {
     if (!req.body.user || !req.param('boardId') || !req.body.content) {
 
       // if one of the data requirements are missing, return bad request
-      return res.badRequest('Check create parameters. Request should send "user, "content" and "boardID"');
+      return res.badRequest('Check create parameters. Request should send "user, "content" and "board"');
     }
     else {
 
@@ -37,7 +37,7 @@ module.exports = {
 
             // emit the idea back through the socket and
             // res.json the idea's id with status 200
-            sails.sockets.broadcast(req.socket.id, 'UPDATED_IDEAS', allIdeas);
+            sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
             res.json(200, {message: 'Idea created with id ' + created.id, ideaId: created.id});
           })
           .catch(function(err) {
@@ -63,7 +63,7 @@ module.exports = {
     if (!req.param('boardId') || !req.body.ideaId) {
 
       // if one of the data requirements are missing, return bad request
-      return res.badRequest('Check delete parameters. Request should send "boardId" and "ideaId"');
+      return res.badRequest('Check delete parameters. Request should send "board" and "idea"');
     }
     else {
 
@@ -79,7 +79,7 @@ module.exports = {
           const allIdeas = _.map(board.ideas, 'content');
           // emit the result
           // res.json the deleted ideas
-          sails.sockets.broadcast(req.socket.id, 'UPDATED_IDEAS', allIdeas);
+          sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
           res.json(200, {message: 'Idea deleted with id: ' + result[0].id, ideaId: result[0].id});
         })
         .catch(function(err) {
