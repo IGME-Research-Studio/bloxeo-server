@@ -13,6 +13,7 @@ io.socket.get('/user/create', {isFullAccount: false, username: 'braxtoniskewl'},
   console.log(res);
   io.socket.post('/board/join', {boardIdentifier: boardId}, function(data, jwres) {
     console.log(jwres);
+
     io.socket.post('board/' + boardId + '/ideaCollection/create', {isFullAccount: false, user: 'braxtoniskewl', ideaContent: 'dogs in space', boardId: boardId}, function(response) {
 
       console.log('created');

@@ -129,7 +129,6 @@ module.exports = {
 
           promises.push(p);
         }
-
         Promise.all(promises).then(function() {
           sails.sockets.broadcast(boardId, 'allCollections', collectionsJSON);
           res.json(200, { collections });

@@ -1,7 +1,6 @@
 const boardService = require('../services/BoardService.js');
 const ideaCollectionService = {};
 
-
 /**
   Create an IdeaCollection and add an inital idea
   @param String boardId
