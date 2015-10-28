@@ -8,7 +8,7 @@
 module.exports = {
   create: function(req, res) {
     // if not correct info return badreq message
-    if (!req.body.user || !req.body.content || !req.body.boardIdentity) {
+    if (!req.body.user || !req.body.ideaId || !req.body.boardIdentity) {
       return res.badRequest('Incorrect information sent to create ideaCollection');
     }
 
@@ -17,7 +17,7 @@ module.exports = {
     ideaCollectionService.create(req.body.ideaId, req.body.user.id)
       .then(function(ideaCollection) {
         // get board and add collection to it
-        boardService.addIdeaCollection(board.id, ideaCollection)
+        boardService.addIdeaCollection(boardId, ideaCollection)
           .then(function(board) {
 
             sails.sockets.broadcast(boardId, 'AddedCollections', {index: board.ideaCollections.length - 1, content: ideaCollection.ideaContentToJSON()});
@@ -80,37 +80,38 @@ module.exports = {
 
   getCollections: function(req, res) {
     if (!req.body.user || !req.body.boardIdentity) {
-      return res.badRequest('Incorrect information sent to remove from ideaCollection');
+      return res.badRequest('Incorrect information sent to get ideaCollections from ideaCollection');
     }
 
-    const ideaCollections = [];
-    /* get all collections on the board and all their contents
-    -------------------------------------------------------------------
-    -----------------How should I do this?-----------------------------
-    -------------------------------------------------------------------
-    for (let i = 0; i < board.ideaCollections.length; i++) {
-      ideaCollectionService.findAndPopulate(boardId, i)
-        .then(function(ideaCollection) {
-          const contents = {content: ideaCollection.ideaContentToJSON()};
-          ideaCollections.push(contents);
-        }).catch(function(err) {
-          return res.json(500, {message: 'Failed to get collection. ' + err});
+    boardService.getIdeaCollection(req.body.boardIdentity)
+      .then(function(ideaCollection) {
+        sails.sockets.broadcast(boardId, 'UpdatedCollections', ideaCollections);
+
+        res.json(200, {
+          ideaCollections,
         });
-    }
-    */
-    sails.sockets.broadcast(boardId, 'UpdatedCollections', ideaCollections);
+      }).catch(function(err) {
+        res.json(500, {message: 'Failed to get all collections' + err});
+      });
 
-    res.json(200, {
-      ideaCollections,
-    });
   },
 
   destroy: function(req, res) {
     // remove ideaCollection from db and board
-  },
+    if (!req.body.user || !req.body.boardIdentity) {
+      return res.badRequest('Incorrect information sent to destroy ideaCollection');
+    }
 
-  removeAndCreate: function(req, res) {
-    // remove idea from ideaCollection, create new one with idea in it
+    ideaCollectionService.destroy(req.body.boardIdentifier, req.body.index)
+      .then(function(destroyed) {
+        sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index});
+
+        res.json(200, {
+          index: index,
+        });
+      }).catch(function(err) {
+        res.json(500, {message: 'Failed to destroy ideaCollection ' + err});
+      });
   },
 
   merge: function(req, res) {

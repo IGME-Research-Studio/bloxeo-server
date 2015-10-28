@@ -29,8 +29,15 @@ ideaCollectionService.merge = function() {
 
 };
 
-ideaCollectionService.destroy = function() {
-
+ideaCollectionService.destroy = function(boardId, index) {
+  return boardService.findAndPopulate(boardId, 'ideaCollections')
+    .then(function(board) {
+      const ideaColllectionId = board.ideaCollections[index];
+      board.ideaCollections.remove(ideaCollectionId);
+      return IdeaCollection.destroy(ideaCollectionId);
+    }).catch(function(err) {
+      throw new Error(err);
+    });
 };
 
 ideaCollectionService.findAndPopulate = function(boardId, index) {
