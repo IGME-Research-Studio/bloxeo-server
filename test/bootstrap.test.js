@@ -9,7 +9,7 @@ const options = {
   extensions: null,
 };
 
-global.babel = require('sails-hook-babel/node_modules/babel/register')(options);
+global.babel = require('babel/register')(options);
 
 before(function(done) {
 

@@ -1,10 +1,10 @@
 {
   "name": "StormServer",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Storm app server",
   "scripts": {
-    "debug": "sails lift --verbose",
     "start": "sails lift",
+    "debug": "sails lift --verbose",
     "test": "grunt test",
     "unit-test": "grunt unit-test",
     "lint": "grunt lint",
@@ -19,6 +19,7 @@
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
+    "babel": "^5.8.29",
     "bcryptjs": "^2.2.2",
     "ejs": "~0.8.4",
     "grunt": "0.4.2",
@@ -46,7 +47,7 @@
     "sails": "~0.11.0",
     "sails-disk": "~0.10.0",
     "sails-generate-auth": "^0.3.1",
-    "sails-hook-babel": "^5.0.1",
+    "validator": "^4.0.6",
     "sails-mongo": "^0.11.4",
     "sails-service-error-codes": "^1.0.5",
     "shortid": "^2.2.2",
