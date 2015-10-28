@@ -195,6 +195,7 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 };
 
 // Return all idea collections for a board
+// @Note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
   return Board.findOne({boardId: boardId})
     .populate('collections')
