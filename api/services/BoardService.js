@@ -162,11 +162,11 @@ boardService.removeIdea = function(boardId, ideaId) {
 // Add an idea collection to the board
 boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
-  return boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
 
   .then(function(found) {
 
-    found.collections.add(ideaCollectionId);
+    found.ideaCollections.add(ideaCollectionId);
 
     return found.save();
   })
@@ -179,11 +179,11 @@ boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 // Remove an idea collection from the board
 boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
-  return boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
 
   .then(function(found) {
 
-    found.collections.remove(ideaCollectionId);
+    found.ideaCollections.remove(ideaCollectionId);
 
     return found.save();
   })

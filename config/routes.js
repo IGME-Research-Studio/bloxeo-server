@@ -67,6 +67,10 @@ module.exports.routes = {
   'post /board/getUpdatedIdeas': 'BoardController.getUpdatedIdeas',
   'post /board/addIdeaCollection': 'BoardController.addIdeaCollection',
   'post /board/removeIdeaCollection': 'BoardController.removeIdeaCollection',
+  
+  'post board/:boardId/ideaCollection/create': 'IdeaCollectionController.create',
+  'post board/:boardId/ideaCollection/add': 'IdeaCollectionController.add',
+  'post board/:boardId/ideaCollection/remove': 'IdeaCollectionController.remove',
 
   'post /auth/local': 'AuthController.callback',
   'post /auth/local/:action': 'AuthController.callback',

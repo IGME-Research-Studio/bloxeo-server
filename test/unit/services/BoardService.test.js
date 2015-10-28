@@ -308,7 +308,7 @@ describe('BoardService', () => {
 
         const firstBoard = boards[0];
 
-        IdeaCollection.create({weight: 1})
+        IdeaCollection.create({votes: 1})
 
         .then((ideaCollection) => {
 
@@ -339,7 +339,7 @@ describe('BoardService', () => {
 
         const firstBoard = boards[0];
 
-        IdeaCollection.create({weight: 1})
+        IdeaCollection.create({votes: 1})
 
         .then((ideaCollection) => {
 

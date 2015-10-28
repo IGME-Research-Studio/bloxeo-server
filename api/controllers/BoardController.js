@@ -72,7 +72,7 @@ module.exports = {
     const boardId = req.body.boardIdentifier;
 
     // cannot subscribe if the request is not through socket.io
-    if (!isSocket) {
+    if (!req.isSocket) {
 
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
