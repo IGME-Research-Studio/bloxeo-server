@@ -4,74 +4,79 @@
  * @description :: Server-side logic for managing ideaCollections
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
+const boardService = require('../services/BoardService.js');
 
 module.exports = {
+
   create: function(req, res) {
     // if not correct info return badreq message
-    if (!req.body.user || !req.body.ideaId || !req.body.boardIdentity) {
-      return res.badRequest('Incorrect information sent to create ideaCollection');
-    }
+    const boardId = req.body.boardId;
 
-    const boardId = req.body.boardIdentity;
-    // call service to create collection
-    ideaCollectionService.create(req.body.ideaId, req.body.user.id)
+    // call service to create collection ---ACTUAL CODE - be sure to clean up names like "board2"
+    ideaCollectionService.create(req.content, req.body.user, boardId)
       .then(function(ideaCollection) {
         // get board and add collection to it
-        boardService.addIdeaCollection(boardId, ideaCollection)
-          .then(function(board) {
+        boardService.addIdeaCollection(boardId, ideaCollection.id)
+          .then(function(board2) {
 
-            sails.sockets.broadcast(boardId, 'AddedCollections', {index: board.ideaCollections.length - 1, content: ideaCollection.ideaContentToJSON()});
+            const index = board2.ideaCollections.length - 1;
+            ideaCollectionService.getIdeaContents(board2.boardId, index)
+              .then(function(content) {
+                sails.sockets.broadcast(boardId, 'AddedCollections', {index: index, content: content});
 
-            res.json(200, {
-              index: board.ideaCollections.length - 1,
-              content: ideaCollection.ideaContentToJSON(),
-            });
+                return res.json(200, {
+                  index: index,
+                  content: content,
+                });
+              });
           }).catch(function(err) {
-            res.json(500, {message: 'Problem adding ideaCollection to board. ' + err});
+            return res.json(500, {message: 'Problem adding ideaCollection to board. ' + err});
           });
       }).catch(function(err) {
-        res.json(500, {message: 'Problem creating the ideaCollection. ' + err});
+        return res.json(500, {message: 'Problem creating the ideaCollection. ' + err});
       });
   },
 
   add: function(req, res) {
     // update ideaCollection with another idea
-    if (!req.body.user || !req.body.content || !req.body.boardIdentity) {
-      return res.badRequest('Incorrect information sent to add to ideaCollection');
-    }
 
-    const boardId = req.body.boardIdentity;
+    const boardId = req.body.boardId;
     const index = req.body.index;
-    // call service to add idea to collection
-    ideaCollectionService.add(boardId, index, req.body.ideaId, req.body.user.id)
-      .then(function(ideaCollection) {
-        sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index, content: ideaCollection.ideaContentToJSON()});
 
-        res.json(200, {
-          index: index,
-          content: ideaCollection.ideaContentToJSON(),
+    // change idea.id to content, use the user
+    ideaCollectionService.add(boardId, index, req.body.idea, req.body.user)
+      .then(function(ideaCollection) {
+
+        ideaCollectionService.getIdeaContents(boardId, index)
+        .then(function(content) {
+          sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index, content: content});
+
+          return res.json(200, {
+            index: index,
+            content: content,
+          });
         });
       }).catch(function(err) {
-        res.json(500, {message: 'Problem adding to the ideaCollection. ' + err});
+        return res.json(500, {message: 'Problem adding to the ideaCollection. ' + err});
       });
   },
 
   remove: function(req, res) {
     // delete ideaCollection and remove from board
-    if (!req.body.user || !req.body.content || !req.body.boardIdentity) {
-      return res.badRequest('Incorrect information sent to remove from ideaCollection');
-    }
 
-    const boardId = req.body.boardIdentity;
+    const boardId = req.param('boardId');
     const index = req.body.index;
-    // call service to remove idea to collection
-    ideaCollectionService.remove(boardId, index, req.body.ideaId, req.body.user.id)
+    // change to use idea content and user
+    ideaCollectionService.remove(boardId, index, req.body.idea, req.body.user)
       .then(function(ideaCollection) {
-        sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index, content: ideaCollection.ideaContentToJSON()});
+        ideaCollectionService.getIdeaContents(boardId, index)
+        .then(function(content) {
+          sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index, content: content});
 
-        res.json(200, {
-          index: index,
-          content: ideaCollection.ideaContentToJSON(),
+          res.json(200, {
+            index: index,
+            content: content,
+          });
         });
       }).catch(function(err) {
         res.json(500, {message: 'Problem removing from the ideaCollection. ' + err});
@@ -79,9 +84,6 @@ module.exports = {
   },
 
   getCollections: function(req, res) {
-    if (!req.body.user || !req.body.boardIdentity) {
-      return res.badRequest('Incorrect information sent to get ideaCollections from ideaCollection');
-    }
 
     boardService.getIdeaCollection(req.body.boardIdentity)
       .then(function(ideaCollection) {
@@ -98,11 +100,8 @@ module.exports = {
 
   destroy: function(req, res) {
     // remove ideaCollection from db and board
-    if (!req.body.user || !req.body.boardIdentity) {
-      return res.badRequest('Incorrect information sent to destroy ideaCollection');
-    }
-
-    ideaCollectionService.destroy(req.body.boardIdentifier, req.body.index)
+    const boardId = req.body.boardId;
+    ideaCollectionService.destroy(boardId, req.body.index)
       .then(function(destroyed) {
         sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index});
 

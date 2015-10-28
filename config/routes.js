@@ -54,12 +54,15 @@ module.exports.routes = {
 
   'post /board/:boardId/create': 'BoardController.create',
   'post /board/:boardId/destroy': 'BoardController.destroy',
-  'post /board/create': 'BoardController.create',
   'post /board/:boardId/join': 'BoardController.join',
   'post /board/:boardId/leave': 'BoardController.leave',
 
   'post board/:boardId/idea/create': 'IdeaController.create',
   'post board/:boardId/idea/delete': 'IdeaController.delete',
+
+  'post board/:boardId/ideaCollection/create': 'IdeaCollectionController.create',
+  'post board/:boardId/ideaCollection/add': 'IdeaCollectionController.add',
+  'post board/:boardId/ideaCollection/remove': 'IdeaCollectionController.remove',
 
   'post /auth/local': 'AuthController.callback',
   'post /auth/local/:action': 'AuthController.callback',
