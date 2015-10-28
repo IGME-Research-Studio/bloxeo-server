@@ -193,6 +193,25 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
   });
 };
 
+// Return all idea collections for a board
+boardService.getIdeaCollections = function(boardId){
+  let allCollections = Board.findOne({boardId: boardId})
+    .populateAll()
+    .then(function(board) {
+      let collections = [];
+
+      board.collections.forEach(function(collection) {
+        collection.populateAll();
+        collections.push(collection);
+      });
+
+      return collections;
+  });
+
+  return allCollections;
+};
+
+
 // Find a board
 boardService.findBoard = function(boardId) {
 
