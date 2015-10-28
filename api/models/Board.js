@@ -54,7 +54,7 @@ module.exports = {
       collection: 'idea',
     },
 
-    collections: {
+    ideaCollections: {
 
       collection: 'ideaCollection',
     },

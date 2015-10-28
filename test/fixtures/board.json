@@ -7,7 +7,7 @@
     "admins":[10, 11],
     "users":[10, 11, 12],
     "ideas":[13, 14],
-    "collections":[16]
+    "ideaCollections":[16]
   },
   {
     "uid":19,
@@ -17,6 +17,6 @@
     "admins":[12],
     "users":[12],
     "ideas":[15],
-    "collections":[17]
+    "ideaCollections":[17]
   }
 ]
