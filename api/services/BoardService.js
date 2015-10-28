@@ -170,8 +170,8 @@ boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
     return found.save();
   })
-  .fail((err) => {
-
+  .catch((err) => {
+    console.error(err);
     throw new Error(err);
   });
 };
