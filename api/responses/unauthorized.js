@@ -1,13 +1,11 @@
 /**
-* 200 (OK) Response
+* 401 (Unauthorized) Handler
 *
 * @description
-* General status code. Most common code used to indicate success.
-* The actual response will depend on the request method used.
-* In a GET request, the response will contain an entity corresponding to the
-* requested resource.
-* In a POST request the response will contain an entity describing or
-* containing the result of the action.
+* Similar to 403 Forbidden.
+* Specifically for use when authentication is possible but has failed or not
+* yet been provided.
+* Error code response for missing or invalid authentication token.
 *
 * @param {Object} [data] arbitrary data object
 * @param {Object} [options]
@@ -19,25 +17,25 @@
 * {@link https://github.com/IncoCode/sails-service-error-codes#default-error-codes Default error code definitions}
 *
 * @example
-* return res.ok();
-* return res.ok(data);
-* return res.ok(data, {message: 'We're all good.'});
+* return res.unauthorized();
+* return res.unauthorized(data);
+* return res.unauthorized(data, {message: 'I'm sorry Dave, I'm afraid I can't do that'});
 */
 
 const ErrorCodes = require('sails-service-error-codes').getCodes();
 const _ = require('lodash');
 
-module.exports = function ok(data, options) {
+module.exports = function unauthorized(data, options) {
 
   const defaults = {
-    code: ErrorCodes.ok.code,
-    message: ErrorCodes.ok.message,
+    code: ErrorCodes.unauthorized.code,
+    message: ErrorCodes.unauthorized.message,
     data: ((sails.config.environment === 'production') ? undefined : data || {}),
   };
 
   const response = _.defaults(options || {}, defaults);
 
-  this.res.status(200);
+  this.res.status(401);
   this.res.jsonx(response);
 };
 
