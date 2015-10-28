@@ -1,5 +1,6 @@
 // Board Service Functionality
 const boardService = {};
+const Promise = require('bluebird');
 
 // Create a board in the database
 boardService.create = function(boardObj) {
@@ -195,21 +196,28 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
 // Return all idea collections for a board
 // @Note Does not populate User objects on Idea objects in a collection
-boardService.getIdeaCollections = function(boardId){
-  let allCollections = Board.findOne({boardId: boardId})
-    .populateAll()
+boardService.getIdeaCollections = function(boardId) {
+  return Board.findOne({boardId: boardId})
+    .populate('collections')
     .then(function(board) {
-      let collections = [];
+      return board.collections;
+    }).then(function(allCollections) {
+      const collections = [];
+      const collectionPromises = [];
 
-      board.collections.forEach(function(collection) {
-        collection.populateAll();
-        collections.push(collection);
+      allCollections.forEach(function(collection) {
+
+        collectionPromises.push( IdeaCollection.findOne({id: collection.id}).populate('ideas').then(function(ideaCollection) {
+          collections.push(ideaCollection);
+        })
+      );
+
       });
 
-      return collections;
-  });
-
-  return allCollections;
+      return Promise.all(collectionPromises).then(function() {
+        return collections;
+      });
+    });
 };
 
 
