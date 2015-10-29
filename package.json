@@ -1,6 +1,6 @@
 {
   "name": "StormServer",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Storm app server",
   "scripts": {
     "start": "sails lift",
@@ -21,6 +21,7 @@
   "dependencies": {
     "babel": "^5.8.29",
     "bcryptjs": "^2.2.2",
+    "bluebird": "^3.0.1",
     "ejs": "~0.8.4",
     "grunt": "0.4.2",
     "grunt-contrib-clean": "~0.5.0",
