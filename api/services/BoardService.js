@@ -7,16 +7,6 @@ boardService.create = function(boardObj) {
   return Board.create(boardObj);
 };
 
-// Join the socket room
-boardService.join = function() {
-
-};
-
-// Disconnect from the socket room
-boardService.leave = function() {
-
-};
-
 // Remove a board from the database
 boardService.destroy = function(boardId) {
 
@@ -34,7 +24,7 @@ boardService.addUser = function(boardId, userId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -51,7 +41,7 @@ boardService.removeUser = function(boardId, userId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -68,7 +58,7 @@ boardService.addAdmin = function(boardId, userId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -85,7 +75,7 @@ boardService.removeAdmin = function(boardId, userId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -102,7 +92,7 @@ boardService.addPendingUser = function(boardId, userId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -119,7 +109,7 @@ boardService.removePendingUser = function(boardId, userId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -136,7 +126,7 @@ boardService.addIdea = function(boardId, ideaId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -153,7 +143,7 @@ boardService.removeIdea = function(boardId, ideaId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -170,7 +160,7 @@ boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
@@ -187,7 +177,7 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
     return found.save();
   })
-  .fail((err) => {
+  .catch(function(err) {
 
     throw new Error(err);
   });
