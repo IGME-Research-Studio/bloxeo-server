@@ -37,13 +37,7 @@ module.exports = {
 
   destroy: function(req, res) {
 
-    const boardId = req.body.boardIdentifier;
-
-    // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
-
-      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
-    }
+    const boardId = req.param('boardId');
 
     boardService.destroy(boardId)
 
@@ -69,10 +63,10 @@ module.exports = {
   join: function(req, res) {
 
     const userSocketId = req.socket;
-    const boardId = req.body.boardIdentifier;
+    const boardId = req.param('boardId');
 
     // cannot subscribe if the request is not through socket.io
-    if (!isSocket) {
+    if (!req.isSocket) {
 
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
@@ -90,7 +84,13 @@ module.exports = {
   leave: function(req, res) {
 
     const userSocketId = req.socket;
-    const boardId = req.body.boardIdentifier;
+    const boardId = req.param('boardId');
+
+    // cannot subscribe if the request is not through socket.io
+    if (!req.isSocket) {
+
+      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
+    }
 
     res.json(200, {
 
@@ -98,49 +98,5 @@ module.exports = {
     });
 
     sails.sockets.leave(userSocketId, boardId);
-  },
-
-  addUser: function() {
-
-  },
-
-  removeUser: function() {
-
-  },
-
-  addAdmin: function() {
-
-  },
-
-  removeAdmin: function() {
-
-  },
-
-  addPendingUser: function() {
-
-  },
-
-  removePendingUser: function() {
-
-  },
-
-  addIdea: function() {
-
-  },
-
-  removeIdea: function() {
-
-  },
-
-  getUpdatedIdeas: function() {
-
-  },
-
-  addIdeaCollection: function() {
-
-  },
-
-  removeIdeaCollection: function() {
-
   },
 };

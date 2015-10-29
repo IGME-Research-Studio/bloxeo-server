@@ -1,12 +1,12 @@
 const expect = require('chai').expect;
-// const _ = require('lodash');
+const _ = require('lodash');
 
 const BoardService = require('../../../api/services/BoardService.js');
 
 /**
 * Given an association name, return a promise that creates a model to use
 */
-/* const createModelBasedOnString = (assoc) => {
+const createModelBasedOnString = (assoc) => {
   if (_.some(['users', 'admins', 'pendingUsers'], (el) => el === assoc)) {
     return User.create({isFullAccount: false, username: 'brax'});
   }
@@ -16,7 +16,7 @@ const BoardService = require('../../../api/services/BoardService.js');
   else if (assoc === 'collections') {
     return IdeaCollection.create({weight: 1});
   }
-};*/
+};
 
 describe('BoardService', function() {
 
@@ -38,7 +38,7 @@ describe('BoardService', function() {
     });
   });
 
-/*  describe('Add and remove associations', () => {
+  describe('Add and remove associations', () => {
     // Since add and remove are all doing the same thing, no need to duplicate
     // the tests, just dynamically run them.
     [ {assoc: 'users', add: 'addUser', remove: 'removeUser'},
@@ -106,7 +106,7 @@ describe('BoardService', function() {
         });
       });
     });
-  });*/
+  });
 
   describe('#destroy()', () => {
 
