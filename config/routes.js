@@ -52,24 +52,8 @@ module.exports.routes = {
 
   //'post /createUser': 'UserController.createUser',
 
-  'post /board/create': 'BoardController.create',
-  'post /board/join': 'BoardController.join',
-  'post /board/leave': 'BoardController.leave',
-  'post /board/destroy': 'BoardController.destroy',
-  'post /board/addUser': 'BoardController.addUser',
-  'post /board/removeUser': 'BoardController.removeUser',
-  'post /board/addAdmin': 'BoardController.addAdmin',
-  'post /board/removeAdmin': 'BoardController.removeAdmin',
-  'post /board/addPendingUser': 'BoardController.addPendingUser',
-  'post /board/removePendingUser': 'BoardController.removePendingUser',
-  'post /board/addIdea': 'BoardController.addIdea',
-  'post /board/removeIdea': 'BoardController.removeIdea',
-  'post /board/getUpdatedIdeas': 'BoardController.getUpdatedIdeas',
-  'post /board/addIdeaCollection': 'BoardController.addIdeaCollection',
-  'post /board/removeIdeaCollection': 'BoardController.removeIdeaCollection',
-
-  'post /auth/local': 'AuthController.callback',
-  'post /auth/local/:action': 'AuthController.callback',
+  'post /board/:boardId/create': 'BoardController.create',
+  'post /board/:boardId/destroy': 'BoardController.destroy',
 
   'get /auth/:provider': 'AuthController.provider',
   'get /auth/:provider/callback': 'AuthController.callback',
