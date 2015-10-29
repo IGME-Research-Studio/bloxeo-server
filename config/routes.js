@@ -52,9 +52,10 @@ module.exports.routes = {
 
   //'post /createUser': 'UserController.createUser',
 
-  'post /board/create': 'BoardController.create',
-  'post /board/join': 'BoardController.join',
-  'post /board/leave': 'BoardController.leave',
+  'post /board/:boardId/create': 'BoardController.create',
+  'post /board/:boardId/join': 'BoardController.join',
+  'post /board/:boardId/leave': 'BoardController.leave',
+  'post /board/:boardId/destroy': 'BoardController.destroy',
 
   'post /auth/local': 'AuthController.callback',
   'post /auth/local/:action': 'AuthController.callback',
