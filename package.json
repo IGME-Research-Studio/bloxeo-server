@@ -1,6 +1,6 @@
 {
   "name": "StormServer",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Storm app server",
   "scripts": {
     "start": "sails lift",
