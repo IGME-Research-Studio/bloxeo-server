@@ -95,7 +95,7 @@ module.exports = {
 
     res.json(200, {
 
-      message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + req.body.boardIdentifier,
+      message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + boardId,
     });
 
     sails.sockets.leave(userSocketId, boardId);
