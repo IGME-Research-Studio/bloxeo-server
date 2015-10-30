@@ -9,10 +9,10 @@ let ideaId;
 
 io.sails.url = 'http://localhost:1337';
 
-io.socket.get('/user/create', {isFullAccount: false, username: 'braxtoniskewl'}, function(respense) {
-
+io.socket.get('/user/create', {isFullAccount: false, username: 'braxtoniskewl'}, function(res) {
+  console.log(res);
   io.socket.post('/board/join', {boardIdentifier: boardId}, function(data, jwres) {
-
+    console.log(jwres);
     io.socket.post('board/' + boardId + '/ideaCollection/create', {isFullAccount: false, user: 'braxtoniskewl', ideaContent: 'dogs in space', boardId: boardId}, function(response) {
 
       console.log('created');
@@ -39,7 +39,7 @@ io.socket.on('boardJoined', function(data) {
 });
 
 io.socket.on('board', function(data) {
-
+  console.log(data);
   console.log('board updated!');
 });
 /*
