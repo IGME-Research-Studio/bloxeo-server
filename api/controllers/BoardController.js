@@ -16,6 +16,7 @@ module.exports = {
     .then(function(created) {
 
       const boardId = created.boardId;
+      if (req.isSocket) sails.sockets.join(req.socket, boardId);
 
       res.json(200, {
 
