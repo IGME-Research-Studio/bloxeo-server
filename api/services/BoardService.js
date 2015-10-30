@@ -144,9 +144,30 @@ boardService.removeIdea = function(boardId, ideaId) {
 
     return found.save();
   })
+  .then(() => Idea.destroy({id: ideaId}))
   .catch(function(err) {
 
     throw new Error(err);
+  });
+};
+
+// find an idea on a board based on content
+boardService.findIdeaByContent = function(boardId, content){
+
+  // find the board
+  return Board.findOne({boardId: boardId}).then(function(board){
+
+    return board.id;
+  }).then(function(id){
+
+
+    // find idea based on the id returned
+    return Idea.find({board: id, content: content});
+  })
+  .then((ideas) => _.first(ideas))
+  .catch((err) => {
+
+    throw new Error(er)
   });
 };
 

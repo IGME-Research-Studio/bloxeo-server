@@ -23,6 +23,10 @@ module.exports = {
       model: 'user',
     },
 
+    board: {
+
+      model: 'board',
+    },
   },
 };
 
