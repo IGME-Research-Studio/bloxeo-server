@@ -6,6 +6,7 @@
  */
 
 const boardService = require('../services/BoardService.js');
+const _ = require('lodash');
 
 const ideaService = {};
 
@@ -26,7 +27,7 @@ ideaService.create = function(user, content, boardId) {
         if (board.ideas[i].content === content) {
 
           // return bad request
-          throw new Error('Idea Exists');
+          throw new Error(`Idea with content "${content}" already exists`);
         }
       }
     }
@@ -36,30 +37,20 @@ ideaService.create = function(user, content, boardId) {
 
   }).catch(function(err) {
 
-    // throw error if board cannot be found
-    throw new Error(err);
+    throw new Error(`Board with id ${boardId} could not be found`);
   });
 };
 
 /**
  * Delete an Idea
  */
-ideaService.delete = function(boardId, ideaId) {
+ideaService.delete = function(boardId, ideaContent) {
 
-  // find the idea
-  Idea.findOne({id: ideaId}).then(function(idea) {
-
-    // remove the idea from the board
-    boardService.removeIdea(boardId, idea.id);
-
-    // error handling
-  }).catch(function(err) {
-
-    throw new Error(err);
-  });
-
-  // return destroyed idea
-  return Idea.destroy({'id': ideaId});
+  return BoardService.findIdeaByContent(boardId, ideaContent)
+    .then((idea) => idea.id)
+    .catch((err) => { throw new Error('Idea does not exist') })
+    .then((ideaId) => BoardService.removeIdea(boardId, ideaId))
+    .catch((err) => { throw new Error('Idea could not be deleted') });
 };
 
 module.exports = ideaService;
