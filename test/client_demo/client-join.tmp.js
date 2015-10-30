@@ -11,11 +11,11 @@ io.sails.url = 'http://localhost:1337';
 
 io.socket.get('/user/create', {isFullAccount: false, username: 'braxtoniskewl'}, function(response) {
 
-    io.socket.post('/board/'+boardId+'/join', {boardIdentifier: boardId}, function(data, jwres){
+    io.socket.post('/board/'+boardId+'/join', function(data, jwres){
 
       console.log('join room');
       console.log(data);
-      
+
       io.socket.post('board/'+boardId+'/idea/create', {isFullAccount: false, user: 'braxtoniskewl', content: 'dogs in space', boardId: boardId}, function(response){
 
         console.log('idea created');
@@ -45,7 +45,7 @@ io.socket.on('board', function(data) {
 });
 
 io.socket.on('UPDATED_IDEAS', function(data){
-  
+
   console.log("idea created");
   console.log(data);
 });
