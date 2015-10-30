@@ -3,21 +3,22 @@ const ideaCollectionService = {};
 
 ideaCollectionService.create = function(ideaContent, userId, boardId) {
   // pass in idea, and user
-  return Board.findOne({boardId: boardId}).populate("ideas").then(function(board) {
+  return Board.findOne({boardId: boardId}).populate('ideas').then(function(board) {
     for (let i = 0; i < board.ideas.length; i++) {
       if (board.ideas[i].content === ideaContent) {
         return IdeaCollection.create({ideas: [board.ideas[i].id], votes: 0, draggable: true, lastUpdated: userId});
       }
     }
-    throw new Error("Idea doesn't exist");
+    throw new Error('Idea does not exist');
   }).catch(function(err) {
-      throw new Error(err);
-    });
+    throw new Error(err);
+  });
 };
 
 ideaCollectionService.add = function(boardId, index, ideaContent, userId) {
-  return Board.findOne({boardId: boardId}).populate("ideas").then(function(board) {
-    let ideaId;
+  console.log(userId);
+  return Board.findOne({boardId: boardId}).populate('ideas').then(function(board) {
+    let ideaId = null;
     for (let i = 0; i < board.ideas.length; i++) {
       if (board.ideas[i].content === ideaContent) {
         ideaId = board.ideas[i].id;
@@ -25,10 +26,12 @@ ideaCollectionService.add = function(boardId, index, ideaContent, userId) {
     }
     return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(ideaCollection) {
-  
+      if (ideaId === null) {
+        throw new Error('Idea does not exist in room.');
+      }
       ideaCollection.ideas.add(ideaId);
       return ideaCollection.save();
-  
+
     }).catch(function(err) {
       throw new Error(err);
     });
@@ -36,6 +39,7 @@ ideaCollectionService.add = function(boardId, index, ideaContent, userId) {
 };
 
 ideaCollectionService.remove = function(boardId, index, ideaContent, userId) {
+  console.log(userId);
   return ideaCollectionService.findAndPopulate(boardId, index)
   .then(function(ideaCollection) {
     for (let i = 0; i < ideaCollection.ideas.length; i++) {
@@ -74,7 +78,7 @@ ideaCollectionService.findAndPopulate = function(boardId, index) {
     });
 };
 
-ideaCollectionService.getIdeaContents = function(boardId, index) {
+ideaCollectionService.getAllIdeas = function(boardId, index) {
   return ideaCollectionService.findAndPopulate(boardId, index).then(function(obj) {
     const ideaContents = [];
     for (let i = 0; i < obj.ideas.length; i++) {

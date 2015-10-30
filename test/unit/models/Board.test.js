@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const should = require('chai').should();
 
 describe('BoardModel', () => {
-  let testBoardId = ''
+  let testBoardId = '';
   describe('#create()', () => {
 
     it('Should create a Board', (done) => {
