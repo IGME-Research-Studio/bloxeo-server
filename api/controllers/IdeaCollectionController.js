@@ -6,125 +6,142 @@
  */
 const boardService = require('../services/BoardService.js');
 const ideaCollectionService = require('../services/IdeaCollectionService.js');
+const Promise = require('bluebird');
 
 module.exports = {
-  // should work like a charm. Tested and worked for me
+  // route for creating a new IdeaCollection
   create: function(req, res) {
-    // if not correct info return badreq message
+    // check for required parameters
+    if(!req.param('boardId') || !req.body.idea || !req.body.user ){
+      return res.json(400, {message: 'Not all required parameters were supplied'});
+    }
+
     const boardId = req.param('boardId');
 
-    // call service to create collection ---ACTUAL CODE - be sure to clean up names like "board2"
-    ideaCollectionService.create(req.content, req.body.user, boardId)
-      .then(function(ideaCollection) {
-        // get board and add collection to it
-        boardService.addIdeaCollection(boardId, ideaCollection.id)
-          .then(function(board) {
-            const index = board.ideaCollections.length - 1;
-            ideaCollectionService.getIdeaContents(board.boardId, index)
-              .then(function(content) {
-                sails.sockets.broadcast(boardId, 'AddedCollection', {index: index, content: content});
+    // Create an IdeaCollection
+    ideaCollectionService.create(req.body.idea, req.body.user, boardId)
+      .then(function(collectionIndex) {
+        // Inform all clients a new collection has been added to the board
+        sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex , content: ideaCollectionService.getAllIdeas()});
 
-                return res.json(200, {
-                  index: index,
-                  content: content,
-                });
-              });
-          }).catch(function(err) {
-            return res.json(500, {message: 'Problem adding ideaCollection to board. ' + err});
-          });
-      }).catch(function(err) {
+        return res.json(200, { index: index, content: content });
+      })
+      .catch(function(err) {
         return res.json(500, {message: 'Problem creating the ideaCollection. ' + err});
       });
   },
-  // most recent changes untested, but without the for in service itworked
-  add: function(req, res) {
-    // update ideaCollection with another idea
+
+  // route for adding an idea to a collection
+  addIdea: function(req, res) {
+    // check for required parameters
+    if(!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index){
+      return res.json(400, {message: 'Not all required parameters were supplied'});
+    }
 
     const boardId = req.param('boardId');
-    const index = req.body.index;
+    const index = req.body.index; // index of the ideaCollection to add an idea to
 
-    // use the user
-    ideaCollectionService.add(boardId, index, req.body.idea, req.body.user)
-      .then(function(ideaCollection) {
-        console.log(ideaCollection);
-        ideaCollectionService.getAllIeas(boardId, index)
-        .then(function(content) {
-          sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index, content: content});
-
-          return res.json(200, {
-            index: index,
-            content: content,
-          });
-        });
-      }).catch(function(err) {
+    // Add the idea to a collection
+    ideaCollectionService.addIdea(boardId, index, req.body.idea, req.body.user)
+      .then(function(collection) {
+        return ideaCollectionService.getAllIdeas(boardId, index);
+      })
+      .then(function(contents) {
+        // Inform all klients of the updated collection
+        sails.sockets.broadcast(boardId, 'UpdatedCollection', {index: index, content: contents});
+        return res.json(200, {index: index, content: content});
+      })
+      .catch(function(err) {
         return res.json(500, {message: 'Problem adding to the ideaCollection. ' + err});
       });
   },
-  // most recent changes untested, but without the for in service itworked
+
+  // route for remove an idea to a collection
+  removeIdea: function(req, res) {
+    // check for required parameters
+    if(!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index){
+      return res.json(400, {message: 'Not all required parameters were supplied'});
+    }
+
+    const boardId = req.param('boardId');
+    const index = req.body.index; // index of the ideaCollection
+
+    // removethe idea to a collection
+    ideaCollectionService.removeIdea(boardId, index, req.body.idea, req.body.user)
+      .then(function(collection) {
+        return ideaCollectionService.getAllIdeas(boardId, index);
+      })
+      .then(function(contents) {
+        // Inform all klients of the updated collection
+        sails.sockets.broadcast(boardId, 'UpdatedCollection', {index: index, content: contents});
+        return res.json(200, {index: index, content: content});
+      })
+      .catch(function(err) {
+        return res.json(500, {message: 'Problem removing from the ideaCollection. ' + err});
+      });
+  },
+
+  // Remove an IdeaCollection from a Board and delete it
   remove: function(req, res) {
-    // delete ideaCollection and remove from board
+    // check for required parameters
+    if(!req.param('boardId') || !req.body.user || !req.body.index){
+      return res.json(400, {message: 'Not all required parameters were supplied'});
+    }
 
     const boardId = req.param('boardId');
     const index = req.body.index;
-    // change to use idea content and user
-    ideaCollectionService.remove(boardId, index, req.body.idea, req.body.user)
-      .then(function(ideaCollection) {
-        console.log(ideaCollection);
-        ideaCollectionService.getAllIdeas(boardId, index)
-        .then(function(content) {
-          sails.sockets.broadcast(boardId, 'UpdatedCollections', {index: index, content: content});
 
-          res.json(200, {
-            index: index,
-            content: content,
-          });
-        });
+    // Destroy the ideaCollection
+    ideaCollectionService.destroy(boardId, index, req.body.user)
+      .then(function(collection) {
+          // notify all Peters that a collection was removed
+          sails.sockets.broadcast(boardId, 'RemovedCollection', {index: index});
+          res.json(200, {index: index });
       }).catch(function(err) {
         res.json(500, {message: 'Problem removing from the ideaCollection. ' + err});
       });
   },
-  // untested
-  getCollections: function(req, res) {
-    const boardId = req.param('boardIdentity');
-    boardService.getIdeaCollection(boardId)
-      .then(function(found) {
-        const ideaCollections = [];
-        const pushIdea = (content) => {
-          ideaCollections.push({index: i, content: content});
-        };
-        for (let i = 0; i < found.length; i++) {
-          ideaCollectionService.getAllIdeas(boardId, i)
-            .then(pushIdea);
-        }
-        sails.sockets.broadcast(boardId, 'getCollections', ideaCollections);
 
-        res.json(200, {
-          ideaCollections,
+  // Get all collections in a klient readable format. ex: [{index: i, conent: c}]
+  getCollections: function(req, res) {
+    // check for required parameters
+    if(!req.param('boardId')){
+      return res.json(400, {message: 'Not all required parameters were supplied'});
+    }
+
+    const boardId = req.param('boardId');
+
+    boardService.getIdeaCollections(boardId)
+      .then(function(collections) {
+        const collectionsJSON = [];
+        const promises = [];
+
+        for(let i = 0; i < collections.length; i++){
+          let p = Promise(function(){
+            return ideaCollectionService.getAllIdeas();
+          })
+          .then(function(content){
+            collectionsJSON.push({
+              index: i,
+              content: content
+            });
+          });
+
+          promises.push(p);
+        }
+
+        Promise.all(promises).then(function() {
+          sails.sockets.broadcast(boardId, 'allCollections', collectionsJSON);
+          res.json(200, { collections });
         });
-      }).catch(function(err) {
+      })
+      .catch(function(err) {
         res.json(500, {message: 'Failed to get all collections' + err});
       });
-
-  },
-  // untested
-  destroy: function(req, res) {
-    // remove ideaCollection from db and board
-    const boardId = req.param('boardId');
-    ideaCollectionService.destroy(boardId, req.body.index)
-      .then(function(destroyed) {
-        console.log(destroyed);
-        sails.sockets.broadcast(boardId, 'RemovedCollections', {index: index});
-
-        res.json(200, {
-          index: index,
-        });
-      }).catch(function(err) {
-        res.json(500, {message: 'Failed to destroy ideaCollection ' + err});
-      });
   },
 
-  merge: function(req, res) {
     // move all non-duplicate ideas from one collection to another, destroy second collection
-    console.log(res);
+  merge: function(req, res) {
+    return res.json(500, {message: 'function not implemented'});
   },
 };
