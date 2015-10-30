@@ -17,7 +17,7 @@ ideaCollectionService.create = function(ideaContent, userId, boardId) {
 
 ideaCollectionService.add = function(boardId, index, ideaContent, userId) {
   return Board.findOne({boardId: boardId}).populate("ideas").then(function(board) {
-    let ideaId;
+    let ideaId = null;
     for (let i = 0; i < board.ideas.length; i++) {
       if (board.ideas[i].content === ideaContent) {
         ideaId = board.ideas[i].id;
@@ -25,7 +25,8 @@ ideaCollectionService.add = function(boardId, index, ideaContent, userId) {
     }
     return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(ideaCollection) {
-  
+      if(ideaId === null)
+        thrown new Error("Idea doesn't exist in room.");
       ideaCollection.ideas.add(ideaId);
       return ideaCollection.save();
   
@@ -74,7 +75,7 @@ ideaCollectionService.findAndPopulate = function(boardId, index) {
     });
 };
 
-ideaCollectionService.getIdeaContents = function(boardId, index) {
+ideaCollectionService.getAllIdeas = function(boardId, index) {
   return ideaCollectionService.findAndPopulate(boardId, index).then(function(obj) {
     const ideaContents = [];
     for (let i = 0; i < obj.ideas.length; i++) {
