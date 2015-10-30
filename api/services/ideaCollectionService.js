@@ -67,7 +67,6 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent, userId) {
   @param int userId - Id of the User who removed the idea
 */
 ideaCollectionService.removeIdea = function(boardId, index, ideaContent, userId) {
-
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
       const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
