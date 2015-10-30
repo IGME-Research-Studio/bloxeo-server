@@ -13,7 +13,7 @@ const createModelBasedOnString = (assoc) => {
   else if (assoc === 'ideas') {
     return Idea.create({content: 'Blah'});
   }
-  else if (assoc === 'collections') {
+  else if (assoc === 'ideaCollections') {
     return IdeaCollection.create({weight: 1});
   }
 };
@@ -45,7 +45,7 @@ describe('BoardService', function() {
       {assoc: 'pendingUsers', add: 'addPendingUser', remove: 'removePendingUser'},
       {assoc: 'admins', add: 'addAdmin', remove: 'removeAdmin'},
       {assoc: 'ideas', add: 'addIdea', remove: 'removeIdea'},
-      {assoc: 'collections', add: 'addIdeaCollection', remove: 'removeIdeaCollection'},
+      {assoc: 'ideaCollections', add: 'addIdeaCollection', remove: 'removeIdeaCollection'},
     ].forEach((obj) => {
       const assoc = obj.assoc;
       const add = obj.add;
