@@ -17,16 +17,16 @@ io.sails.url = 'http://localhost:1337';
   io.socket.post('/board/create', {isPublic: true}, function(response) {
 
     //console.log(response.message);
-    boardId = response.boardId;
+    var boardId = response.boardId;
 
     // test leaving a room
-    io.socket.post('/board/leave', {boardIdentifier: boardId}, function(response) {
+    io.socket.post('/board/' + boardId + '/leave', function(response) {
 
       console.log(response.message);
     });
 
     // test rejoining a room after leaving
-    io.socket.post('/board/join', {boardIdentifier: boardId}, function(data, jwres){
+    io.socket.post('/board/' + boardId + '/join', function(data, jwres) {
 
       console.log(data);
     });
