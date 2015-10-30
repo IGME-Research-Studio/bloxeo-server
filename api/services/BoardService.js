@@ -212,9 +212,9 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 // @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
   return Board.findOne({boardId: boardId})
-    .populate('collections')
+    .populate('ideaCollections')
     .then(function(board) {
-      return board.collections;
+      return board.ideaCollections;
     }).then(function(allCollections) {
       const collections = [];
       const collectionPromises = [];
