@@ -38,6 +38,7 @@ io.sails.url = 'http://localhost:1337';
 
 io.socket.on('boardJoined', function(data) {
 
+  console.log('socket.on');
   console.log(data.message);
 });
 
