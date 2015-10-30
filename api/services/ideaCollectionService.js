@@ -1,91 +1,131 @@
 const boardService = require('../services/BoardService.js');
 const ideaCollectionService = {};
 
-ideaCollectionService.create = function(ideaContent, userId, boardId) {
-  // pass in idea, and user
-  return Board.findOne({boardId: boardId}).populate('ideas').then(function(board) {
-    for (let i = 0; i < board.ideas.length; i++) {
-      if (board.ideas[i].content === ideaContent) {
-        return IdeaCollection.create({ideas: [board.ideas[i].id], votes: 0, draggable: true, lastUpdated: userId});
-      }
-    }
-    throw new Error('Idea does not exist');
-  }).catch(function(err) {
-    throw new Error(err);
-  });
-};
 
-ideaCollectionService.add = function(boardId, index, ideaContent, userId) {
-  console.log(userId);
-  return Board.findOne({boardId: boardId}).populate('ideas').then(function(board) {
-    let ideaId = null;
-    for (let i = 0; i < board.ideas.length; i++) {
-      if (board.ideas[i].content === ideaContent) {
-        ideaId = board.ideas[i].id;
-      }
-    }
-    return ideaCollectionService.findAndPopulate(boardId, index)
-    .then(function(ideaCollection) {
-      if (ideaId === null) {
-        throw new Error('Idea does not exist in room.');
-      }
-      ideaCollection.ideas.add(ideaId);
-      return ideaCollection.save();
+/**
+  Create an IdeaCollection and add an inital idea
+  @param String boardId
+  @param int userId - Id of the User who create the collection
+  @param int ideaId - Id of an inital Idea to add to the collection
+*/
+ideaCollectionService.create = function(boardId, userId, ideaId) {
+  return Board.findOne({boardId: boardId})
+    .populateAll()
+    .then(function(board) {
+      // Create and return a new IdeaCollection
+     return [
+        IdeaCollection.create({
+          ideas: [ideaId],
+          votes: 0,
+          draggable: true,
+          lastUpdated: userId
+        }),
 
-    }).catch(function(err) {
+        board.IdeaCollections.length
+      ];
+    })
+    .spread(function(collection, numCollections) {
+      // Add IdeaCollection to a Board
+      boardService.addIdeaCollection(boardId, collection.id);
+
+      // return the index of the new collection in the board
+      return numCollections;
+    })
+    .catch(function(err) {
       throw new Error(err);
     });
-  });
 };
 
-ideaCollectionService.remove = function(boardId, index, ideaContent, userId) {
-  console.log(userId);
+/**
+  Add an Idea to an Idea collection
+  @param String boardId
+  @param int index - Index of IdeaCollection to add an Idea from
+  @param String ideaContent - The content of an Idea to add
+  @param int userId - Id of the User who added the idea
+*/
+ideaCollectionService.addIdea = function(boardId, index, ideaContent, userId) {
+
   return ideaCollectionService.findAndPopulate(boardId, index)
-  .then(function(ideaCollection) {
-    for (let i = 0; i < ideaCollection.ideas.length; i++) {
-      if (ideaCollection.ideas[i].content === ideaContent) {
-        // also needs to update lastUpdated, does this need another then/catch?
-        ideaCollection.ideas.remove(ideaId);
-        return ideaCollection.save();
-      }
-    }
-  }).catch(function(err) {
-    throw new Error(err);
-  });
+    .then(function(collection) {
+      const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
+      collection.ideas.add(id);
+      // save and return the collection
+      return collection.save()
+        .catch(function(err){
+          throw new Error(err);
+        });
+    })
+    .catch(function(err) {
+      throw new Error(err);
+    });
 };
 
-ideaCollectionService.merge = function() {
+/**
+  Remove an Idea from an Idea collection
+  @param String boardId
+  @param int index - Index of IdeaCollection to remove an Idea from
+  @param String ideaContent - The content of an Idea to remove
+  @param int userId - Id of the User who removed the idea
+*/
+ideaCollectionService.removeIdea = function(boardId, index, ideaContent, userId) {
 
+  return ideaCollectionService.findAndPopulate(boardId, index)
+    .then(function(collection) {
+      const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
+      collection.ideas.remove(id);
+    })
+    .catch(function(err) {
+      throw new Error(err);
+    });
 };
 
-ideaCollectionService.destroy = function(boardId, index) {
+/**
+  Remove an IdeaCollection from a board then delete the model
+*/
+ideaCollectionService.destroy = function(boardId, index, userId) {
+
   return boardService.findAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
-      const ideaCollectionId = board.ideaCollections[index];
-      board.ideaCollections.remove(ideaCollectionId);
-      return IdeaCollection.destroy(ideaCollectionId);
-    }).catch(function(err) {
+      const id = board.ideaCollections[index];
+      return [boardService.removeIdeaCollection(boardId, id), id];
+    })
+    .spread(function(board, id){
+      return IdeaCollection.destroy(id);
+    })
+    .catch(function(err) {
       throw new Error(err);
     });
 };
 
+/**
+  Find and populate an IdeaCollection
+*/
 ideaCollectionService.findAndPopulate = function(boardId, index) {
+  // find a board and populate its ideaCollections
   return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
+      // find a collection on the board and populate its Ideas
       return IdeaCollection.findOne({id: board.ideaCollections[index].id}).populate('ideas');
-    }).catch(function(err) {
+    })
+    .catch(function(err) {
       throw new Error(err);
     });
 };
 
+/**
+  Returns the content of each idea in an IdeaCollection
+*/
 ideaCollectionService.getAllIdeas = function(boardId, index) {
-  return ideaCollectionService.findAndPopulate(boardId, index).then(function(obj) {
-    const ideaContents = [];
-    for (let i = 0; i < obj.ideas.length; i++) {
-      ideaContents.push(obj.ideas[i].content);
-    }
-    return ideaContents;
-  });
+
+  return ideaCollectionService.findAndPopulate(boardId, index)
+    .then(function(ideaCollection) {
+      const ideaContents = [];
+
+      ideaCollection.ideas.forEach(function(idea){
+        ideaContents.push(idea.content);
+      });
+      return ideaContents;
+    });
 };
 
 module.exports = ideaCollectionService;
