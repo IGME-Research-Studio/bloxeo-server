@@ -6,17 +6,13 @@
  */
 const boardService = require('../services/BoardService.js');
 const ideaCollectionService = require('../services/IdeaCollectionService.js');
-<<<<<<< HEAD
 const promise = require('bluebird');
-=======
-const Promise = require('bluebird');
->>>>>>> 18f2175973a559a0f173c3e4fbf7d5e52f8aeba0
 
 module.exports = {
   // route for creating a new IdeaCollection
   create: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.idea || !req.body.user ){
+    if (!req.param('boardId') || !req.body.idea || !req.body.user ) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -26,7 +22,7 @@ module.exports = {
     ideaCollectionService.create(req.body.idea, req.body.user, boardId)
       .then(function(collectionIndex) {
         // Inform all clients a new collection has been added to the board
-        sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex , content: ideaCollectionService.getAllIdeas()});
+        sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex, content: ideaCollectionService.getAllIdeas()});
 
         return res.json(200, { index: index, content: content });
       })
@@ -38,7 +34,7 @@ module.exports = {
   // route for adding an idea to a collection
   addIdea: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index){
+    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -63,7 +59,7 @@ module.exports = {
   // route for remove an idea to a collection
   removeIdea: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index){
+    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -88,7 +84,7 @@ module.exports = {
   // Remove an IdeaCollection from a Board and delete it
   remove: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.user || !req.body.index){
+    if (!req.param('boardId') || !req.body.user || !req.body.index) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -109,7 +105,7 @@ module.exports = {
   // Get all collections in a klient readable format. ex: [{index: i, conent: c}]
   getCollections: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId')){
+    if (!req.param('boardId')) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 

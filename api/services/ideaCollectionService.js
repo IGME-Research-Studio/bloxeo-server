@@ -12,9 +12,9 @@ ideaCollectionService.create = function(boardId, userId, ideaId) {
   return Board.findOne({boardId: boardId})
     .populateAll()
 
-    .then(function(board) {
+    .then(function() {
       // Create and return a new IdeaCollection
-     return [
+      return [
         IdeaCollection.create({
           ideas: [ideaId],
           votes: 0,
