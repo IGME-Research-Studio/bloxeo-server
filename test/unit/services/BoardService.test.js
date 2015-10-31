@@ -190,12 +190,9 @@ describe('BoardService', function() {
 
           .then((created) => {
 
-            // console.dir(created);
             BoardService.getIdeaCollections(created.boardId)
 
-            .then((ideaCollections) => {
-              console.log('IN TEST');
-              console.log(ideaCollections);
+            .then(() => {
 
               done();
             })

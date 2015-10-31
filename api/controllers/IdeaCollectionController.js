@@ -6,13 +6,13 @@
  */
 const boardService = require('../services/BoardService.js');
 const ideaCollectionService = require('../services/IdeaCollectionService.js');
-const Promise = require('bluebird');
+const promise = require('bluebird');
 
 module.exports = {
   // route for creating a new IdeaCollection
   create: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.idea || !req.body.user ){
+    if (!req.param('boardId') || !req.body.idea || !req.body.user ) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -22,7 +22,7 @@ module.exports = {
     ideaCollectionService.create(req.body.idea, req.body.user, boardId)
       .then(function(collectionIndex) {
         // Inform all clients a new collection has been added to the board
-        sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex , content: ideaCollectionService.getAllIdeas()});
+        sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex, content: ideaCollectionService.getAllIdeas()});
 
         return res.json(200, { index: index, content: content });
       })
@@ -34,7 +34,7 @@ module.exports = {
   // route for adding an idea to a collection
   addIdea: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index){
+    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -43,7 +43,7 @@ module.exports = {
 
     // Add the idea to a collection
     ideaCollectionService.addIdea(boardId, index, req.body.idea, req.body.user)
-      .then(function(collection) {
+      .then(function() {
         return ideaCollectionService.getAllIdeas(boardId, index);
       })
       .then(function(contents) {
@@ -59,7 +59,7 @@ module.exports = {
   // route for remove an idea to a collection
   removeIdea: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index){
+    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -68,7 +68,7 @@ module.exports = {
 
     // removethe idea to a collection
     ideaCollectionService.removeIdea(boardId, index, req.body.idea, req.body.user)
-      .then(function(collection) {
+      .then(function() {
         return ideaCollectionService.getAllIdeas(boardId, index);
       })
       .then(function(contents) {
@@ -84,7 +84,7 @@ module.exports = {
   // Remove an IdeaCollection from a Board and delete it
   remove: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId') || !req.body.user || !req.body.index){
+    if (!req.param('boardId') || !req.body.user || !req.body.index) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -93,10 +93,10 @@ module.exports = {
 
     // Destroy the ideaCollection
     ideaCollectionService.destroy(boardId, index, req.body.user)
-      .then(function(collection) {
-          // notify all Peters that a collection was removed
-          sails.sockets.broadcast(boardId, 'RemovedCollection', {index: index});
-          res.json(200, {index: index });
+      .then(function() {
+        // notify all clients that a collection was removed
+        sails.sockets.broadcast(boardId, 'RemovedCollection', {index: index});
+        res.json(200, {index: index });
       }).catch(function(err) {
         res.json(500, {message: 'Problem removing from the ideaCollection. ' + err});
       });
@@ -105,7 +105,7 @@ module.exports = {
   // Get all collections in a klient readable format. ex: [{index: i, conent: c}]
   getCollections: function(req, res) {
     // check for required parameters
-    if(!req.param('boardId')){
+    if (!req.param('boardId')) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
@@ -116,16 +116,24 @@ module.exports = {
         const collectionsJSON = [];
         const promises = [];
 
-        for(let i = 0; i < collections.length; i++){
-          let p = Promise(function(){
-            return ideaCollectionService.getAllIdeas();
-          })
-          .then(function(content){
-            collectionsJSON.push({
-              index: i,
-              content: content
-            });
+        function getAllIdeas() {
+
+          return IdeaCollectionService.getAllIdeas();
+        }
+
+        function addToCollectionsJSON(content) {
+
+          collectionsJSON.push({
+            index: i,
+            content: content,
           });
+        }
+
+        for (let i = 0; i < collections.length; i++) {
+
+          const p = promise(getAllIdeas())
+
+          .then(addToCollectionsJSON(content));
 
           promises.push(p);
         }

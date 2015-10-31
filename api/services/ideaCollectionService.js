@@ -11,25 +11,30 @@ const ideaCollectionService = {};
 ideaCollectionService.create = function(boardId, userId, ideaId) {
   return Board.findOne({boardId: boardId})
     .populateAll()
-    .then(function(board) {
+    .then(function() {
       // Create and return a new IdeaCollection
-     return [
+      return [
         IdeaCollection.create({
           ideas: [ideaId],
           votes: 0,
           draggable: true,
-          lastUpdated: userId
+          lastUpdated: userId,
         }),
-
-        board.IdeaCollections.length
       ];
     })
-    .spread(function(collection, numCollections) {
+    .spread(function(collection) {
       // Add IdeaCollection to a Board
-      boardService.addIdeaCollection(boardId, collection.id);
+      return boardService.addIdeaCollection(boardId, collection.id)
 
-      // return the index of the new collection in the board
-      return numCollections;
+      .then(function() {
+        console.log('enter first then of addIdeaCollection');
+        return BoardService.findBoardAndPopulate(boardId, 'ideaCollections');
+      })
+      .then(function(board) {
+
+        // return the index of the new collection in the board
+        return board.ideaCollections.length;
+      });
     })
     .catch(function(err) {
       throw new Error(err);
@@ -43,15 +48,16 @@ ideaCollectionService.create = function(boardId, userId, ideaId) {
   @param String ideaContent - The content of an Idea to add
   @param int userId - Id of the User who added the idea
 */
-ideaCollectionService.addIdea = function(boardId, index, ideaContent, userId) {
+// @note Potentially want to add a userId to parameters track who created the idea later
+ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
       const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
-      collection.ideas.add(id);
+      collection.ideas.add(ideaId);
       // save and return the collection
       return collection.save()
-        .catch(function(err){
+        .catch(function(err) {
           throw new Error(err);
         });
     })
@@ -67,12 +73,13 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent, userId) {
   @param String ideaContent - The content of an Idea to remove
   @param int userId - Id of the User who removed the idea
 */
-ideaCollectionService.removeIdea = function(boardId, index, ideaContent, userId) {
+// @note Potentially want to add a userId to parameters track who created the idea
+ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
       const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
-      collection.ideas.remove(id);
+      collection.ideas.remove(ideaId);
     })
     .catch(function(err) {
       throw new Error(err);
@@ -82,14 +89,15 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent, userId)
 /**
   Remove an IdeaCollection from a board then delete the model
 */
-ideaCollectionService.destroy = function(boardId, index, userId) {
+// @note Potentially want to add a userId to parameters track who destroyed the idea collection model
+ideaCollectionService.destroy = function(boardId, index) {
 
   return boardService.findAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
       const id = board.ideaCollections[index];
       return [boardService.removeIdeaCollection(boardId, id), id];
     })
-    .spread(function(board, id){
+    .spread(function(board, id) {
       return IdeaCollection.destroy(id);
     })
     .catch(function(err) {
@@ -121,7 +129,7 @@ ideaCollectionService.getAllIdeas = function(boardId, index) {
     .then(function(ideaCollection) {
       const ideaContents = [];
 
-      ideaCollection.ideas.forEach(function(idea){
+      ideaCollection.ideas.forEach(function(idea) {
         ideaContents.push(idea.content);
       });
       return ideaContents;
