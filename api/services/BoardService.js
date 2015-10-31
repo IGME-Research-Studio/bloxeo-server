@@ -144,7 +144,10 @@ boardService.removeIdea = function(boardId, ideaId) {
 
     return found.save();
   })
-  .then(() => Idea.destroy({id: ideaId}))
+  .then((populatedBoard) => {
+    return Idea.destroy({id: ideaId})
+      .then(() => populatedBoard);
+  })
   .catch(function(err) {
 
     throw new Error(err);
@@ -152,22 +155,19 @@ boardService.removeIdea = function(boardId, ideaId) {
 };
 
 // find an idea on a board based on content
-boardService.findIdeaByContent = function(boardId, content){
+boardService.findIdeaByContent = function(boardId, content) {
 
   // find the board
-  return Board.findOne({boardId: boardId}).then(function(board){
-
+  return Board.findOne({boardId: boardId}).then(function(board) {
     return board.id;
-  }).then(function(id){
-
+  }).then(function(id) {
 
     // find idea based on the id returned
-    return Idea.find({board: id, content: content});
+    return Idea.findOne({board: id, content: content});
   })
-  .then((ideas) => _.first(ideas))
   .catch((err) => {
 
-    throw new Error(er)
+    throw new Error(err);
   });
 };
 
