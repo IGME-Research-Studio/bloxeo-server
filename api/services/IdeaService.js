@@ -6,7 +6,6 @@
  */
 
 const boardService = require('../services/BoardService.js');
-
 const ideaService = {};
 
 /**

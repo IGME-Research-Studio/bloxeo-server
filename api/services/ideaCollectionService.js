@@ -26,13 +26,12 @@ ideaCollectionService.create = function(boardId, userId, ideaId) {
       return boardService.addIdeaCollection(boardId, collection.id)
 
       .then(function() {
-        console.log('enter first then of addIdeaCollection');
         return BoardService.findBoardAndPopulate(boardId, 'ideaCollections');
       })
       .then(function(board) {
 
         // return the index of the new collection in the board
-        return board.ideaCollections.length;
+        return board.ideaCollections.length - 1;
       });
     })
     .catch(function(err) {
@@ -52,13 +51,16 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
-      collection.ideas.add(ideaId);
+      return [boardService.findIdeaByContent(boardId, ideaContent), collection];
+    })
+    .spread(function(idea, collection) {
+      if (idea === undefined) {
+        throw new Error('Idea not found on board');
+      }
+
+      collection.ideas.add(idea.id);
       // save and return the collection
-      return collection.save()
-        .catch(function(err) {
-          throw new Error(err);
-        });
+      return collection.save();
     })
     .catch(function(err) {
       throw new Error(err);
@@ -91,9 +93,9 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 // @note Potentially want to add a userId to parameters track who destroyed the idea collection model
 ideaCollectionService.destroy = function(boardId, index) {
 
-  return boardService.findAndPopulate(boardId, 'ideaCollections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
-      const id = board.ideaCollections[index];
+      const id = board.ideaCollections[index].id;
       return [boardService.removeIdeaCollection(boardId, id), id];
     })
     .spread(function(board, id) {
@@ -111,6 +113,7 @@ ideaCollectionService.findAndPopulate = function(boardId, index) {
   // find a board and populate its ideaCollections
   return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
+
       // find a collection on the board and populate its Ideas
       return IdeaCollection.findOne({id: board.ideaCollections[index].id}).populate('ideas');
     })

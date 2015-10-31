@@ -163,11 +163,9 @@ boardService.findIdeaByContent = function(boardId, content) {
     return board.id;
   }).then(function(id) {
 
-
     // find idea based on the id returned
-    return Idea.find({board: id, content: content});
+    return Idea.findOne({board: id, content: content});
   })
-  .then((ideas) => _.first(ideas))
   .catch((err) => {
 
     throw new Error(err);
