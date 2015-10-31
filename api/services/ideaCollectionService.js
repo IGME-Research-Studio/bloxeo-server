@@ -11,9 +11,10 @@ const ideaCollectionService = {};
 ideaCollectionService.create = function(boardId, userId, ideaId) {
   return Board.findOne({boardId: boardId})
     .populateAll()
-    .then(function() {
+
+    .then(function(board) {
       // Create and return a new IdeaCollection
-      return [
+     return [
         IdeaCollection.create({
           ideas: [ideaId],
           votes: 0,
@@ -81,6 +82,7 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
       const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
+
       collection.ideas.remove(ideaId);
     })
     .catch(function(err) {
@@ -100,6 +102,7 @@ ideaCollectionService.destroy = function(boardId, index) {
       return [boardService.removeIdeaCollection(boardId, id), id];
     })
     .spread(function(board, id) {
+
       return IdeaCollection.destroy(id);
     })
     .catch(function(err) {
