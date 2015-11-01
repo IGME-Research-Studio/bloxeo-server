@@ -26,10 +26,6 @@ module.exports = {
       type: 'boolean',
     },
 
-    draggable: {
-      type: 'boolean',
-    },
-
     lastUpdated: {
 
       model: 'user',

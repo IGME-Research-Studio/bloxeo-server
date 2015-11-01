@@ -49,11 +49,6 @@ module.exports.routes = {
   'get /logout': 'AuthController.logout',
   'get /register': 'AuthController.register',
 
-  'post /board/destroy': 'BoardController.destroy',
-  'post /board/create': 'BoardController.create',
-  'post /board/:boardId/join': 'BoardController.join',
-  'post /board/:boardId/leave': 'BoardController.leave',
-
   'get /board/:boardId/idea': 'IdeaController.index',
   'post /board/:boardId/idea': 'IdeaController.create',
   'delete /board/:boardId/idea': 'IdeaController.destroy',
@@ -62,10 +57,6 @@ module.exports.routes = {
   'post /board/:boardId/destroy': 'BoardController.destroy',
   'post /board/:boardId/join': 'BoardController.join',
   'post /board/:boardId/leave': 'BoardController.leave',
-
-  'post board/:boardId/ideaCollection/create': 'IdeaCollectionController.create',
-  'post board/:boardId/ideaCollection/add': 'IdeaCollectionController.add',
-  'post board/:boardId/ideaCollection/remove': 'IdeaCollectionController.remove',
 
   'post board/:boardId/ideaCollection/create': 'IdeaCollectionController.create',
   'post board/:boardId/ideaCollection/add': 'IdeaCollectionController.add',

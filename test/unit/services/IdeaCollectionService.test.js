@@ -44,7 +44,7 @@ describe('IdeaCollectionService', function() {
 
   describe('#addIdea()', () => {
 
-    it('Should add an idea to an idea collection', (done) => {
+    xit('Should add an idea to an idea collection', (done) => {
 
       // Create a Board
       BoardService.create({isPublic: true})
@@ -84,7 +84,7 @@ describe('IdeaCollectionService', function() {
 
   describe('#removeIdea()', () => {
 
-    it('Should remove an idea from an idea collection', (done) => {
+    xit('Should remove an idea from an idea collection', (done) => {
 
       // Create a Board
       BoardService.create({isPublic: true})
@@ -129,7 +129,7 @@ describe('IdeaCollectionService', function() {
 
   describe('#destroy()', () => {
 
-    it('destroy an idea collection', (done) => {
+    xit('destroy an idea collection', (done) => {
 
       // Create a Board
       BoardService.create({isPublic: true})

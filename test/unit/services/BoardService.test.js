@@ -181,10 +181,9 @@ describe('BoardService', function() {
 
       Idea.create({content: 'purple'})
         .then((idea) => IdeaCollection.create({weight: 1, ideas: [idea]}))
-        .then((collection) => Board.create({isPublic: true, collections: [collection]}))
+        .then((collection) => Board.create({isPublic: true, ideaCollections: [collection]}))
         .then((created) => BoardService.getIdeaCollections(created.boardId))
         .then((ideaCollections) => {
-
           expect(ideaCollections.length).to.equal(1);
           done();
         })
