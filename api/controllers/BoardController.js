@@ -16,6 +16,7 @@ module.exports = {
     .then(function(created) {
 
       const boardId = created.boardId;
+      if (req.isSocket) sails.sockets.join(req.socket, boardId);
 
       res.json(200, {
 
@@ -94,7 +95,7 @@ module.exports = {
 
     res.json(200, {
 
-      message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + req.body.boardIdentifier,
+      message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + boardId,
     });
 
     sails.sockets.leave(userSocketId, boardId);

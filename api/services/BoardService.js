@@ -144,7 +144,28 @@ boardService.removeIdea = function(boardId, ideaId) {
 
     return found.save();
   })
+  .then((populatedBoard) => {
+    return Idea.destroy({id: ideaId})
+      .then(() => populatedBoard);
+  })
   .catch(function(err) {
+
+    throw new Error(err);
+  });
+};
+
+// find an idea on a board based on content
+boardService.findIdeaByContent = function(boardId, content) {
+
+  // find the board
+  return Board.findOne({boardId: boardId}).then(function(board) {
+    return board.id;
+  }).then(function(id) {
+
+    // find idea based on the id returned
+    return Idea.findOne({board: id, content: content});
+  })
+  .catch((err) => {
 
     throw new Error(err);
   });
@@ -153,11 +174,11 @@ boardService.removeIdea = function(boardId, ideaId) {
 // Add an idea collection to the board
 boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
-  return boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
 
   .then(function(found) {
 
-    found.collections.add(ideaCollectionId);
+    found.ideaCollections.add(ideaCollectionId);
 
     return found.save();
   })
@@ -170,11 +191,11 @@ boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 // Remove an idea collection from the board
 boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
-  return boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
 
   .then(function(found) {
 
-    found.collections.remove(ideaCollectionId);
+    found.ideaCollections.remove(ideaCollectionId);
 
     return found.save();
   })
@@ -188,9 +209,9 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 // @Note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
   return Board.findOne({boardId: boardId})
-    .populate('collections')
+    .populate('ideaCollections')
     .then(function(board) {
-      return board.collections;
+      return board.ideaCollections;
     }).then(function(allCollections) {
       const collections = [];
       const collectionPromises = [];

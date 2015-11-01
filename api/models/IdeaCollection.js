@@ -11,10 +11,18 @@ module.exports = {
       collection: 'idea',
     },
 
-    weight: {
+    board: {
+
+      model: 'board',
+    },
+
+    votes: {
 
       type: 'integer',
-      required: true,
+    },
+
+    draggable: {
+      type: 'boolean',
     },
 
     lastUpdated: {
