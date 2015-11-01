@@ -9,7 +9,10 @@ const ideaCollectionService = require('../services/IdeaCollectionService.js');
 const promise = require('bluebird');
 
 module.exports = {
-  // route for creating a new IdeaCollection
+  /**
+  * route for creating a new IdeaCollection
+  * @todo: optionally add an idea on creation
+  */
   create: function(req, res) {
     // check for required parameters
     if (!req.param('boardId') || !req.body.idea || !req.body.user ) {
@@ -34,12 +37,14 @@ module.exports = {
   // route for adding an idea to a collection
   addIdea: function(req, res) {
     // check for required parameters
-    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
+    // if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
+    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.params('index')) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
+    // const index = req.body.index; // index of the ideaCollection to add an idea to
+    const index = req.param('index');
     const boardId = req.param('boardId');
-    const index = req.body.index; // index of the ideaCollection to add an idea to
 
     // Add the idea to a collection
     ideaCollectionService.addIdea(boardId, index, req.body.idea, req.body.user)
@@ -59,12 +64,14 @@ module.exports = {
   // route for remove an idea to a collection
   removeIdea: function(req, res) {
     // check for required parameters
-    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
+    // if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.body.index) {
+    if (!req.param('boardId') || !req.body.idea || !req.body.user || !req.params('index')) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
+    // const index = req.body.index; // index of the ideaCollection
+    const index = req.param('index');
     const boardId = req.param('boardId');
-    const index = req.body.index; // index of the ideaCollection
 
     // removethe idea to a collection
     ideaCollectionService.removeIdea(boardId, index, req.body.idea, req.body.user)

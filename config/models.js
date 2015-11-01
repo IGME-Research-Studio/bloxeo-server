@@ -9,6 +9,8 @@
  * http://sailsjs.org/#!/documentation/concepts/ORM
  */
 
+require("babel/register");
+
 module.exports.models = {
 
   connection: 'mongo',
