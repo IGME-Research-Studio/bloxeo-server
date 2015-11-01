@@ -101,7 +101,7 @@ describe('UserModel', () => {
 
   describe('#update()', () => {
 
-    it('Should update a user', (done) => {
+    xit('Should update a user', (done) => {
 
       User.update({username: 'braxtonissokewl'},
                   {username: 'braxtonissonotkewl'})
@@ -117,7 +117,7 @@ describe('UserModel', () => {
 
   describe('#destroy()', () => {
 
-    it('Should destroy a user', (done) => {
+    xit('Should destroy a user', (done) => {
 
       User.destroy({username: 'braxtonissonotkewl'})
 

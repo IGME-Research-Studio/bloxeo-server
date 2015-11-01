@@ -15,7 +15,6 @@ describe('IdeaModel', () => {
       .then((idea) => {
 
         expect(idea.content).to.be.a('string');
-
         done();
       })
 
@@ -83,7 +82,7 @@ describe('IdeaModel', () => {
 
   describe('#update()', () => {
 
-    it('Should update an Idea', (done) => {
+    xit('Should update an Idea', (done) => {
 
       Idea.update({content: 'Purple'}, {content: 'Green'})
 
@@ -98,7 +97,7 @@ describe('IdeaModel', () => {
 
   describe('#destroy()', () => {
 
-    it('Should destroy an Idea', (done) => {
+    xit('Should destroy an Idea', (done) => {
 
       Idea.destroy({content: 'Green'})
 

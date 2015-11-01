@@ -28,12 +28,6 @@ module.exports = {
       required: true,
     },
 
-/*    owner: {
-
-      model: 'user',
-      required: true,
-    },*/
-
     admins: {
 
       collection: 'user',
@@ -52,11 +46,13 @@ module.exports = {
     ideas: {
 
       collection: 'idea',
+      via: 'board',
     },
 
     collections: {
 
       collection: 'ideaCollection',
+      via: 'board',
     },
   },
 

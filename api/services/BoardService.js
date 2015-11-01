@@ -144,7 +144,31 @@ boardService.removeIdea = function(boardId, ideaId) {
 
     return found.save();
   })
+  .then((populatedBoard) => {
+    return Idea.destroy({id: ideaId})
+      .then(() => populatedBoard);
+  })
   .catch(function(err) {
+
+    throw new Error(err);
+  });
+};
+
+// find an idea on a board based on content
+boardService.findIdeaByContent = function(boardId, content) {
+
+  // find the board
+  return Board.findOne({boardId: boardId}).then(function(board) {
+
+    return board.id;
+  }).then(function(id) {
+
+
+    // find idea based on the id returned
+    return Idea.find({board: id, content: content});
+  })
+  .then((ideas) => _.first(ideas))
+  .catch((err) => {
 
     throw new Error(err);
   });
@@ -185,7 +209,7 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 };
 
 // Return all idea collections for a board
-// @Note Does not populate User objects on Idea objects in a collection
+// @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
   return Board.findOne({boardId: boardId})
     .populate('collections')
@@ -197,11 +221,12 @@ boardService.getIdeaCollections = function(boardId) {
 
       allCollections.forEach(function(collection) {
 
-        collectionPromises.push( IdeaCollection.findOne({id: collection.id}).populate('ideas').then(function(ideaCollection) {
-          collections.push(ideaCollection);
-        })
-      );
-
+        collectionPromises.push(
+          IdeaCollection
+            .findOne({id: collection.id})
+            .populate('ideas')
+            .then((ideaCollection) => collections.push(ideaCollection))
+        );
       });
 
       return Promise.all(collectionPromises).then(function() {
@@ -210,8 +235,26 @@ boardService.getIdeaCollections = function(boardId) {
     });
 };
 
+boardService.getIdeas = function(boardId) {
+  return boardService.findBoardAndPopulate(boardId, 'ideas')
+    .then((populatedBoard) => boardService.ideasToClient(populatedBoard));
+};
 
-// Find a board
+/**
+* @param {Object} board a board object that has already been populated
+* @returns {Array} an ideas array with all non-client-friendly content
+* stripped out.
+*/
+boardService.ideasToClient = function(board) {
+
+  return _.invoke(board.ideas, 'toClient');
+};
+
+/**
+* Find a board
+* @param {string} boardId a boardId (not mongoid)
+* @return {Promise} resolves to a single board object
+*/
 boardService.findBoard = function(boardId) {
 
   return Board.findOne({boardId: boardId});

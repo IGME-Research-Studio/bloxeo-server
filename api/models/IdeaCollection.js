@@ -11,10 +11,15 @@ module.exports = {
       collection: 'idea',
     },
 
-    weight: {
+    board: {
+
+      model: 'board',
+    },
+
+    vote: {
 
       type: 'integer',
-      required: true,
+      defaultsTo: 0,
     },
 
     lastUpdated: {
