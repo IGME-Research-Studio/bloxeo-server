@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const should = require('chai').should();
 
 describe('BoardModel', () => {
-
+  let testBoardId = '';
   describe('#create()', () => {
 
     it('Should create a Board', (done) => {
@@ -15,7 +15,7 @@ describe('BoardModel', () => {
       })
 
       .then((board) => {
-
+        testBoardId = board.boardId;
         expect(board.boardId).to.be.a('string');
 
         done();
@@ -64,10 +64,10 @@ describe('BoardModel', () => {
 
     it('Should update a Board', (done) => {
 
-      Board.update({boardId: 'abc123'}, {boardId: 'abc12345'})
+      Board.update({boardId: testBoardId}, {boardId: 'abc12345'})
 
-      .then(() => {
-
+      .then((boards) => {
+        expect(boards[0].boardId).to.equal('abc12345');
         done();
       })
 
