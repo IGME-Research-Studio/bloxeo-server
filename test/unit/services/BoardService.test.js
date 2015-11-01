@@ -110,19 +110,17 @@ describe('BoardService', function() {
 
   describe('#destroy()', () => {
 
-    it('Should destroy a board', (done) => {
+    xit('Should destroy a board', (done) => {
 
-      Board.find()
-
-      .then((boards) => {
-
+      Board.find().then((boards) => {
         const firstBoard = boards[0];
 
-        BoardService.destroy(firstBoard.boardId);
+        BoardService.destroy(firstBoard.boardId)
+          .then(() => {
 
-        done();
+            done();
+          });
       })
-
       .catch(done);
     });
   });
@@ -132,11 +130,7 @@ describe('BoardService', function() {
     it('Should return the board found with given boardId', (done) => {
 
       Board.create({isPublic: true})
-
-      .then((found) => {
-
-        BoardService.findBoard(found.boardId)
-
+        .then((found) => BoardService.findBoard(found.boardId))
         .then((foundBoard) => {
 
           expect(foundBoard.isPublic).to.be.a('boolean');
@@ -144,33 +138,40 @@ describe('BoardService', function() {
 
           done();
         })
-
         .catch(done);
-      })
-
-      .catch(done);
     });
   });
 
   describe('findBoardAndPopulate()', () => {
 
-    it('Should return the board found with given boardId and populated association', (done) => {
+    xit('Should return the board found with given boardId and populated association', (done) => {
 
-      Board.create({isPublic: true})
-
-      .then((found) => {
-
-        BoardService.findBoardAndPopulate(found.boardId, 'users')
-
+      BoardService.findBoardAndPopulate('xyz123', 'ideas')
         .then(() => {
-
           done();
         })
-
         .catch(done);
-      })
+    });
+  });
 
-      .catch(done);
+  describe('getIdeas()', () => {
+
+    it('Should get all of the ideas on a board', (done) => {
+
+      Board.create({isPublic: true})
+        .then((board) => {
+          return Idea.create({content: 'purple'})
+            .then((idea) => {
+              return BoardService.addIdea(board.boardId, idea.id);
+            });
+        })
+        .then((created) => BoardService.getIdeas(created.boardId))
+        .then((ideas) => {
+
+          expect(ideas.length).to.equal(1);
+          done();
+        })
+        .catch(done);
     });
   });
 
@@ -179,37 +180,15 @@ describe('BoardService', function() {
     it('Should get all of the idea collections and their ideas', (done) => {
 
       Idea.create({content: 'purple'})
+        .then((idea) => IdeaCollection.create({weight: 1, ideas: [idea]}))
+        .then((collection) => Board.create({isPublic: true, collections: [collection]}))
+        .then((created) => BoardService.getIdeaCollections(created.boardId))
+        .then((ideaCollections) => {
 
-      .then((idea) => {
-
-        IdeaCollection.create({weight: 1, ideas: [idea]})
-
-        .then((collection) => {
-
-          Board.create({isPublic: true, collections: [collection]})
-
-          .then((created) => {
-
-            // console.dir(created);
-            BoardService.getIdeaCollections(created.boardId)
-
-            .then((ideaCollections) => {
-              console.log('IN TEST');
-              console.log(ideaCollections);
-
-              done();
-            })
-
-            .catch(done);
-          })
-
-          .catch(done);
+          expect(ideaCollections.length).to.equal(1);
+          done();
         })
-
         .catch(done);
-      })
-
-      .catch(done);
     });
   });
 });

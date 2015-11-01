@@ -62,7 +62,7 @@ describe('BoardModel', () => {
 
   describe('#update()', () => {
 
-    it('Should update a Board', (done) => {
+    xit('Should update a Board', (done) => {
 
       Board.update({boardId: 'abc123'}, {boardId: 'abc12345'})
 
@@ -77,7 +77,7 @@ describe('BoardModel', () => {
 
   describe('#destroy()', () => {
 
-    it('Should destroy a Board', (done) => {
+    xit('Should destroy a Board', (done) => {
 
       Board.destroy({boardId: 'abc12345'})
 
