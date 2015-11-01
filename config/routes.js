@@ -12,9 +12,10 @@
  * Finally, if those don't match either, the default 404 handler is triggered.
  * See `api/responses/notFound.js` to adjust your app's 404 logic.
  *
- * Note: Sails doesn't ACTUALLY serve stuff from `assets`-- the default Gruntfile in Sails copies
- * flat files from `assets` to `.tmp/public`.  This allows you to do things like compile LESS or
- * CoffeeScript for the front-end.
+ * Note: Sails doesn't ACTUALLY serve stuff from `assets`-- the default
+ * Gruntfile in Sails copies flat files from `assets` to `.tmp/public`.
+ * This allows you to do things like compile LESS or CoffeeScript for the
+ * front-end.
  *
  * For more information on configuring custom routes, check out:
  * http://sailsjs.org/#!/documentation/concepts/Routes/RouteTargetSyntax.html
@@ -41,14 +42,28 @@ const routes = {
   * Board routes
   */
   'get /boards': 'BoardController.find',
+  // @todo: not implemented yet, would currently use a mongo id for boardId
   'get /boards/:boardId': 'BoardController.findOne',
   'post /boards': 'BoardController.create',
+  'delete /boards': 'BoardController.destroy',
+  // @todo: not implemented yet, would currently use a mongo id for boardId
   'put /boards/:boardId': 'BoardController.update',
-  'delete /boards/:boardId': 'BoardController.destroy',
 
   // Socket only routes
   'post /rooms/:boardId/join': 'BoardController.join',
   'post /rooms/:boardId/leave': 'BoardController.leave',
+
+  /**
+  * Idea routes
+  */
+  'get /boards/:boardId/ideas': 'IdeaController.index',
+  'post /boards/:boardId/ideas': 'IdeaController.create',
+  // @todo: not implemented yet, would currently use a mongo id for index
+  'put /boards/:boardId/ideas/:index': 'IdeaController.update',
+  'delete /boards/:boardId/ideas': 'IdeaController.destroy',
+
+  'post /boards/:boardId/ideas/:id': 'BoardController.add',
+  'delete /boards/:boardId/ideas/:id': 'BoardController.remove',
 
   /**
   * IdeaCollection routes
@@ -56,25 +71,15 @@ const routes = {
   'get /boards/:boardId/ideaCollections': 'IdeaCollectionController.getCollections',
   'post /boards/:boardId/ideaCollections': 'IdeaCollectionController.create',
   'delete /boards/:boardId/ideaCollections': 'IdeaCollectionController.destroy',
-  // Hack to allow for voting updates for now
-  'put /boards/:boardId/ideaCollections': 'IdeaCollectionController.update',
+  // @todo: Hack to allow for voting updates for now
+  // @todo: not implemented yet, would currently use a mongo id for index
+  'put /boards/:boardId/ideaCollections/:index': 'IdeaCollectionController.update',
 
   // only expose the ability to add on create for now
-  'put /boards/:boardId/ideaCollections/remove': 'IdeaCollectionController.remove',
+  'delete /boards/:boardId/ideaCollections/remove': 'IdeaCollectionController.remove',
 
   'post /boards/:boardId/collections/:index/ideas': 'IdeaCollectionController.addIdea',
   'delete /boards/:boardId/collections/:index/ideas': 'IdeaCollectionController.removeIdea',
-
-  /**
-  * Idea routes
-  */
-  'get /boards/:boardId/ideas': 'IdeaController.index',
-  'post /boards/:boardId/ideas': 'IdeaController.create',
-  'put /boards/:boardId/ideas': 'IdeaController.update',
-  'delete /boards/:boardId/ideas': 'IdeaController.destroy',
-
-  'post /boards/:boardId/ideas/:id': 'BoardController.add',
-  'delete /boards/:boardId/ideas/:id': 'BoardController.remove',
 
   /**
   * User routes

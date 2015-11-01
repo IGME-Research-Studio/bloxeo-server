@@ -9,6 +9,7 @@ const ConstantsService = require('../services/ConstantsService');
 
 module.exports = {
   index: function(req, res) {
+    console.dir(ConstantsService());
     return res.ok(ConstantsService());
   },
 };

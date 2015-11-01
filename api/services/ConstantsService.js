@@ -5,9 +5,12 @@
  * @module services/ConstantService.js
  */
 
- const SOCKET_API = require('../constants/SOCKET_API.js');
- const HTTP_API = require('../constants/HTTP_API.js');
+ const EVENT_API = require('../constants/EVENT_API.js');
+ const REST_API = require('../constants/REST_API.js');
 
  module.exports = function() {
-  return SOCKET_API;
+  return {
+    'EVENT_API': EVENT_API,
+    'REST_API': REST_API,
+  };
  };

@@ -41,7 +41,7 @@ module.exports.blueprints = {
   * requests.
   */
 
-  // actions: false,
+  actions: false,
 
   /**
   * RESTful routes (`sails.config.blueprints.rest`)
@@ -113,7 +113,7 @@ module.exports.blueprints = {
   * DELETE /foos/:id?
   */
 
-  pluralize: true,
+  // pluralize: true,
 
   /**
   * Whether the blueprint controllers should populate model fetches with
@@ -123,7 +123,7 @@ module.exports.blueprints = {
   * may result in very heavy api calls
   */
 
-  populate: false,
+  // populate: false,
 
   /**
   * Whether to run Model.watch() in the find and findOne blueprint actions.
