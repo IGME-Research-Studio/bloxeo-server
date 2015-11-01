@@ -1,9 +1,9 @@
 /**
-  * BoardController
+* BoardController
 *
-  * @description :: Server-side logic for managing rooms
+* @description :: Server-side logic for managing rooms
 * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
-  */
+*/
 
 const boardService = require('../services/BoardService.js');
 
@@ -18,21 +18,11 @@ module.exports = {
       const boardId = created.boardId;
       if (req.isSocket) sails.sockets.join(req.socket, boardId);
 
-      res.json(200, {
-
-        message: 'Server: Board created with board id: ' + boardId,
-        boardId: created.boardId,
-      });
+      res.created(created);
     })
     .catch(function(err) {
 
-      if (err) {
-
-        res.json(500, {
-
-          message: 'Server: An error occurred: ' + err,
-        });
-      }
+      res.serverError(err);
     });
   },
 
@@ -44,20 +34,11 @@ module.exports = {
 
     .then(function(deleted) {
 
-      res.json(200, {
-
-        message: 'Server: Board with boardId: ' + deleted.boardId + ' was destroyed.',
-      });
+      res.ok(deleted);
     })
     .catch(function(err) {
 
-      if (err) {
-
-        res.json(500, {
-
-          message: 'Server: An error occurred: ' + err,
-        });
-      }
+      res.serverError(err);
     });
   },
 
@@ -73,10 +54,9 @@ module.exports = {
     }
 
     sails.sockets.join(userSocketId, boardId);
-
     sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the board!'});
 
-    res.json(200, {
+    res.ok({
 
       message: 'User ' + userSocketId.id + ' subscribed to board with board id: ' + boardId,
     });
@@ -93,7 +73,7 @@ module.exports = {
       return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
     }
 
-    res.json(200, {
+    res.ok({
 
       message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + boardId,
     });
