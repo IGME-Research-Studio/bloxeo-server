@@ -6,7 +6,7 @@ describe('IdeaCollectionModel', () => {
 
     it('Should create an IdeaCollection', (done) => {
 
-      IdeaCollection.create()
+      IdeaCollection.create({votes: 4})
 
       .then((ideaCollection) => {
         expect(ideaCollection).to.be.an('object');
@@ -28,8 +28,9 @@ describe('IdeaCollectionModel', () => {
         expect(collections.length).to.be.above(0);
 
         _.each(collections, (collection) => {
-          expect(collection.vote).to.be.a('number');
+          expect(collection.votes).to.be.a('number');
         });
+
         done();
       })
 
@@ -41,7 +42,7 @@ describe('IdeaCollectionModel', () => {
 
     xit('Should update an IdeaCollection', (done) => {
 
-      IdeaCollection.update({weight: 4}, {weight: 3})
+      IdeaCollection.update({votes: 4}, {votes: 5})
 
       .then(() => {
 

@@ -163,11 +163,9 @@ boardService.findIdeaByContent = function(boardId, content) {
     return board.id;
   }).then(function(id) {
 
-
     // find idea based on the id returned
-    return Idea.find({board: id, content: content});
+    return Idea.findOne({board: id, content: content});
   })
-  .then((ideas) => _.first(ideas))
   .catch((err) => {
 
     throw new Error(err);
@@ -177,11 +175,11 @@ boardService.findIdeaByContent = function(boardId, content) {
 // Add an idea collection to the board
 boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
-  return boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
 
   .then(function(found) {
 
-    found.collections.add(ideaCollectionId);
+    found.ideaCollections.add(ideaCollectionId);
 
     return found.save();
   })
@@ -194,11 +192,11 @@ boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 // Remove an idea collection from the board
 boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
-  return boardService.findBoardAndPopulate(boardId, 'collections')
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
 
   .then(function(found) {
 
-    found.collections.remove(ideaCollectionId);
+    found.ideaCollections.remove(ideaCollectionId);
 
     return found.save();
   })
@@ -212,9 +210,9 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 // @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
   return Board.findOne({boardId: boardId})
-    .populate('collections')
+    .populate('ideaCollections')
     .then(function(board) {
-      return board.collections;
+      return board.ideaCollections;
     }).then(function(allCollections) {
       const collections = [];
       const collectionPromises = [];

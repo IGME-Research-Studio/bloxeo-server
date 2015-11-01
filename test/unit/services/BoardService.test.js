@@ -13,7 +13,7 @@ const createModelBasedOnString = (assoc) => {
   else if (assoc === 'ideas') {
     return Idea.create({content: 'Blah'});
   }
-  else if (assoc === 'collections') {
+  else if (assoc === 'ideaCollections') {
     return IdeaCollection.create({weight: 1});
   }
 };
@@ -45,7 +45,7 @@ describe('BoardService', function() {
       {assoc: 'pendingUsers', add: 'addPendingUser', remove: 'removePendingUser'},
       {assoc: 'admins', add: 'addAdmin', remove: 'removeAdmin'},
       {assoc: 'ideas', add: 'addIdea', remove: 'removeIdea'},
-      {assoc: 'collections', add: 'addIdeaCollection', remove: 'removeIdeaCollection'},
+      {assoc: 'ideaCollections', add: 'addIdeaCollection', remove: 'removeIdeaCollection'},
     ].forEach((obj) => {
       const assoc = obj.assoc;
       const add = obj.add;
@@ -181,10 +181,9 @@ describe('BoardService', function() {
 
       Idea.create({content: 'purple'})
         .then((idea) => IdeaCollection.create({weight: 1, ideas: [idea]}))
-        .then((collection) => Board.create({isPublic: true, collections: [collection]}))
+        .then((collection) => Board.create({isPublic: true, ideaCollections: [collection]}))
         .then((created) => BoardService.getIdeaCollections(created.boardId))
         .then((ideaCollections) => {
-
           expect(ideaCollections.length).to.equal(1);
           done();
         })

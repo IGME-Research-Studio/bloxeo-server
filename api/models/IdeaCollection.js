@@ -16,10 +16,14 @@ module.exports = {
       model: 'board',
     },
 
-    vote: {
+    votes: {
 
       type: 'integer',
       defaultsTo: 0,
+    },
+
+    draggable: {
+      type: 'boolean',
     },
 
     lastUpdated: {
