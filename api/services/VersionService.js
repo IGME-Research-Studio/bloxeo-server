@@ -41,4 +41,13 @@ module.exports = {
     req[urlIndex] = this.prefix() + req[urlIndex];
     return req.join(' ');
   },
+
+  /**
+  * Lodash routes have spaces
+  * @example
+  * prefixTemplateRoute('/board/<%= boardId %>') => '/v1/board/<%= boardId %>'
+  */
+  prefixTemplateRoute: function(route) {
+    return this.prefix() + route;
+  },
 };
