@@ -19,6 +19,7 @@ module.exports = {
     vote: {
 
       type: 'integer',
+      defaultsTo: 0,
     },
 
     lastUpdated: {

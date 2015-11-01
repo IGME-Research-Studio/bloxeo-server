@@ -6,9 +6,10 @@ describe('IdeaCollectionModel', () => {
 
     it('Should create an IdeaCollection', (done) => {
 
-      IdeaCollection.create({weight: 4})
+      IdeaCollection.create()
 
-      .then(() => {
+      .then((ideaCollection) => {
+        expect(ideaCollection).to.be.an('object');
 
         done();
       })
@@ -24,10 +25,11 @@ describe('IdeaCollectionModel', () => {
       IdeaCollection.find()
 
       .then((collections) => {
+        expect(collections.length).to.be.above(0);
 
-        // for (let i = 0; i < collections.length; i++) {
-        //   expect(collections[i].weight).to.be.a('number');
-        // }
+        _.each(collections, (collection) => {
+          expect(collection.vote).to.be.a('number');
+        });
         done();
       })
 

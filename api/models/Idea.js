@@ -27,6 +27,12 @@ module.exports = {
 
       model: 'board',
     },
+
+    // Only return the content attr to clients
+    toClient: function() {
+      const idea = this.toObject();
+      return idea.content;
+    },
   },
 };
 

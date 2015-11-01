@@ -1,5 +1,6 @@
 const Sails = require('sails');
 const Barrels = require('barrels');
+const supertest = require('supertest');
 
 const options = {
   loose: 'all',
@@ -31,15 +32,16 @@ before(function(done) {
 
   Sails.lift({}, function(err, server) {
     const sails = server;
-    sails.superRequest = request;
+    sails.req = request;
 
     if (err) return done(err);
 
     // here you can load fixtures, etc.
     const barrels = new Barrels();
-    fixtures = barrels.data;
 
-    barrels.populate(function() {done(err, sails);});
+    barrels.populate(function() {
+      done();
+    });
   });
 });
 

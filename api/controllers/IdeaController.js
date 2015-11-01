@@ -1,19 +1,32 @@
 /**
- * IdeaController
- *
- * @description :: Server-side logic for managing ideas
- * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
- */
+* IdeaController
+*
+* @description :: Server-side logic for managing ideas
+* @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
+*/
 const IdeaService = require('../services/IdeaService.js');
 const BoardService = require('../services/BoardService.js');
-const _ = require('lodash');
 
 module.exports = {
+
+  index: function(req, res) {
+
+    if (!req.param('boardId')) {
+      return res.badRequest('Request should send "boardId"');
+    }
+
+    const boardId = req.param('boardId');
+
+    BoardService.getIdeas(boardId)
+      .then((ideas) => res.ok(ideas))
+      .catch((err) => res.serverError(err));
+  },
 
   create: function(req, res) {
 
     // check for required data
-    if (!req.body.user || !req.param('boardId') || !req.body.content) {
+    // if (!req.body.user || !req.param('boardId') || !req.body.content) {
+    if (!req.param('boardId') || !req.body.content) {
 
       // if one of the data requirements are missing, return bad request
       return res.badRequest('Check create parameters. Request should send "user, "content" and "board"');
@@ -23,39 +36,30 @@ module.exports = {
 
     // call create idea service.
     // values in req.body must be "user", "content"
-    IdeaService.create(req.body.user, req.body.content, boardId).then(function(created) {
-
-      // add the idea to the board
-      BoardService.addIdea(boardId, created.id).then(function() {
-
+    IdeaService.create(req.body.user, req.body.content, boardId)
+      .then(function(created) {
+        // add the idea to the board
+        return BoardService.addIdea(boardId, created.id);
+      })
+      .then(function() {
         // find and populate all ideas
-        BoardService.findBoardAndPopulate(boardId, 'ideas').then(function(board) {
+        return BoardService.findBoardAndPopulate(boardId, 'ideas');
+      })
+      .then(function(board) {
+        // extract idea content
+        const allIdeas = BoardService.ideasToClient(board);
 
-          // extract idea content
-          const allIdeas = _.map(board.ideas, 'content');
-
-          // emit the idea back through the socket and
-          // res.json the idea's id with status 200
-          sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
-          res.json(200, {message: 'Idea created with id ' + created.id, ideaId: created.id});
-        })
-        .catch(function(err) {
-
-          throw new Error(err);
-        });
+        // emit the idea back through the socket and
+        sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
+        return res.created(board);
       })
       .catch(function(err) {
 
-        throw new Error(err);
+        return res.serverError(err);
       });
-    }).catch(function(err) {
-
-      // failure
-      res.json(500, {message: 'Something happened while trying to create an idea. ' + err});
-    });
   },
 
-  delete: function(req, res) {
+  destroy: function(req, res) {
 
     // check for required data
     if (!req.param('boardId') || !req.body.content) {
@@ -67,27 +71,22 @@ module.exports = {
     const boardId = req.param('boardId');
     const ideaContent = req.body.content;
 
-    // call delete in the idea service
-    IdeaService.delete(boardId, ideaContent).then(function(result) {
-
-      // find and populate all ideas
-      BoardService.findBoardAndPopulate(boardId, 'ideas').then(function(board) {
-
+    IdeaService.delete(boardId, ideaContent)
+      .then(function() {
+        // find and populate all ideas
+        return BoardService.findBoardAndPopulate(boardId, 'ideas');
+      })
+      .then(function(board) {
         // extract idea content
-        const allIdeas = _.map(board.ideas, 'content');
+        const allIdeas = BoardService.ideasToClient(board);
+
         // emit the result
-        // res.json the deleted ideas
         sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
-        res.json(200, {message: 'Idea deleted with id: ' + result[0].id, ideaId: result[0].id});
+        return res.ok(board);
       })
       .catch(function(err) {
 
-        throw new Error(err);
+        return res.serverError(err);
       });
-    }).catch(function(err) {
-
-      // res.json the error
-      res.json(500, err);
-    });
   },
 };
