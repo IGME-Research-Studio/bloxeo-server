@@ -1,11 +1,11 @@
 const socketIOClient = require('socket.io-client');
 const sailsIOClient = require('sails.io.js');
-const EVENT_API = require('../../api/constants/EVENT_API');
+// const EVENT_API = require('../../api/constants/EVENT_API');
 const _ = require('lodash');
 
 var io = sailsIOClient(socketIOClient);
 
-var boardId;
+var boardId = process.env.BOARD_ID || 'N1qOvgRbl';
 
 io.sails.url = process.env.URL || 'http://localhost:1337';
 
@@ -21,11 +21,11 @@ io.socket.get('/v1/constants', function(res, jwr) {
 });
 
 
-io.socket.post('/v1/rooms/N1qOvgRbl/join', function() {
+io.socket.post('/v1/rooms/'+boardId+'/join', function() {
 
-  io.socket.post('/v1/boards/N1qOvgRbl/ideas', {content: 'battle balls'}, function(res, jwr) {
-    console.log(res);
-  });
+  // io.socket.post('/v1/boards/N1qOvgRbl/ideas', {content: 'battle balls'}, function(res, jwr) {
+  //   console.log(res);
+  // });
 });
 
 // // test creating a user
