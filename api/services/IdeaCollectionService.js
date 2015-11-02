@@ -7,17 +7,18 @@ const ideaCollectionService = {};
   @param int userId - Id of the User who create the collection
   @param int ideaId - Id of an inital Idea to add to the collection
 */
-ideaCollectionService.create = function(boardId, userId, ideaId) {
+// ideaCollectionService.create = function(boardId, userId, ideaId) {
+ideaCollectionService.create = function(boardId) {
   return Board.findOne({boardId: boardId})
     .populateAll()
     .then(function() {
       // Create and return a new IdeaCollection
       return [
         IdeaCollection.create({
-          ideas: [ideaId],
+          // ideas: [ideaId],
           votes: 0,
           draggable: true,
-          lastUpdated: userId,
+          // lastUpdated: userId,
         }),
       ];
     })

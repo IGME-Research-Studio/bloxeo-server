@@ -130,7 +130,7 @@ module.exports.blueprints = {
   * Can be overridden on a per-model basis.
   */
 
-  // autoWatch: false,
+  autoWatch: false,
 
   /**
   * The default number of records to show in the response from a "find"

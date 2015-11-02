@@ -15,15 +15,18 @@ module.exports = {
   */
   create: function(req, res) {
     // check for required parameters
-    if (!req.param('boardId') || !req.body.idea || !req.body.user ) {
+    // if (!req.param('boardId') || !req.body.idea || !req.body.user ) {
+    if (!req.param('boardId')) {
       return res.json(400, {message: 'Not all required parameters were supplied'});
     }
 
     const boardId = req.param('boardId');
 
     // Create an IdeaCollection
-    ideaCollectionService.create(req.body.idea, req.body.user, boardId)
+    // ideaCollectionService.create(boardId, req.body.user, req.body.idea)
+    ideaCollectionService.create(boardId)
       .then(function(collectionIndex) {
+        console.log(collectionIndex);
         // Inform all clients a new collection has been added to the board
         sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex, content: ideaCollectionService.getAllIdeas()});
 

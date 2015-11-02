@@ -29,6 +29,11 @@ const VersionService = require('../services/VersionService');
 const prefix = VersionService.prefixTemplateRoute.bind(VersionService);
 const _ = require('lodash');
 
+/*
+* @todo: I would like to find a nice way to send the method along, so that
+* we could change the method from a post to a delete for example and client
+* wouldn't have to know we changed it.
+*/
 const REST_API = {
   // Boards
   getBoards: '/boards',
@@ -47,7 +52,14 @@ const REST_API = {
   deleteIdea: '/boards/<%= boardId %>/ideas',
 
   // IdeaCollections
-  //
+  getIdeaCollections: '/boards/<%= boardId %>/ideaCollections',
+  createIdeaCollection: '/boards/<%= boardId %>/ideaCollections',
+  deleteIdeaCollection: '/boards/<%= boardId %>/ideaCollections',
+  updateIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>',
+  removeIdeaCollection: '/boards/<%= boardId %>/ideaCollections/remove',
+
+  addIdeaToIdeaCollection: '/boards/<%= boardId %>/collections/<%= index %>/ideas',
+  removeIdeaFromIdeaCollection: '/boards/<%= boardId %>/collections/<%= index %>/ideas',
 };
 
 module.exports = _.mapValues(REST_API, function(route) {
