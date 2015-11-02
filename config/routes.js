@@ -78,8 +78,8 @@ const routes = {
   // only expose the ability to add on create for now
   'delete /boards/:boardId/ideaCollections/remove': 'IdeaCollectionController.remove',
 
-  'post /boards/:boardId/collections/:index/ideas': 'IdeaCollectionController.addIdea',
-  'delete /boards/:boardId/collections/:index/ideas': 'IdeaCollectionController.removeIdea',
+  'post /boards/:boardId/ideaCollections/:index/ideas': 'IdeaCollectionController.addIdea',
+  'delete /boards/:boardId/ideaCollections/:index/ideas': 'IdeaCollectionController.removeIdea',
 
   /**
   * User routes
