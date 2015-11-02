@@ -58,8 +58,8 @@ const REST_API = {
   updateIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>',
   removeIdeaCollection: '/boards/<%= boardId %>/ideaCollections/remove',
 
-  addIdeaToIdeaCollection: '/boards/<%= boardId %>/collections/<%= index %>/ideas',
-  removeIdeaFromIdeaCollection: '/boards/<%= boardId %>/collections/<%= index %>/ideas',
+  addIdeaToIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>/ideas',
+  removeIdeaFromIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>/ideas',
 };
 
 module.exports = _.mapValues(REST_API, function(route) {
