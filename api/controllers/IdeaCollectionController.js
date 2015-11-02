@@ -124,7 +124,7 @@ module.exports = {
     IdeaCollectionService.destroy(boardId, index)
       .then(function() {
         // notify all clients that a collection was removed
-        sails.sockets.broadcast(boardId, EVENT_API.RemovedCollection,
+        sails.sockets.broadcast(boardId, EVENT_API.REMOVED_COLLECTION,
                                 {index: index});
         res.ok({index: index });
       })
