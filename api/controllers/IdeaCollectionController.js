@@ -99,7 +99,7 @@ module.exports = {
         // Inform all klients of the updated collection
         sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
                                 {index: index, content: contents});
-        return res.ok({index: index, content: content});
+        return res.ok({index: index, content: contents});
       })
       .catch(function(err) {
         return res.serverError(
