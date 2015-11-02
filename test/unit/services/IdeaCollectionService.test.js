@@ -9,36 +9,35 @@ describe('IdeaCollectionService', function() {
 
   describe('#create()', () => {
 
-    it('Should create an Idea Collection', (done) => {
+    xit('Should create an Idea Collection', (done) => {
 
       // Create a Board
       BoardService.create({isPublic: true})
-
       .then((board) => {
+        return [
+          board,
+          User.create({isFullAccount: false, username: 'brax2themax'}),
+        ];
+      })
+      .spread((user, board) => {
+        return [
+          board,
+          user,
+          Idea.create({content: 'purple'}),
+        ];
+      })
+      .spread((board, user, idea) => {
+          return [
+            Board.find({boardId:boardId}).populate('ideaCollections'),
+            IdeaCollectionService.create(board.boardId, user.id, idea.id),
+          ];
+      })
+      .spread((board, collectionIndex) => {
 
-        // Create a User
-        User.create({isFullAccount: false, username: 'brax2themax'})
-
-        .then((user) => {
-
-          // Create an Idea
-          Idea.create({content: 'purple'})
-
-          .then((idea) => {
-
-            return IdeaCollectionService.create(board.boardId, user.id, idea.id);
-          })
-
-          .then((collectionIndex) => {
-
-            expect(collectionIndex).to.be.a('number');
-
-            done();
-          })
-
-          .catch(done);
-        });
-      });
+          expect(collectionIndex).to.be.a('number');
+          done();
+      })
+      .catch(done);
     });
   });
 

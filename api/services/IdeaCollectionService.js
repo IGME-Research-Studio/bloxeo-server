@@ -14,6 +14,7 @@ ideaCollectionService.create = function(boardId, ideaContent) {
   return BoardService.findIdeaByContent(boardId, ideaContent)
     .then(function(idea) {
       // Create and return a new IdeaCollection
+
       return [
         IdeaCollection.create({
           ideas: [idea.id],
@@ -24,6 +25,7 @@ ideaCollectionService.create = function(boardId, ideaContent) {
       ];
     })
     .spread(function(collection) {
+
       // Add IdeaCollection to a Board
       return BoardService.addIdeaCollection(boardId, collection.id);
     })
@@ -93,6 +95,11 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
       console.log(ideaId);
 
       collection.ideas.remove(ideaId);
+
+      if (collection.ideas.length === 0) {        
+        return ideaCollectionService.destroy(boardId, index);
+      }
+
       // save and return the collection
       return collection.save()
         .then((res) => {
