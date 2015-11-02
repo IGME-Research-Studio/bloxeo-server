@@ -1,5 +1,4 @@
 const BoardService = require('../services/BoardService.js');
-const Promise = require('bluebird');
 const ideaCollectionService = {};
 
 /**
@@ -86,7 +85,11 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      const ideaId = BoardService.findIdeaByContent(boardId, ideaContent).id;
+      return [collection, BoardService.findIdeaByContent(boardId, ideaContent)];
+    })
+    .spread(function(collection, idea) {
+      const ideaId = idea.id;
+      console.log(ideaId);
 
       collection.ideas.remove(ideaId);
       // save and return the collection
