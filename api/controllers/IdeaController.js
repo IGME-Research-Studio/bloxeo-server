@@ -50,7 +50,7 @@ module.exports = {
         const allIdeas = BoardService.ideasToClient(board);
 
         // emit the idea back through the socket and
-        sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
+        sails.sockets.broadcast(boardId, 'UpdatedIdeas', allIdeas);
         return res.created(board);
       })
       .catch(function(err) {
