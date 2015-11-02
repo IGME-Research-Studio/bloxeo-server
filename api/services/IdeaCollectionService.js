@@ -1,38 +1,41 @@
-const boardService = require('../services/BoardService.js');
+const BoardService = require('../services/BoardService.js');
+// const Promise = require('bluebird');
 const ideaCollectionService = {};
 
 /**
   Create an IdeaCollection and add an inital idea
-  @param String boardId
-  @param int userId - Id of the User who create the collection
-  @param int ideaId - Id of an inital Idea to add to the collection
+  @param {String} boardId
+  @param {int} userId - Id of the User who create the collection
+  @param {int} ideaId - Id of an inital Idea to add to the collection
+  @returns {Promise} resolves to the last index
 */
-ideaCollectionService.create = function(boardId, userId, ideaId) {
-  return Board.findOne({boardId: boardId})
-    .populateAll()
-    .then(function() {
+// ideaCollectionService.create = function(boardId, userId, ideaId) {
+ideaCollectionService.create = function(boardId, ideaContent) {
+  return BoardService.findIdeaByContent(boardId, ideaContent)
+    .then(function(idea) {
       // Create and return a new IdeaCollection
+
       return [
         IdeaCollection.create({
-          ideas: [ideaId],
+          ideas: [idea.id],
           votes: 0,
           draggable: true,
-          lastUpdated: userId,
+          // lastUpdated: userId,
         }),
       ];
     })
     .spread(function(collection) {
+
       // Add IdeaCollection to a Board
-      return boardService.addIdeaCollection(boardId, collection.id)
+      return BoardService.addIdeaCollection(boardId, collection.id);
+    })
+    .then(function() {
+      return BoardService.findBoardAndPopulate(boardId, 'ideaCollections');
+    })
+    .then(function(board) {
 
-      .then(function() {
-        return BoardService.findBoardAndPopulate(boardId, 'ideaCollections');
-      })
-      .then(function(board) {
-
-        // return the index of the new collection in the board
-        return board.ideaCollections.length - 1;
-      });
+      // return the index of the new collection in the board
+      return board.ideaCollections.length - 1;
     })
     .catch(function(err) {
       throw new Error(err);
@@ -41,17 +44,17 @@ ideaCollectionService.create = function(boardId, userId, ideaId) {
 
 /**
   Add an Idea to an Idea collection
-  @param String boardId
-  @param int index - Index of IdeaCollection to add an Idea from
-  @param String ideaContent - The content of an Idea to add
-  @param int userId - Id of the User who added the idea
+  @param {String} boardId
+  @param {int} index - Index of IdeaCollection to add an Idea from
+  @param {String} ideaContent - The content of an Idea to add
+  @param {int} userId - Id of the User who added the idea
+  @note Potentially want to add a userId to parameters track who created the idea later
 */
-// @note Potentially want to add a userId to parameters track who created the idea later
 ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      return [boardService.findIdeaByContent(boardId, ideaContent), collection];
+      return [BoardService.findIdeaByContent(boardId, ideaContent), collection];
     })
     .spread(function(idea, collection) {
       if (idea === undefined) {
@@ -60,27 +63,49 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
       collection.ideas.add(idea.id);
       // save and return the collection
-      return collection.save();
-    })
-    .catch(function(err) {
-      throw new Error(err);
+      return collection.save()
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          throw _.first(err).err;
+        });
     });
 };
 
 /**
   Remove an Idea from an Idea collection
-  @param String boardId
-  @param int index - Index of IdeaCollection to remove an Idea from
-  @param String ideaContent - The content of an Idea to remove
-  @param int userId - Id of the User who removed the idea
+  @param {String} boardId
+  @param {int} index - Index of IdeaCollection to remove an Idea from
+  @param {String} ideaContent - The content of an Idea to remove
+  @param {int} userId - Id of the User who removed the idea
+
+  @note Potentially want to add a userId to parameters track who created
+  the idea
 */
-// @note Potentially want to add a userId to parameters track who created the idea
 ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      const ideaId = boardService.findIdeaByContent(boardId, ideaContent).id;
+      return [collection, BoardService.findIdeaByContent(boardId, ideaContent)];
+    })
+    .spread(function(collection, idea) {
+      const ideaId = idea.id;
+
       collection.ideas.remove(ideaId);
+
+      if (collection.ideas.length === 0) {
+        return ideaCollectionService.destroy(boardId, index);
+      }
+
+      // save and return the collection
+      return collection.save()
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          throw _.first(err).err;
+        });
     })
     .catch(function(err) {
       throw new Error(err);
@@ -89,14 +114,15 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
 /**
   Remove an IdeaCollection from a board then delete the model
+  @note Potentially want to add a userId to parameters track who destroyed the
+  idea collection model
 */
-// @note Potentially want to add a userId to parameters track who destroyed the idea collection model
 ideaCollectionService.destroy = function(boardId, index) {
 
-  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
+  return BoardService.findBoardAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
       const id = board.ideaCollections[index].id;
-      return [boardService.removeIdeaCollection(boardId, id), id];
+      return [BoardService.removeIdeaCollection(boardId, id), id];
     })
     .spread(function(board, id) {
       return IdeaCollection.destroy(id);
@@ -111,7 +137,7 @@ ideaCollectionService.destroy = function(boardId, index) {
 */
 ideaCollectionService.findAndPopulate = function(boardId, index) {
   // find a board and populate its ideaCollections
-  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
+  return BoardService.findBoardAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
 
       // find a collection on the board and populate its Ideas

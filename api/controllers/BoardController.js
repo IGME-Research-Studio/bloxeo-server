@@ -6,6 +6,7 @@
 */
 
 const boardService = require('../services/BoardService.js');
+const EVENT_API = require('../constants/EVENT_API');
 
 module.exports = {
 
@@ -18,11 +19,11 @@ module.exports = {
       const boardId = created.boardId;
       if (req.isSocket) sails.sockets.join(req.socket, boardId);
 
-      res.created(created);
+      return res.created(created);
     })
     .catch(function(err) {
 
-      res.serverError(err);
+      return res.serverError(err);
     });
   },
 
@@ -31,15 +32,14 @@ module.exports = {
     const boardId = req.param('boardId');
 
     boardService.destroy(boardId)
+      .then(function(deleted) {
 
-    .then(function(deleted) {
+        return res.ok(deleted);
+      })
+      .catch(function(err) {
 
-      res.ok(deleted);
-    })
-    .catch(function(err) {
-
-      res.serverError(err);
-    });
+        return res.serverError(err);
+      });
   },
 
   join: function(req, res) {
@@ -50,15 +50,16 @@ module.exports = {
     // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
-      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
+      return res.badRequest('Only a client socket can subscribe to a room.');
     }
 
     sails.sockets.join(userSocketId, boardId);
-    sails.sockets.broadcast(boardId, 'boardJoined', {message: 'User with socket id: ' + userSocketId.id + ' has joined the board!'});
+    sails.sockets.broadcast(boardId, EVENT_API.JOINED_ROOM, {
+      message: `User with socket id ${userSocketId.id} joined board ${boardId}`,
+    });
 
-    res.ok({
-
-      message: 'User ' + userSocketId.id + ' subscribed to board with board id: ' + boardId,
+    return res.ok({
+      message: `User with socket id ${userSocketId.id} joined board ${boardId}`,
     });
   },
 
@@ -70,14 +71,16 @@ module.exports = {
     // cannot subscribe if the request is not through socket.io
     if (!req.isSocket) {
 
-      return res.badRequest('Request Error: Only a client socket can subscribe to a board.');
+      return res.badRequest('Only a client socket can subscribe to a room.');
     }
 
-    res.ok({
-
-      message: 'Server: User with socket id: ' + req.socket.id + ' left board with board id: ' + boardId,
+    sails.sockets.leave(userSocketId, boardId);
+    sails.sockets.broadcast(boardId, EVENT_API.LEFT_ROOM, {
+      message: `User with socket id ${userSocketId.id} left board ${boardId}`,
     });
 
-    sails.sockets.leave(userSocketId, boardId);
+    return res.ok({
+      message: `User with socket id ${userSocketId.id} left board ${boardId}`,
+    });
   },
 };

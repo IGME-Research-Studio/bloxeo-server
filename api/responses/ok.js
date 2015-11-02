@@ -32,7 +32,7 @@ module.exports = function ok(data, options) {
   const defaults = {
     code: ErrorCodes.ok.code,
     message: ErrorCodes.ok.message,
-    data: ((sails.config.environment === 'production') ? undefined : data || {}),
+    data: data || {},
   };
 
   const response = _.defaults(options || {}, defaults);
