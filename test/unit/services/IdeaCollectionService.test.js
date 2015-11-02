@@ -27,15 +27,15 @@ describe('IdeaCollectionService', function() {
         ];
       })
       .spread((board, user, idea) => {
-          return [
-            Board.find({boardId:boardId}).populate('ideaCollections'),
-            IdeaCollectionService.create(board.boardId, user.id, idea.id),
-          ];
+        return [
+          Board.find({boardId: boardId}).populate('ideaCollections'),
+          IdeaCollectionService.create(board.boardId, user.id, idea.id),
+        ];
       })
       .spread((board, collectionIndex) => {
 
-          expect(collectionIndex).to.be.a('number');
-          done();
+        expect(collectionIndex).to.be.a('number');
+        done();
       })
       .catch(done);
     });
