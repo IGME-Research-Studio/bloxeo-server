@@ -13,6 +13,7 @@ ideaCollectionService.create = function(boardId, ideaContent) {
   return BoardService.findIdeaByContent(boardId, ideaContent)
     .then(function(idea) {
       // Create and return a new IdeaCollection
+
       return [
         IdeaCollection.create({
           ideas: [idea.id],
@@ -23,6 +24,7 @@ ideaCollectionService.create = function(boardId, ideaContent) {
       ];
     })
     .spread(function(collection) {
+
       // Add IdeaCollection to a Board
       return BoardService.addIdeaCollection(boardId, collection.id);
     })
@@ -54,7 +56,6 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
       return [BoardService.findIdeaByContent(boardId, ideaContent), collection];
     })
     .spread(function(idea, collection) {
-      console.log(idea, collection);
       if (idea === undefined) {
         throw new Error('Idea not found on board');
       }
@@ -89,9 +90,13 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
     })
     .spread(function(collection, idea) {
       const ideaId = idea.id;
-      console.log(ideaId);
 
       collection.ideas.remove(ideaId);
+
+      if (collection.ideas.length === 0) {
+        return ideaCollectionService.destroy(boardId, index);
+      }
+
       // save and return the collection
       return collection.save()
         .then((res) => {
