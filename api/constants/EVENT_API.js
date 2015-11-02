@@ -23,5 +23,5 @@ module.exports = {
   ADDED_ADMIN: 'AddedAdmin',
   REMOVED_ADMIN: 'RemovedAdmin',
   ADDED_PENDING_USER: 'AddedPendingUser',
-  REMOVED_PENDING_USER: 'RemovedPendingUser'
+  REMOVED_PENDING_USER: 'RemovedPendingUser',
 };

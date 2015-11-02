@@ -55,11 +55,11 @@ module.exports = {
 
     sails.sockets.join(userSocketId, boardId);
     sails.sockets.broadcast(boardId, EVENT_API.JOINED_ROOM, {
-      message: 'User with socket id ${userSocketId.id} joined board ${boardId}`
+      message: `User with socket id ${userSocketId.id} joined board ${boardId}`,
     });
 
     return res.ok({
-      message: 'User with socket id ${userSocketId.id} joined board ${boardId}`
+      message: `User with socket id ${userSocketId.id} joined board ${boardId}`,
     });
   },
 
@@ -76,11 +76,11 @@ module.exports = {
 
     sails.sockets.leave(userSocketId, boardId);
     sails.sockets.broadcast(boardId, EVENT_API.LEFT_ROOM, {
-      message: 'User with socket id ${userSocketId.id} left board ${boardId}`
+      message: `User with socket id ${userSocketId.id} left board ${boardId}`,
     });
 
     return res.ok({
-      message: 'User with socket id ${userSocketId.id} left board ${boardId}`
+      message: `User with socket id ${userSocketId.id} left board ${boardId}`,
     });
   },
 };
