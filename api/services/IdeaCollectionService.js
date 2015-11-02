@@ -3,9 +3,9 @@ const ideaCollectionService = {};
 
 /**
   Create an IdeaCollection and add an inital idea
-  @param String boardId
-  @param int userId - Id of the User who create the collection
-  @param int ideaId - Id of an inital Idea to add to the collection
+  @param {String} boardId
+  @param {int} userId - Id of the User who create the collection
+  @param {int} ideaId - Id of an inital Idea to add to the collection
 */
 // ideaCollectionService.create = function(boardId, userId, ideaId) {
 ideaCollectionService.create = function(boardId) {
@@ -70,12 +70,14 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
 /**
   Remove an Idea from an Idea collection
-  @param String boardId
-  @param int index - Index of IdeaCollection to remove an Idea from
-  @param String ideaContent - The content of an Idea to remove
-  @param int userId - Id of the User who removed the idea
+  @param {String} boardId
+  @param {int} index - Index of IdeaCollection to remove an Idea from
+  @param {String} ideaContent - The content of an Idea to remove
+  @param {int} userId - Id of the User who removed the idea
+
+  @note Potentially want to add a userId to parameters track who created
+  the idea
 */
-// @note Potentially want to add a userId to parameters track who created the idea
 ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
@@ -90,8 +92,9 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
 /**
   Remove an IdeaCollection from a board then delete the model
+  @note Potentially want to add a userId to parameters track who destroyed the
+  idea collection model
 */
-// @note Potentially want to add a userId to parameters track who destroyed the idea collection model
 ideaCollectionService.destroy = function(boardId, index) {
 
   return boardService.findBoardAndPopulate(boardId, 'ideaCollections')

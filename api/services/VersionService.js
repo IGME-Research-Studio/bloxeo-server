@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const readJSONSync = function(fPath) {
-  return JSON.parse(fs.readFileSync(path.resolve(__dirname, fPath), 'utf8'))
+  return JSON.parse(fs.readFileSync(path.resolve(__dirname, fPath), 'utf8'));
 };
 
 const version = readJSONSync('../../.sailsrc').apiVersion;

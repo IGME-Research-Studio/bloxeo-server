@@ -5,12 +5,11 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
-const ConstantsService = require('../services/ConstantsService');
+const constantsService = require('../services/ConstantsService');
 
 module.exports = {
   index: function(req, res) {
-    console.dir(ConstantsService());
-    return res.ok(ConstantsService());
+    return res.ok(constantsService());
   },
 };
 

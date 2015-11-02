@@ -13,7 +13,8 @@ io.socket.get('/v1/constants', function(res, jwr) {
   console.log(res, jwr)
   var events = res.data.EVENT_API;
 
-  _.forEach(events, function(key, event) {
+  _.forEach(events, function(event, key) {
+    console.log(event);
     io.socket.on(event, function(body, jwr) {
       console.log(body);
     });

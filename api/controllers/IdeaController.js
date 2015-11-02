@@ -6,6 +6,7 @@
 */
 const IdeaService = require('../services/IdeaService.js');
 const BoardService = require('../services/BoardService.js');
+const EVENT_API = require('../constants/EVENT_API');
 
 module.exports = {
 
@@ -50,7 +51,7 @@ module.exports = {
         const allIdeas = BoardService.ideasToClient(board);
 
         // emit the idea back through the socket and
-        sails.sockets.broadcast(boardId, 'UpdatedIdeas', allIdeas);
+        sails.sockets.broadcast(boardId, EVENT_API.UPDATED_IDEAS, allIdeas);
         return res.created(board);
       })
       .catch(function(err) {
@@ -81,7 +82,7 @@ module.exports = {
         const allIdeas = BoardService.ideasToClient(board);
 
         // emit the result
-        sails.sockets.broadcast(boardId, 'UPDATED_IDEAS', allIdeas);
+        sails.sockets.broadcast(boardId, EVENT_API.UPDATED_IDEAS, allIdeas);
         return res.ok(board);
       })
       .catch(function(err) {

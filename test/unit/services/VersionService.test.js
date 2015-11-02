@@ -6,7 +6,7 @@ describe('VersionService', () => {
   describe('prefixRoutes', () => {
 
     it('should give an integer for the apiVersion', (done) => {
-      const apiVersion = VersionService.version()
+      const apiVersion = VersionService.version();
       // no integer type for JS, could write a custom assertion, but meh.
       // main point is that we can get a number out of the JSON config.
       expect(apiVersion).to.be.an('number');
@@ -32,5 +32,4 @@ describe('VersionService', () => {
     });
   });
 });
-
 

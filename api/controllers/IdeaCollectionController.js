@@ -4,9 +4,11 @@
  * @description :: Server-side logic for managing ideaCollections
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
+const promise = require('bluebird');
+
 const boardService = require('../services/BoardService.js');
 const ideaCollectionService = require('../services/IdeaCollectionService.js');
-const promise = require('bluebird');
+const EVENT_API = require('../constants/EVENT_API');
 
 module.exports = {
   /**
@@ -26,11 +28,17 @@ module.exports = {
     // ideaCollectionService.create(boardId, req.body.user, req.body.idea)
     ideaCollectionService.create(boardId)
       .then(function(collectionIndex) {
-        console.log(collectionIndex);
-        // Inform all clients a new collection has been added to the board
-        sails.sockets.broadcast(boardId, 'AddedCollection', {index: collectionIndex, content: ideaCollectionService.getAllIdeas()});
 
-        return res.json(200, { index: index, content: content });
+        return ideaCollectionService.getAllIdeas()
+          .then(function(ideas) {
+
+            // Inform all clients a new collection has been added to the board
+            sails.sockets.broadcast(boardId, EVENT_API.ADDED_COLLECTION,
+                {index: collectionIndex,
+                 content: ideas});
+
+            return res.json(200, { index: index, content: content });
+          });
       })
       .catch(function(err) {
         return res.json(500, {message: 'Problem creating the ideaCollection. ' + err});
@@ -56,7 +64,8 @@ module.exports = {
       })
       .then(function(contents) {
         // Inform all klients of the updated collection
-        sails.sockets.broadcast(boardId, 'UpdatedCollection', {index: index, content: contents});
+        sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
+                                {index: index, content: contents});
         return res.json(200, {index: index, content: content});
       })
       .catch(function(err) {
@@ -83,7 +92,8 @@ module.exports = {
       })
       .then(function(contents) {
         // Inform all klients of the updated collection
-        sails.sockets.broadcast(boardId, 'UpdatedCollection', {index: index, content: contents});
+        sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
+                                {index: index, content: contents});
         return res.json(200, {index: index, content: content});
       })
       .catch(function(err) {
@@ -105,7 +115,8 @@ module.exports = {
     ideaCollectionService.destroy(boardId, index, req.body.user)
       .then(function() {
         // notify all clients that a collection was removed
-        sails.sockets.broadcast(boardId, 'RemovedCollection', {index: index});
+        sails.sockets.broadcast(boardId, EVENT_API.RemovedCollection,
+                                {index: index});
         res.json(200, {index: index });
       }).catch(function(err) {
         res.json(500, {message: 'Problem removing from the ideaCollection. ' + err});
