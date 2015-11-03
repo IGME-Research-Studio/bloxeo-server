@@ -54,7 +54,6 @@ const REST_API = {
   // IdeaCollections
   getIdeaCollections: '/boards/<%= boardId %>/ideaCollections',
   createIdeaCollection: '/boards/<%= boardId %>/ideaCollections',
-  deleteIdeaCollection: '/boards/<%= boardId %>/ideaCollections',
   updateIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>',
   removeIdeaCollection: '/boards/<%= boardId %>/ideaCollections/remove',
 
