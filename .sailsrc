@@ -3,6 +3,9 @@
     "modules": {}
   },
   "hooks": {
-    "grunt": false
-  }
+    "grunt": false,
+    "pubsub": false,
+    "views": false
+  },
+  "apiVersion": 1
 }
