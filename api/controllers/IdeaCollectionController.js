@@ -33,9 +33,10 @@ module.exports = {
     IdeaCollectionService.create(boardId, content)
       .then(function(collectionIndex) {
 
-        return IdeaCollectionService.getAllIdeas(boardId, collectionIndex);
+        return [collectionIndex,
+                IdeaCollectionService.getAllIdeas(boardId, collectionIndex)];
       })
-      .then(function(ideaStrings) {
+      .spread(function(collectionIndex, ideaStrings) {
 
         // Inform all clients a new collection has been added to the board
         sails.sockets.broadcast(boardId, EVENT_API.ADDED_COLLECTION,
