@@ -5,33 +5,42 @@
 * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
 */
 
-const boardService = require('../services/BoardService.js');
+const BoardService = require('../services/BoardService.js');
+const valid = require('../services/ValidatorService');
+
 const EVENT_API = require('../constants/EVENT_API');
 
 module.exports = {
 
   create: function(req, res) {
+    if (valid.isNull(req.body)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
 
-    boardService.create(req.body)
+    BoardService.create(req.body)
+      .then(function(created) {
+        const boardId = created.boardId;
 
-    .then(function(created) {
+        if (req.isSocket) sails.sockets.join(req.socket, boardId);
 
-      const boardId = created.boardId;
-      if (req.isSocket) sails.sockets.join(req.socket, boardId);
+        return res.created(created);
+      })
+      .catch(function(err) {
 
-      return res.created(created);
-    })
-    .catch(function(err) {
-
-      return res.serverError(err);
-    });
+        return res.serverError(err);
+      });
   },
 
   destroy: function(req, res) {
-
     const boardId = req.param('boardId');
 
-    boardService.destroy(boardId)
+    if (valid.isNull(boardId)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    BoardService.destroy(boardId)
       .then(function(deleted) {
 
         return res.ok(deleted);
@@ -43,14 +52,13 @@ module.exports = {
   },
 
   join: function(req, res) {
-
     const userSocketId = req.socket;
     const boardId = req.param('boardId');
 
     // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
-
-      return res.badRequest('Only a client socket can subscribe to a room.');
+    if (valid.isNull(req.isSocket)) {
+      return res.badRequest(
+        {message: 'Only a client socket can subscribe to a room.'});
     }
 
     sails.sockets.join(userSocketId, boardId);
@@ -69,9 +77,9 @@ module.exports = {
     const boardId = req.param('boardId');
 
     // cannot subscribe if the request is not through socket.io
-    if (!req.isSocket) {
-
-      return res.badRequest('Only a client socket can subscribe to a room.');
+    if (valid.isNull(req.isSocket)) {
+      return res.badRequest(
+        {message: 'Only a client socket can subscribe to a room.'});
     }
 
     sails.sockets.leave(userSocketId, boardId);

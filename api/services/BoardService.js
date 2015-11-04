@@ -235,7 +235,8 @@ boardService.getIdeaCollections = function(boardId) {
 
 boardService.getIdeas = function(boardId) {
   return boardService.findBoardAndPopulate(boardId, 'ideas')
-    .then((populatedBoard) => boardService.ideasToClient(populatedBoard));
+    .then((populatedBoard) => boardService.ideasToClient(populatedBoard))
+    .catch((err) => err);
 };
 
 /**
