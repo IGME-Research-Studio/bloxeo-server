@@ -12,8 +12,12 @@ const ideaCollectionService = {};
 ideaCollectionService.create = function(boardId, ideaContent) {
   return BoardService.findIdeaByContent(boardId, ideaContent)
     .then(function(idea) {
-      // Create and return a new IdeaCollection
 
+      if (idea === undefined) {
+        throw new Error('Idea with content: `' + ideaContent + '` was undefined. Idea collection was not created.');
+      }
+
+      // Create and return a new IdeaCollection
       return [
         IdeaCollection.create({
           ideas: [idea.id],
@@ -37,7 +41,7 @@ ideaCollectionService.create = function(boardId, ideaContent) {
       return board.ideaCollections.length - 1;
     })
     .catch(function(err) {
-      throw new Error(err);
+      throw err;
     });
 };
 
@@ -57,7 +61,7 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
     })
     .spread(function(idea, collection) {
       if (idea === undefined) {
-        throw new Error('Idea not found on board');
+        throw new Error('Idea with content: `' + ideaContent + '` was undefined and was not added to the idea collection');
       }
 
       collection.ideas.add(idea.id);
@@ -66,8 +70,8 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
         .then((res) => {
           return res;
         })
-        .catch((err) => {
-          throw _.first(err).err;
+        .catch(function(err) {
+          throw err;
         });
     });
 };
@@ -89,7 +93,13 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
       return [collection, BoardService.findIdeaByContent(boardId, ideaContent)];
     })
     .spread(function(collection, idea) {
+
+      if (idea === undefined) {
+        throw new Error('Idea with content: `' + ideaContent + '` was undefined and not removed from the idea collection');
+      }
+
       const ideaId = idea.id;
+      const ideaCollectionCount = collection.ideas.length;
 
       collection.ideas.remove(ideaId);
 
@@ -100,14 +110,18 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
       // save and return the collection
       return collection.save()
         .then((res) => {
+          // If an idea wasn't removed from an idea collection, then assume that idea wasn't in the idea collection
+          if (ideaCollectionCount === res.ideas.length) {
+            throw new Error('Idea with content: `' + ideaContent + '` was not in the idea collection');
+          }
           return res;
         })
         .catch((err) => {
-          throw _.first(err).err;
+          throw err;
         });
     })
     .catch(function(err) {
-      throw new Error(err);
+      throw err;
     });
 };
 
