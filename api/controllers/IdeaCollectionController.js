@@ -24,8 +24,10 @@ module.exports = {
   create: function(req, res) {
     const boardId = req.param('boardId');
     const content = req.body.content;
+    const top = req.body.top;
+    const left = req.body.left;
 
-    if (valid.isNull(boardId) || valid.isNull(content)) {
+    if (valid.isNull(boardId) || valid.isNull(content) || valid.isNull(top) || valid.isNull(left)) {
       return res.badRequest(
         {message: 'Not all required parameters were supplied'});
     }
@@ -39,9 +41,9 @@ module.exports = {
 
         // Inform all clients a new collection has been added to the board
         sails.sockets.broadcast(boardId, EVENT_API.ADDED_COLLECTION,
-            {index: collectionIndex, content: ideaStrings});
+            {index: collectionIndex, content: ideaStrings, top: top, left: left});
 
-        return res.ok({index: collectionIndex, content: ideaStrings});
+        return res.ok({index: collectionIndex, content: ideaStrings, top: top, left: left});
       })
       .catch(function(err) {
         return res.serverError(
