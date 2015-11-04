@@ -5,7 +5,8 @@
   "hooks": {
     "grunt": false,
     "pubsub": false,
-    "views": false
+    "views": false,
+    "session": false
   },
   "apiVersion": 1
 }

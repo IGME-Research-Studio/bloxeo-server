@@ -49,7 +49,6 @@ module.exports.session = {
   * instance running on localhost is expected. Read more about options at:   *
   * https://github.com/visionmedia/connect-redis                             *
   *                                                                          *
-  *                                                                          *
   ***************************************************************************/
 
   // host: 'localhost',
@@ -58,7 +57,6 @@ module.exports.session = {
   // db: 0,
   // pass: <redis auth password>,
   // prefix: 'sess:',
-
 
   /***************************************************************************
   *                                                                          *
@@ -87,5 +85,4 @@ module.exports.session = {
   // auto_reconnect: false,
   // ssl: false,
   // stringify: true
-
 };

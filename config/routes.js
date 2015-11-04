@@ -60,7 +60,6 @@ const routes = {
   'post /boards/:boardId/ideas': 'IdeaController.create',
   // @todo: not implemented yet, would currently use a mongo id for index
   'put /boards/:boardId/ideas/:index': 'IdeaController.update',
-  'delete /boards/:boardId/ideas': 'IdeaController.destroy',
 
   'post /boards/:boardId/ideas/:id': 'BoardController.add',
   'delete /boards/:boardId/ideas/:id': 'BoardController.remove',
@@ -70,13 +69,12 @@ const routes = {
   */
   'get /boards/:boardId/ideaCollections': 'IdeaCollectionController.getCollections',
   'post /boards/:boardId/ideaCollections': 'IdeaCollectionController.create',
-  'delete /boards/:boardId/ideaCollections': 'IdeaCollectionController.destroy',
   // @todo: Hack to allow for voting updates for now
   // @todo: not implemented yet, would currently use a mongo id for index
   'put /boards/:boardId/ideaCollections/:index': 'IdeaCollectionController.update',
 
   // only expose the ability to add on create for now
-  'delete /boards/:boardId/ideaCollections/remove': 'IdeaCollectionController.remove',
+  'delete /boards/:boardId/ideaCollections': 'IdeaCollectionController.destroy',
 
   'post /boards/:boardId/ideaCollections/:index/ideas': 'IdeaCollectionController.addIdea',
   'delete /boards/:boardId/ideaCollections/:index/ideas': 'IdeaCollectionController.removeIdea',

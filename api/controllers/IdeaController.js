@@ -4,19 +4,21 @@
 * @description :: Server-side logic for managing ideas
 * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
 */
-const IdeaService = require('../services/IdeaService.js');
-const BoardService = require('../services/BoardService.js');
+const IdeaService = require('../services/IdeaService');
+const BoardService = require('../services/BoardService');
+const valid = require('../services/ValidatorService');
+
 const EVENT_API = require('../constants/EVENT_API');
 
 module.exports = {
 
   index: function(req, res) {
-
-    if (!req.param('boardId')) {
-      return res.badRequest('Request should send "boardId"');
-    }
-
     const boardId = req.param('boardId');
+
+    if (valid.isNull('boardId')) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
 
     BoardService.getIdeas(boardId)
       .then((ideas) => res.ok(ideas))
@@ -24,20 +26,15 @@ module.exports = {
   },
 
   create: function(req, res) {
+    const boardId = req.param('boardId');
+    const content = req.body.content;
 
-    // check for required data
-    // if (!req.body.user || !req.param('boardId') || !req.body.content) {
-    if (!req.param('boardId') || !req.body.content) {
-
-      // if one of the data requirements are missing, return bad request
-      return res.badRequest('Check create parameters. Request should send "user, "content" and "board"');
+    if (valid.isNull(boardId) || valid.isNull(content)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
     }
 
-    const boardId = req.param('boardId');
-
-    // call create idea service.
-    // values in req.body must be "user", "content"
-    IdeaService.create(req.body.user, req.body.content, boardId)
+    IdeaService.create(req.body.user, content, boardId)
       .then(function(created) {
         // add the idea to the board
         return BoardService.addIdea(boardId, created.id);
@@ -61,16 +58,13 @@ module.exports = {
   },
 
   destroy: function(req, res) {
-
-    // check for required data
-    if (!req.param('boardId') || !req.body.content) {
-
-      // if one of the data requirements are missing, return bad request
-      return res.badRequest('Check delete parameters. Request should send "board" and "idea"');
-    }
-
     const boardId = req.param('boardId');
-    const ideaContent = req.body.content;
+    const content = req.body.content;
+
+    if (valid.isNull(boardId) || valid.isNull(content)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
 
     IdeaService.delete(boardId, ideaContent)
       .then(function() {
