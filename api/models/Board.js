@@ -1,64 +1,50 @@
 /**
 * Room.js
-*
-* @description :: TODO: You might write a short summary of how this model works and what it represents here.
-* @docs        :: http://sailsjs.org/#!documentation/models
+* @TODO BEFPRE CREATE - generate shortID and set boardId
 */
-
 const shortid = require('shortid');
+const mongoose = require('mongoose');
+const valid = require('../services/ValidatorService.js');
 
-module.exports = {
-
-  schema: true,
-
-  attributes: {
-
-    name: {
-      type: 'string',
-    },
-
-    boardId: {
-
-      type: 'string',
-    },
-
-    isPublic: {
-
-      type: 'boolean',
-      required: true,
-    },
-
-    admins: {
-
-      collection: 'user',
-    },
-
-    users: {
-
-      collection: 'user',
-    },
-
-    pendingUsers: {
-
-      collection: 'user',
-    },
-
-    ideas: {
-
-      collection: 'idea',
-      via: 'board',
-    },
-
-    ideaCollections: {
-
-      collection: 'ideaCollection',
-      via: 'board',
-    },
+const schema = new mongoose.schema({
+  isPublic: {
+    type: Boolean,
+    required: true
   },
 
-  beforeCreate: function(model, cb) {
-    model.boardId = shortid.generate();
-    cb();
+  boardId:{
+    type: String,
+    unique: true,
+    trim: true
   },
-};
 
+  name:{
+    type: String,
+    trim: true
+  },
+
+  users: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }
+  ],
+
+  admins: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }
+  ],
+
+  pendingUsers: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }
+  ]
+
+});
+
+module.exports.schema = schema;
+module.exports.model = mongoose.model('Board', schema);
