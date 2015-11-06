@@ -62,7 +62,7 @@ const routes = {
   'put /boards/:boardId/ideas/:index': 'IdeaController.update',
 
   'post /boards/:boardId/ideas/:id': 'BoardController.add',
-  'delete /boards/:boardId/ideas/:id': 'BoardController.remove',
+  'delete /boards/:boardId/ideas': 'IdeaController.destroy',
 
   /**
   * IdeaCollection routes
