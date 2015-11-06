@@ -5,7 +5,7 @@
 const mongoose = require('mongoose');
 const valid = require('../services/ValidatorService.js');
 
-const schema = new mongoose.schema({
+const schema = new mongoose.Schema({
   isFullAccount:{
     type:Boolean,
     required:true
@@ -22,17 +22,15 @@ const schema = new mongoose.schema({
     required: function(){
       return this.isFullAccount;
     },
-  }
+  },
 
   email: {
     type: String,
     unique: true,
     required: function(){
       return this.isFullAccount;
-    },
-    validate: [ valid.isEmail, 'invalid email']
+    }
   }
-
 });
 
 module.exports.schema = schema;

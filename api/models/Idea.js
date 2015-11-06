@@ -4,12 +4,11 @@
 */
 var mongoose = require('mongoose');
 
-var schema = new mongoose.schema({
+var schema = new mongoose.Schema({
   // Which board the idea belongs to
-  board: ={
-    type: mongoose.Schema.ObjectId,
-    rquired: true,
-    ref: 'Board'
+  boardId: {
+    type: String,
+    rquired: true
   },
 
   // Who created the idea, used for color coding the ideas
@@ -26,10 +25,6 @@ var schema = new mongoose.schema({
     trim: true
   }
 
-  // Massage data into a client ready format
-  toJSON : function(){
-    return {content: this.content};
-  }
 });
 
 module.exports.schema = schema;

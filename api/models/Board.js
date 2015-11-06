@@ -4,9 +4,8 @@
 */
 const shortid = require('shortid');
 const mongoose = require('mongoose');
-const valid = require('../services/ValidatorService.js');
 
-const schema = new mongoose.schema({
+const schema = new mongoose.Schema({
   isPublic: {
     type: Boolean,
     required: true
