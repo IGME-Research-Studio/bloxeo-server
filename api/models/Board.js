@@ -46,5 +46,16 @@ const schema = new mongoose.schema({
 
 });
 
+// Middleware Hooks
+schema.pre('save', function(next){
+  if( this.isNew ){
+    // generate a shortId for boardId
+    this.boardId = shortid.generate();
+
+    next();
+  }
+});
+
+
 module.exports.schema = schema;
 module.exports.model = mongoose.model('Board', schema);
