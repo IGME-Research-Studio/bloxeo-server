@@ -22,4 +22,14 @@
 process.chdir(__dirname);
 
 require('babel/register');
-require('sails').lift(require('rc')('sails'));
+const rc = require('rc')
+
+const DEFAULT_CONFIG = {
+  apiVersion: 1,
+  mongoURL: process.env.MONGOLAB_URI || 'mongodb://localhost:27017',
+  port: process.env.PORT || '1337',
+};
+
+const MERGED_CONFIG = rc('jails', DEFAULT_CONFIG);
+
+console.log(MERGED_CONFIG);
