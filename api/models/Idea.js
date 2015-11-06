@@ -1,38 +1,36 @@
 /**
-  * Idea.js
-*
-  * @description :: TODO: You might write a short summary of how this model works and what it represents here.
-  * @docs        :: http://sailsjs.org/#!documentation/models
-  */
+* Idea - content is unique to a board
+* @file
+*/
+var mongoose = require('mongoose');
 
-module.exports = {
-
-  schema: true,
-
-  attributes: {
-
-    content: {
-
-      type: 'string',
-      required: true,
-      notRegex: /^\s*$/,
-    },
-
-    user: {
-
-      model: 'user',
-    },
-
-    board: {
-
-      model: 'board',
-    },
-
-    // Only return the content attr to clients
-    toClient: function() {
-      const idea = this.toObject();
-      return idea.content;
-    },
+var schema = new mongoose.schema({
+  // Which board the idea belongs to
+  board: ={
+    type: mongoose.Schema.ObjectId,
+    rquired: true,
+    ref: 'Board'
   },
-};
 
+  // Who created the idea, used for color coding the ideas
+  user: {
+    type: mongoose.Schema.ObjectId,
+    required: true,
+    ref: 'User'
+  },
+
+  // @TODO 'notRegex: /^\s*$/,' from waterline Idea model, need to convert
+  content:{
+    type: String,
+    required: true,
+    trim: true
+  }
+
+  // Massage data into a client ready format
+  toJSON : function(){
+    return {content: this.content};
+  }
+});
+
+module.exports.schema = schema;
+module.exports.model = mongoose.model('Idea', schema);
