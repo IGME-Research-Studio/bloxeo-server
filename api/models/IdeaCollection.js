@@ -6,11 +6,18 @@ const mongoose = require('mongoose');
 
 const schema = new mongoose.schema({
   // Which board the collection belongs to
-  board: ={
+  board: {
     type: mongoose.Schema.ObjectId,
     rquired: true,
     ref: 'Board'
   },
+
+  ideas:[
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Idea'
+    }
+  ],
 
   //whether the idea collection is draggable
   draggable:{
