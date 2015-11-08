@@ -9,19 +9,19 @@
 */
 
 module.exports = {
-  JOINED_ROOM: 'JoinedRoom',
-  LEFT_ROOM: 'LeftRoom',
+  `JOINED_ROOM`: `JoinedRoom`,
+  `LEFT_ROOM`: `LeftRoom`,
 
-  UPDATED_IDEAS: 'UpdatedIdeas',
+  `UPDATED_IDEAS`: `UpdatedIdeas`,
 
-  ADDED_COLLECTION: 'AddedCollection',
-  REMOVED_COLLECTION: 'RemovedCollection',
-  MODIFIED_COLLECTION: 'ModifiedCollection',
+  `ADDED_COLLECTION`: `AddedCollection`,
+  `REMOVED_COLLECTION`: `RemovedCollection`,
+  `MODIFIED_COLLECTION`: `ModifiedCollection`,
 
-  ADDED_USER: 'AddedUser',
-  REMOVED_USER: 'RemovedUser',
-  ADDED_ADMIN: 'AddedAdmin',
-  REMOVED_ADMIN: 'RemovedAdmin',
-  ADDED_PENDING_USER: 'AddedPendingUser',
-  REMOVED_PENDING_USER: 'RemovedPendingUser',
+  `ADDED_USER`: `AddedUser`,
+  `REMOVED_USER`: `RemovedUser`,
+  `ADDED_ADMIN`: `AddedAdmin`,
+  `REMOVED_ADMIN`: `RemovedAdmin`,
+  `ADDED_PENDING_USER`: `AddedPendingUser`,
+  `REMOVED_PENDING_USER`: `RemovedPendingUser`,
 };

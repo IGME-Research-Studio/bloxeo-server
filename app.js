@@ -25,7 +25,6 @@ require('babel/register');
 const rc = require('rc')
 
 const DEFAULT_CONFIG = {
-  apiVersion: 1,
   mongoURL: process.env.MONGOLAB_URI || 'mongodb://localhost:27017',
   port: process.env.PORT || '1337',
 };
