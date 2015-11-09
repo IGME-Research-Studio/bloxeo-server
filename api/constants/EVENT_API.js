@@ -11,6 +11,7 @@
 module.exports = {
   JOINED_ROOM: 'JoinedRoom',
   LEFT_ROOM: 'LeftRoom',
+  MODIFIED_ROOM: 'ModifiedRoom',
 
   UPDATED_IDEAS: 'UpdatedIdeas',
 

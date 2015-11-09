@@ -6,6 +6,7 @@
 */
 
 const Promise = require('bluebird');
+const _ = require('lodash');
 
 const BoardService = require('../services/BoardService');
 const IdeaCollectionService = require('../services/IdeaCollectionService');
@@ -115,6 +116,33 @@ module.exports = {
         return res.serverError(
           {message: `Problem removing from the ideaCollection. ${err}`});
       });
+  },
+
+  update: function(req, res) {
+    const boardId = req.param('boardId');
+    const index = req.param('index');
+    const updateObj = _.pick(req.body, 'votes');
+
+    if (valid.isNull(boardId) || !valid.isInt(index) || valid.isNull(updateObj)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    IdeaCollectionService.update(boardId, index, updateObj)
+    .then(function() {
+      return IdeaCollectionService.findAndPopulate(boardId, index);
+    })
+    .then(function(ideaCollection) {
+        // Not actually sure what to pass back?
+      sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
+                                {index: index, ideaCollection: ideaCollection});
+      return res.ok({index: index, ideaCollection: ideaCollection});
+    })
+    .catch(function(err) {
+      res.serverError(
+        {message: `Problem updating the ideaCollection. ${err}`});
+    });
+
   },
 
   /**
