@@ -49,7 +49,7 @@ module.exports = {
 
         // emit the idea back through the socket and
         sails.sockets.broadcast(boardId, EVENT_API.UPDATED_IDEAS, allIdeas);
-        return res.created(board);
+        return res.created(_.map(board.ideas, 'content'));
       })
       .catch(function(err) {
 
@@ -77,7 +77,7 @@ module.exports = {
 
         // emit the result
         sails.sockets.broadcast(boardId, EVENT_API.UPDATED_IDEAS, allIdeas);
-        return res.ok(board);
+        return res.ok(_.map(board.ideas, 'content'));
       })
       .catch(function(err) {
 
