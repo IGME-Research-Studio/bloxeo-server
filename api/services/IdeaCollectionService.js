@@ -125,6 +125,14 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
     });
 };
 
+ideaCollectionService.update = function(boardId, index, updateObj) {
+  return ideaCollectionService.findAndPopulate(boardId, index)
+    .then(function(ideaCollection) {
+      return IdeaCollection.update({id: ideaCollection.id}, updateObj);
+    });
+};
+
+
 /**
   Remove an IdeaCollection from a board then delete the model
   @note Potentially want to add a userId to parameters track who destroyed the

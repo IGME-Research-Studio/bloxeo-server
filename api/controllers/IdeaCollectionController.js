@@ -117,6 +117,33 @@ module.exports = {
       });
   },
 
+  update: function(req, res) {
+    const boardId = req.param('boardId');
+    const index = req.param('index');
+    const updateObj = req.body;
+
+    if (valid.isNull(boardId) || !valid.isInt(index) || valid.isNull(updateObj)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    IdeaCollectionService.update(boardId, index, updateObj)
+    .then(function() {
+      return IdeaCollectionService.findAndPopulate(boardId, index);
+    })
+    .then(function(ideaCollection) {
+        // Not actually sure what to pass back?
+      sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
+                                {index: index, ideaCollection: ideaCollection});
+      return res.ok({index: index, ideaCollection: ideaCollection});
+    })
+    .catch(function(err) {
+      res.serverError(
+        {message: `Problem updating the ideaCollection. ${err}`});
+    });
+
+  },
+
   /**
   * Controller to remove IdeaCollection from a Board and delete it
   *

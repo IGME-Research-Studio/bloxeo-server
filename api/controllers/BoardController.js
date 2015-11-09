@@ -32,6 +32,21 @@ module.exports = {
       });
   },
 
+  update: function(req, res) {
+    const boardId = req.param('boardId');
+    if (valid.isNull(boardId) || valid.isNull(req.body)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    BoardService.update(boardId, req.body)
+    .then(function(board) {
+      sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_BOARD,
+                                {board: board});
+      return res.ok({board: board});
+    });
+  },
+
   destroy: function(req, res) {
     const boardId = req.param('boardId');
 
