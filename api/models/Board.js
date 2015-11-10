@@ -17,6 +17,34 @@ module.exports = {
       type: 'string',
     },
 
+    description: {
+      type: 'string',
+    },
+
+    resultsLimit: {
+      type: 'number',
+    },
+
+    hasVoted: {
+      type: 'boolean',
+    },
+
+    allowIdeas: {
+      type: 'boolean',
+    },
+
+    allowIdeaCollections: {
+      type: 'boolean',
+    },
+
+    allowVotes: {
+      type: 'boolean',
+    },
+
+    allowResults: {
+      type: 'boolean',
+    },
+
     boardId: {
 
       type: 'string',
