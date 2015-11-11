@@ -16,6 +16,11 @@ module.exports = {
       model: 'board',
     },
 
+    inWorkspace: {
+      type: 'boolean',
+      defaultsTo: true,
+    },
+
     votes: {
 
       type: 'integer',

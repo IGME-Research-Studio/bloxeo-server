@@ -1,6 +1,7 @@
 // Board Service Functionality
 const boardService = {};
 const Promise = require('bluebird');
+const _ = require('lodash');
 
 // Create a board in the database
 boardService.create = function(boardObj) {
@@ -63,23 +64,42 @@ boardService.getIdeaCollections = function(boardId) {
     .populate('ideaCollections')
     .then(function(board) {
       return board.ideaCollections;
-    }).then(function(allCollections) {
-      const collections = [];
-      const collectionPromises = [];
+    })
+    .then(function(allCollections) {
 
-      allCollections.forEach(function(collection) {
-
-        collectionPromises.push(
-          IdeaCollection
-            .findOne({id: collection.id})
-            .populate('ideas')
-            .then((ideaCollection) => collections.push(ideaCollection))
-        );
+      const collectionPromises = _.map(allCollections, function(collection) {
+        return IdeaCollection
+          .findOne({id: collection.id})
+          .populate('ideas');
       });
 
-      return Promise.all(collectionPromises).then(function() {
-        return collections;
+      return Promise.all(collectionPromises)
+        .then(function(collections) {
+          return _.filter(collections, (el) => el !== undefined);
+        });
+    });
+};
+
+boardService.getWorkspace = function(boardId) {
+  return boardService.getIdeaCollections(boardId)
+    .then((collections) => {
+      return _.filter(collections, (collection) => collection.inWorkspace);
+    });
+};
+
+boardService.workspaceToClient = function(boardId) {
+  return boardService.getWorkspace(boardId)
+    .then((collections) => {
+      const mappedCollections = _.map(collections, (collection, i) => {
+        const stripped = _.pick(collection, ['votes', 'draggable', 'inWorkspace']);
+        stripped.index = i;
+        stripped.ideas = _.map(collection.ideas, (idea) => {
+          return idea.content;
+        });
+        return stripped;
       });
+
+      return _.sortBy(mappedCollections, 'index');
     });
 };
 

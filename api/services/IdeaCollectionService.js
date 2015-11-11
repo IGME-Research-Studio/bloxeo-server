@@ -150,7 +150,9 @@ ideaCollectionService.findAndPopulate = function(boardId, index) {
     .then(function(board) {
 
       // find a collection on the board and populate its Ideas
-      return IdeaCollection.findOne({id: board.ideaCollections[index].id}).populate('ideas');
+      return IdeaCollection
+              .findOne({id: board.ideaCollections[index].id})
+              .populate('ideas'); // indexing issue, get idea collection's actual index
     })
     .catch(function(err) {
       throw new Error(err);
