@@ -17,11 +17,8 @@ export default function create(req, res) {
 
   BoardService.create(req.body)
   .then(function(created) {
-    const boardId = created.boardId;
 
-    if (req.isSocket) sails.sockets.join(req.socket, boardId);
-
-    return res.created(created);
+    return res.created(created.boardId);
   })
   .catch(function(err) {
 
