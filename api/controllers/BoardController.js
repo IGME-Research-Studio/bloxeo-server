@@ -24,10 +24,15 @@ module.exports = {
 
         if (req.isSocket) sails.sockets.join(req.socket, boardId);
 
-        return res.created(created);
+        // Strip the board mongo result
+        const boardStripped =  {
+          'isPublic': created.isPublic,
+          'boardId': boardId,
+        };
+
+        return res.created(boardStripped);
       })
       .catch(function(err) {
-
         return res.serverError(err);
       });
   },
