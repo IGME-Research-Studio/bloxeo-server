@@ -11,11 +11,11 @@ const AuthController = {
    *
    * The login form itself is just a simple HTML form:
    *
-      <form role="form" action="/auth/local" method="post">
-        <input type="text" name="identifier" placeholder="Username or Email">
-        <input type="password" name="password" placeholder="Password">
-        <button type="submit">Sign in</button>
-      </form>
+   <form role="form" action="/auth/local" method="post">
+   <input type="text" name="identifier" placeholder="Username or Email">
+   <input type="password" name="password" placeholder="Password">
+   <button type="submit">Sign in</button>
+   </form>
    *
    * You could optionally add CSRF-protection as outlined in the documentation:
    * http://sailsjs.org/#!documentation/config.csrf
@@ -23,9 +23,9 @@ const AuthController = {
    * A simple example of automatically listing all available providers in a
    * Handlebars template would look like this:
    *
-      {{#each providers}}
-        <a href="/auth/{{slug}}" role="button">{{name}}</a>
-      {{/each}}
+   {{#each providers}}
+   <a href="/auth/{{slug}}" role="button">{{name}}</a>
+   {{/each}}
    *
    * @param {Object} req
    * @param {Object} res
@@ -79,12 +79,12 @@ const AuthController = {
    *
    * Just like the login form, the registration form is just simple HTML:
    *
-      <form role="form" action="/auth/local/register" method="post">
-        <input type="text" name="username" placeholder="Username">
-        <input type="text" name="email" placeholder="Email">
-        <input type="password" name="password" placeholder="Password">
-        <button type="submit">Sign up</button>
-      </form>
+   <form role="form" action="/auth/local/register" method="post">
+   <input type="text" name="username" placeholder="Username">
+   <input type="text" name="email" placeholder="Email">
+   <input type="password" name="password" placeholder="Password">
+   <button type="submit">Sign up</button>
+   </form>
    *
    * @param {Object} req
    * @param {Object} res
@@ -143,14 +143,14 @@ const AuthController = {
       const action = req.param('action');
 
       switch (action) {
-      case 'register':
-        res.redirect('/register');
+        case 'register':
+          res.redirect('/register');
         break;
-      case 'disconnect':
-        res.redirect('back');
+        case 'disconnect':
+          res.redirect('back');
         break;
-      default:
-        res.redirect('/login');
+        default:
+          res.redirect('/login');
       }
     }
 

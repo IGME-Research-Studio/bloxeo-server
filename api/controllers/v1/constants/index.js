@@ -5,11 +5,8 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
-const constantsService = require('../services/ConstantsService');
+import ConstantsService from '../../services/ConstantsService';
 
-module.exports = {
-  index: function(req, res) {
-    return res.ok(constantsService());
-  },
+export default function index(req, res) {
+  return res.ok(ConstantsService());
 };
-
