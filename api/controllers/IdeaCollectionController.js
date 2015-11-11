@@ -104,10 +104,29 @@ module.exports = {
     }
 
     IdeaCollectionService.removeIdea(boardId, index, req.body.content)
-      .then(function() {
-        return IdeaCollectionService.getAllIdeas(boardId, index);
+      .then(function(returned) {
+
+        // if there are no more ideas, destroy the collection
+        // return undefined
+        // otherwise continue normally
+        if (returned.ideas.length < 1) {
+
+          IdeaCollectionService.destroy(boardId, index);
+          return undefined;
+        }
+        else {
+
+          return IdeaCollectionService.getAllIdeas(boardId, index);
+        }
       })
       .then(function(contents) {
+
+        if (contents === undefined) {
+
+          sails.sockets.broadcast(boardId, EVENT_API.REMOVED_COLLECTION, {index: index});
+          return res.ok({index: index});
+        }
+
         // Inform all klients of the updated collection
         sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
                                 {index: index, content: contents});
