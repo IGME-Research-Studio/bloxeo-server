@@ -1,6 +1,7 @@
 // Board Service Functionality
-const boardService = {};
 const Promise = require('bluebird');
+const Board = require('../models/Board');
+const boardService = {};
 
 // Create a board in the database
 boardService.create = function(boardObj) {

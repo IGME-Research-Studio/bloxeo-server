@@ -10,18 +10,12 @@ import valid from '../../../services/ValidatorService';
 import EVENT_API from '../../../constants/EVENT_API';
 
 export default function create(req, res) {
+  console.log(req);
   if (valid.isNull(req.body)) {
-    return res.badRequest(
-      {message: 'Not all required parameters were supplied'});
+    return res.badRequest('Not all required parameters were supplied');
   }
 
   BoardService.create(req.body)
-  .then(function(created) {
-
-    return res.created(created.boardId);
-  })
-  .catch(function(err) {
-
-    return res.serverError(err);
-  });
+    .then((created) => res.created(created.boardId))
+    .catch((err) => res.serverError(err));
 };

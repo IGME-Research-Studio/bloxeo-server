@@ -18,12 +18,6 @@ export default function destroy(req, res) {
   }
 
   BoardService.destroy(boardId)
-  .then(function(deleted) {
-
-    return res.ok(deleted);
-  })
-  .catch(function(err) {
-
-    return res.serverError(err);
-  });
+    .then((deleted) => res.ok(deleted))
+    .catch((err) => res.serverError(err));
 };
