@@ -47,7 +47,12 @@ ideaService.delete = function(boardId, ideaContent) {
   return BoardService.findIdeaByContent(boardId, ideaContent)
     .then((idea) => idea.id)
     .catch(() => { throw new Error('Idea does not exist'); })
-    .then((ideaId) => BoardService.removeIdea(boardId, ideaId))
+    .then((ideaId) => {
+      return [BoardService.removeFrom('ideas', boardId, ideaId), ideaId];
+    })
+    .spread(function(board, id) {
+      return Idea.destroy(id);
+    })
     .catch(() => { throw new Error('Idea could not be deleted'); });
 };
 

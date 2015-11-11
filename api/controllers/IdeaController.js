@@ -37,7 +37,7 @@ module.exports = {
     IdeaService.create(req.body.user, content, boardId)
       .then(function(created) {
         // add the idea to the board
-        return BoardService.addIdea(boardId, created.id);
+        return BoardService.addTo('ideas', boardId, created.id);
       })
       .then(function() {
         // find and populate all ideas
@@ -66,7 +66,7 @@ module.exports = {
         {message: 'Not all required parameters were supplied'});
     }
 
-    IdeaService.delete(boardId, ideaContent)
+    IdeaService.delete(boardId, content)
       .then(function() {
         // find and populate all ideas
         return BoardService.findBoardAndPopulate(boardId, 'ideas');

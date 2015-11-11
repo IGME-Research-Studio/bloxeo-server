@@ -30,7 +30,7 @@ ideaCollectionService.create = function(boardId, ideaContent) {
     .spread(function(collection) {
 
       // Add IdeaCollection to a Board
-      return BoardService.addIdeaCollection(boardId, collection.id);
+      return BoardService.addTo('ideaCollections', boardId, collection.id);
     })
     .then(function() {
       return BoardService.findBoardAndPopulate(boardId, 'ideaCollections');
@@ -135,7 +135,7 @@ ideaCollectionService.destroy = function(boardId, index) {
   return BoardService.findBoardAndPopulate(boardId, 'ideaCollections')
     .then(function(board) {
       const id = board.ideaCollections[index].id;
-      return [BoardService.removeIdeaCollection(boardId, id), id];
+      return [BoardService.removeFrom('ideaCollections', boardId, id), id];
     })
     .spread(function(board, id) {
       return IdeaCollection.destroy(id);
