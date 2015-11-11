@@ -8,8 +8,9 @@ import compression from 'compression';
 import bodyParser from 'body-parser';
 import url from 'url';
 import csrf from 'csurf';
+import enrouten from 'express-enrouten';
 
-// import router from './router.js';
+import routes from './routes.js';
 
 const DEFAULT_CFG = {
   mongoURL: process.env.MONGOLAB_URI || 'mongodb://localhost:27017',
@@ -17,11 +18,11 @@ const DEFAULT_CFG = {
 };
 const CFG = rc('jails', DEFAULT_CFG);
 
-console.log(CFG);
 
 const app = express();
 
 app.use(compression())
+  .use(enrouten(routes))
   .use(bodyParser.urlencoded({extended: true}))
   .disable('x-powered-by')
   .use(csrf())
@@ -30,10 +31,10 @@ app.use(compression())
     return;
   });
 
-// router(app);
-
 app.listen(CFG.port, function(err) {
   if (err) throw err;
+
+  console.log(CFG);
   console.log('Listening on port: ', CFG.port);
 });
 
