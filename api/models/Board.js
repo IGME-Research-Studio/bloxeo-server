@@ -17,6 +17,20 @@ module.exports = {
       type: 'string',
     },
 
+    description: {
+      type: 'string',
+    },
+
+    resultsLimit: {
+      type: 'number',
+      defaultsTo: 3,
+    },
+
+    hasVoted: {
+      type: 'boolean',
+      defaultsTo: false,
+    },
+
     boardId: {
 
       type: 'string',
