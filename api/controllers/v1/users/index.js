@@ -7,6 +7,6 @@
 
 // import UserService from '../../services/UserService';
 
-export default function index(req, res) {
+export default function index(/* req, res */) {
 
-};
+}

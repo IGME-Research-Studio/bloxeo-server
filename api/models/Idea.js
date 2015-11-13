@@ -2,29 +2,28 @@
 * Idea - content is unique to a board
 * @file
 */
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var schema = new mongoose.Schema({
+const schema = new mongoose.Schema({
   // Which board the idea belongs to
   boardId: {
     type: String,
-    rquired: true
+    rquired: true,
   },
 
   // Who created the idea, used for color coding the ideas
   user: {
     type: mongoose.Schema.ObjectId,
     required: true,
-    ref: 'User'
+    ref: 'User',
   },
 
   // @TODO 'notRegex: /^\s*$/,' from waterline Idea model, need to convert
-  content:{
+  content: {
     type: String,
     required: true,
-    trim: true
-  }
-
+    trim: true,
+  },
 });
 
 module.exports.schema = schema;

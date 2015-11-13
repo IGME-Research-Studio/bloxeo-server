@@ -8,46 +8,45 @@ const mongoose = require('mongoose');
 const schema = new mongoose.Schema({
   isPublic: {
     type: Boolean,
-    required: true
+    required: true,
   },
 
-  boardId:{
+  boardId: {
     type: String,
     unique: true,
-    trim: true
+    trim: true,
   },
 
-  name:{
+  name: {
     type: String,
-    trim: true
+    trim: true,
   },
 
   users: [
     {
       type: mongoose.Schema.ObjectId,
-      ref: 'User'
-    }
+      ref: 'User',
+    },
   ],
 
   admins: [
     {
       type: mongoose.Schema.ObjectId,
-      ref: 'User'
-    }
+      ref: 'User',
+    },
   ],
 
   pendingUsers: [
     {
       type: mongoose.Schema.ObjectId,
-      ref: 'User'
-    }
-  ]
-
+      ref: 'User',
+    },
+  ],
 });
 
 // Middleware Hooks
-schema.pre('save', function(next){
-  if( this.isNew ){
+schema.pre('save', function(next) {
+  if (this.isNew) {
     // generate a shortId for boardId
     this.boardId = shortid.generate();
 

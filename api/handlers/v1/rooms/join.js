@@ -5,10 +5,10 @@
 * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
 */
 
-import valid from '../../../services/ValidatorService';
+// import valid from '../../../services/ValidatorService';
 import EVENT_API from '../../../constants/EVENT_API';
 
-export default function join(data) {
+export default function join(/* data */) {
   const userSocketId = req.socket;
   const boardId = req.param('boardId');
 
@@ -16,4 +16,4 @@ export default function join(data) {
   sails.sockets.broadcast(boardId, EVENT_API.JOINED_ROOM, {
     message: `User with socket id ${userSocketId.id} joined board ${boardId}`,
   });
-};
+}

@@ -143,14 +143,14 @@ const AuthController = {
       const action = req.param('action');
 
       switch (action) {
-        case 'register':
-          res.redirect('/register');
+      case 'register':
+        res.redirect('/register');
         break;
-        case 'disconnect':
-          res.redirect('back');
+      case 'disconnect':
+        res.redirect('back');
         break;
-        default:
-          res.redirect('/login');
+      default:
+        res.redirect('/login');
       }
     }
 
