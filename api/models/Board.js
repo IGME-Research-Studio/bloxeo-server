@@ -22,27 +22,13 @@ module.exports = {
     },
 
     resultsLimit: {
-      type: 'number',
+      type: 'integer',
+      defaultsTo: 3,
     },
 
     hasVoted: {
       type: 'boolean',
-    },
-
-    allowIdeas: {
-      type: 'boolean',
-    },
-
-    allowIdeaCollections: {
-      type: 'boolean',
-    },
-
-    allowVotes: {
-      type: 'boolean',
-    },
-
-    allowResults: {
-      type: 'boolean',
+      defaultsTo: false,
     },
 
     boardId: {
