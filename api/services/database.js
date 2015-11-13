@@ -20,9 +20,4 @@ const mongo = function(url, options) {
   });
 };
 
-const redis = function(url) {
-
-};
-
-export { redis };
-export { mongo };
+export default mongo;
