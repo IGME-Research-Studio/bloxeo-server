@@ -240,6 +240,13 @@ boardService.getIdeaCollections = function(boardId) {
     });
 };
 
+boardService.getResults = function(boardId) {
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
+  .then(function(board) {
+    return board.ideaCollections.sort('votes desc');
+  });
+};
+
 boardService.getIdeas = function(boardId) {
   return boardService.findBoardAndPopulate(boardId, 'ideas')
     .then((populatedBoard) => boardService.ideasToClient(populatedBoard))

@@ -48,6 +48,7 @@ const routes = {
   'delete /boards': 'BoardController.destroy',
   // @todo: not implemented yet, would currently use a mongo id for boardId
   'put /boards/:boardId': 'BoardController.update',
+  'get /boards/:boardId/results': 'BoardController.getResults',
 
   // Socket only routes
   'post /rooms/:boardId/join': 'BoardController.join',

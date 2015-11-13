@@ -47,6 +47,32 @@ module.exports = {
     });
   },
 
+  // this feels like a board operation to me, but it needs ideaCollectionService
+  // opinions on where to put it?
+  getResults: function(req, res) {
+    const boardId = req.param('boardId');
+
+    if (valid.isNull(boardId)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    BoardService.getResults(boardId)
+    .then(function(ideaCollections) {
+      //  let results = [];
+      for (let i = 0; i < ideaCollections.length; i++) {
+        // let result = {};
+        // let ideaCollection = ideaCollections[i];
+        // need to get the original index of each collection
+        // best way to go about that?
+      }
+
+      sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_BOARD,
+                                {results: {ideaCollections}});
+      return res.ok({results: ideaCollections});
+    });
+  },
+
   destroy: function(req, res) {
     const boardId = req.param('boardId');
 
