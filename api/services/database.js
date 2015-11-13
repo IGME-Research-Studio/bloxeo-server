@@ -5,19 +5,24 @@
 */
 
 import mongoose from 'mongoose';
-mongoose.Promise = import 'bluebird';
+import Promise from 'bluebird';
 
-// @TODO move to configuration
-// settings and configuration
-// const url = process.env.MONGOLAB_URI || "mongodb://localhost";
+mongoose.Promise = Promise;
 
-const db = function(url) {
-  mongoose.connect(url, (err) => {
-    if (err) {
-      console.log("Could not connect to the database");
-      throw err;
-    }
+const mongo = function(url, options) {
+  return new Promise((res, rej) => {
+    mongoose.connect(url, options);
+
+    mongoose.connection.on('error', rej);
+    mongoose.connection.once('open', res);
+    // Maybe we should figure out how to reconnect?
+    // mongoose.connection.on('disconnected', mongo.bind(this, url, options));
   });
 };
 
-module.exports = db;
+const redis = function(url) {
+
+};
+
+export { redis };
+export { mongo };
