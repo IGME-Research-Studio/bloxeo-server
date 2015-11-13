@@ -61,7 +61,6 @@ const routes = {
   // @todo: not implemented yet, would currently use a mongo id for index
   'put /boards/:boardId/ideas/:index': 'IdeaController.update',
 
-  'post /boards/:boardId/ideas/:id': 'BoardController.add',
   'delete /boards/:boardId/ideas': 'IdeaController.destroy',
 
   /**
