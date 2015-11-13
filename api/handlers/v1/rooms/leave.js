@@ -5,9 +5,8 @@
 * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
 */
 
-import BoardService from '../services/BoardService';
-import valid from '../services/ValidatorService';
-import EVENT_API from '../constants/EVENT_API';
+import valid from '../../../services/ValidatorService';
+import EVENT_API from '../../../constants/EVENT_API';
 
 export default function leave(data) {
   const userSocketId = req.socket;

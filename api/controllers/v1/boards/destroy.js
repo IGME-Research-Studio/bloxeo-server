@@ -17,7 +17,7 @@ export default function destroy(req, res) {
       {message: 'Not all required parameters were supplied'});
   }
 
-  BoardService.destroy(boardId)
-    .then((deleted) => res.ok(deleted))
-    .catch((err) => res.serverError(err));
+  // BoardService.destroy(boardId)
+  //   .then((deleted) => res.ok(deleted))
+  //   .catch((err) => res.serverError(err));
 };
