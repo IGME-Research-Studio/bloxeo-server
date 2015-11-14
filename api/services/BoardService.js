@@ -146,7 +146,7 @@ boardService.removeIdea = function(boardId, ideaId) {
     return found.save();
   })
   .then((populatedBoard) => {
-    return Idea.remove({id: ideaId})
+    return Idea.model.remove({id: ideaId})
       .then(() => populatedBoard);
   })
   .catch(function(err) {

@@ -11,7 +11,7 @@ const ideaCollectionService = {};
 */
 // ideaCollectionService.create = function(boardId, userId, ideaId) {
 ideaCollectionService.create = function(boardId, ideaContent) {
-  return Idea.find({boardId: boardId, content: ideaContent})
+  return Idea.model.find({boardId: boardId, content: ideaContent})
     .then(function(idea) {
 
       // Create and return a new IdeaCollection
@@ -54,7 +54,7 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      return [Idea.find({boardId: boardId, content: ideaContent}), collection];
+      return [Idea.model.find({boardId: boardId, content: ideaContent}), collection];
     })
     .spread(function(idea, collection) {
       if (idea === undefined) {
@@ -87,7 +87,7 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      return [collection, Idea.find({boardId: boardId, content: ideaContent})];
+      return [collection, Idea.model.find({boardId: boardId, content: ideaContent})];
     })
     .spread(function(collection, idea) {
       const ideaId = idea.id;
