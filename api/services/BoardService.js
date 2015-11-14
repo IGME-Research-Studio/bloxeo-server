@@ -12,7 +12,7 @@ boardService.create = function(boardObj) {
 // Remove a board from the database
 boardService.destroy = function(boardId) {
 
-  return Board.destroy({boardId: boardId});
+  return Board.remove({boardId: boardId});
 };
 
 // Add a user to the board

@@ -1,4 +1,5 @@
 const BoardService = require('../services/BoardService.js');
+const Idea = require('../models/Idea.js');
 const ideaCollectionService = {};
 
 /**
@@ -10,10 +11,10 @@ const ideaCollectionService = {};
 */
 // ideaCollectionService.create = function(boardId, userId, ideaId) {
 ideaCollectionService.create = function(boardId, ideaContent) {
-  return BoardService.findIdeaByContent(boardId, ideaContent)
+  return Idea.find({boardId: boardId, content: ideaContent})
     .then(function(idea) {
-      // Create and return a new IdeaCollection
 
+      // Create and return a new IdeaCollection
       return [
         IdeaCollection.create({
           ideas: [idea.id],
@@ -53,7 +54,7 @@ ideaCollectionService.addIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      return [BoardService.findIdeaByContent(boardId, ideaContent), collection];
+      return [Idea.find({boardId: boardId, content: ideaContent}), collection];
     })
     .spread(function(idea, collection) {
       if (idea === undefined) {
@@ -86,16 +87,17 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(collection) {
-      return [collection, BoardService.findIdeaByContent(boardId, ideaContent)];
+      return [collection, Idea.find({boardId: boardId, content: ideaContent})];
     })
     .spread(function(collection, idea) {
       const ideaId = idea.id;
 
-      collection.ideas.remove(ideaId);
-
-      if (collection.ideas.length === 0) {
-        return ideaCollectionService.destroy(boardId, index);
+      // If its the last idea just delete he collection
+      if (collection.ideas.length === 1) {
+        return ideaCollectionService.remove(boardId, index);
       }
+
+      collection.ideas.remove(ideaId);
 
       // save and return the collection
       return collection.save()
@@ -124,7 +126,7 @@ ideaCollectionService.destroy = function(boardId, index) {
       return [BoardService.removeIdeaCollection(boardId, id), id];
     })
     .spread(function(board, id) {
-      return IdeaCollection.destroy(id);
+      return IdeaCollection.remove(id);
     })
     .catch(function(err) {
       throw new Error(err);

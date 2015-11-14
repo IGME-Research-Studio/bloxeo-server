@@ -54,6 +54,15 @@ schema.pre('save', function(next) {
   }
 });
 
+schema.post('save', function(next) {
+  // update cache if needed
+  next();
+});
+
+schema.post('remove', function(next) {
+  // remove from cache
+  next();
+});
 
 module.exports.schema = schema;
 module.exports.model = mongoose.model('Board', schema);
