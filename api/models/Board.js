@@ -1,9 +1,10 @@
 /**
-* Room.js
-* @TODO BEFPRE CREATE - generate shortID and set boardId
+* Board.js
 */
 const shortid = require('shortid');
 const mongoose = require('mongoose');
+const IdeaCollection = require('IdeaCollection.js');
+const Idea = require('Idea.js');
 
 const schema = new mongoose.Schema({
   isPublic: {
@@ -55,12 +56,19 @@ schema.pre('save', function(next) {
 });
 
 schema.post('save', function(next) {
-  // update cache if needed
+  // update cache
+
   next();
 });
 
 schema.post('remove', function(next) {
   // remove from cache
+
+  // Remove all models that depend on the removed Board
+  IdeaCollection.remove({boardId: this.boardId})
+  .then(() => Idea.remove({boardId: this.boardId}))
+  .then(() => next());
+
   next();
 });
 

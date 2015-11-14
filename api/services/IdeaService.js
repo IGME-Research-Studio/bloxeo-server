@@ -5,7 +5,6 @@
  * @module services/idea
  */
 
-const BoardService = require('../services/BoardService.js');
 const Idea = require('../models/Idea.js');
 
 const ideaService = {};
@@ -21,13 +20,13 @@ ideaService.create = function(user, content, boardId) {
 /**
  * Delete an Idea
  */
-ideaService.delete = function(boardId, ideaContent) {
+ideaService.destroy = function(boardId, ideaContent) {
 
   return Idea.model.find({boardId: boardId, content: ideaContent})
-    .catch(() => { throw new Error('Idea does not exist'); })
-    .then((idea) => BoardService.removeIdea(boardId, idea.id))
-    .catch(() => { throw new Error('Idea could not be deleted'); });
+    .then((idea) => idea.remove())
+    .catch(() => {
+      throw new Error('Idea could not be deleted');
+    });
 };
-
 
 module.exports = ideaService;

@@ -1,6 +1,8 @@
 /**
 * Idea - content is unique to a board
 * @file
+* @TODO validate content&boardId combination is unique
+* @TODO Post remove - delete idea from any collections that may contain it
 */
 const mongoose = require('mongoose');
 
