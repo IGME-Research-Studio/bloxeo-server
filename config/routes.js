@@ -45,7 +45,7 @@ const routes = {
   // @todo: not implemented yet, would currently use a mongo id for boardId
   'get /boards/:boardId': 'BoardController.findOne',
   'post /boards': 'BoardController.create',
-  'delete /boards': 'BoardController.destroy',
+  'delete /boards/:boardId': 'BoardController.destroy',
   // @todo: not implemented yet, would currently use a mongo id for boardId
   'put /boards/:boardId': 'BoardController.update',
 
