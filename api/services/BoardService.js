@@ -119,7 +119,7 @@ boardService.removePendingUser = function(boardId, userId) {
 
 // Add an idea to the board
 boardService.addIdea = function(boardId, ideaId) {
-
+  // @TODO convert to new schema changes
   return boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
@@ -136,7 +136,7 @@ boardService.addIdea = function(boardId, ideaId) {
 
 // Remove an idea to the board
 boardService.removeIdea = function(boardId, ideaId) {
-
+  // @TODO convert to new schema changes
   return boardService.findBoardAndPopulate(boardId, 'ideas')
 
   .then(function(found) {
@@ -146,7 +146,7 @@ boardService.removeIdea = function(boardId, ideaId) {
     return found.save();
   })
   .then((populatedBoard) => {
-    return Idea.destroy({id: ideaId})
+    return Idea.remove({id: ideaId})
       .then(() => populatedBoard);
   })
   .catch(function(err) {
@@ -155,24 +155,7 @@ boardService.removeIdea = function(boardId, ideaId) {
   });
 };
 
-// find an idea on a board based on content
-boardService.findIdeaByContent = function(boardId, content) {
-
-  // find the board
-  return Board.findOne({boardId: boardId}).then(function(board) {
-
-    return board.id;
-  }).then(function(id) {
-
-    // find idea based on the id returned
-    return Idea.findOne({board: id, content: content});
-  })
-  .catch((err) => {
-
-    throw new Error(err);
-  });
-};
-
+// @TODO convert to new schema changes
 // Add an idea collection to the board
 boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
 
@@ -190,6 +173,7 @@ boardService.addIdeaCollection = function(boardId, ideaCollectionId) {
   });
 };
 
+// @TODO convert to new schema changes
 // Remove an idea collection from the board
 boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
 
@@ -207,6 +191,7 @@ boardService.removeIdeaCollection = function(boardId, ideaCollectionId) {
   });
 };
 
+// @TODO convert to new schema changes
 // Return all idea collections for a board
 // @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
