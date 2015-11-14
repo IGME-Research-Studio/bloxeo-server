@@ -1,7 +1,6 @@
 /**
 * BoardService: contains actions related to users and boards.
 */
-const Promise = require('bluebird');
 const Board = require('../models/Board');
 const boardService = {};
 
