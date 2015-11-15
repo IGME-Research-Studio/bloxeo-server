@@ -4,11 +4,13 @@ import bodyParser from 'body-parser';
 import enrouten from 'express-enrouten';
 import logger from 'morgan';
 import addStatusCodes from 'express-json-status-codes';
+import Promise from 'bluebird';
 // import redis from 'ioredis';
 
 import CFG from './config';
 import routes from './routes';
-import db from './services/database';
+import sockets from './sockets';
+import database from './services/database';
 
 // const redisClient = Redis(CFG.redisURL);
 const extendedExpress = addStatusCodes(express);
@@ -26,5 +28,12 @@ const setupApp = function() {
     });
 };
 
-db(CFG.mongoURL, CFG.mongoOpts)
-  .then(() => setupApp());
+database(CFG.mongoURL, CFG.mongoOpts)
+  .then(() => console.log('Connected to mongo'))
+  .catch(console.error);
+
+const app = setupApp();
+const io = sockets(app);
+
+export { app }
+
