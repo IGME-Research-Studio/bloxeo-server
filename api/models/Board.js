@@ -47,7 +47,6 @@ const schema = new mongoose.Schema({
 
 // Middleware Hooks
 schema.pre('save', function(next) {
-  console.log('pre-save');
 
   if (this.isNew) {
     // generate a shortId for boardId

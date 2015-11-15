@@ -5,13 +5,16 @@ const Board = require('../models/Board');
 const boardService = {};
 
 // Create a board in the database
-boardService.create = function(boardObj) {
-  return Board.create(boardObj);
+boardService.create = function(name) {
+
+  const b = new Board.model({name: name});
+  return b.save().then((result) => result.boardId);
 };
 
 // Remove a board from the database
 boardService.destroy = function(boardId) {
-  return Board.remove({boardId: boardId});
+  
+  return Board.model.remove({boardId: boardId});
 };
 
 // Add a user to the board

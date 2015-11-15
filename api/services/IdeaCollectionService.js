@@ -11,6 +11,7 @@ const ideaCollectionService = {};
   @returns {Promise} resolves to the last index
 */
 ideaCollectionService.create = function(boardId, ideaContent) {
+
   return Idea.model.find({boardId: boardId, content: ideaContent})
   .then((idea) => IdeaCollection.create({boardId: boardId, ideas: [idea]}))
   .then( () => IdeaCollection.find({boardId: boardId}) )
@@ -29,9 +30,10 @@ ideaCollectionService.create = function(boardId, ideaContent) {
 */
 ideaCollectionService.addIdea = function(boardId, index, content) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
-  .then((collection) => [collection, Idea.model.find({boardId: boardId, content: content})])
-  .spread((collection, idea) => {
+  return [
+    IdeaCollection.model.findByIndex(boardId, index),
+    Idea.model.find({boardId: boardId, content: content})
+  ].spread((collection, idea) => {
     collection.ideas.add(idea);
     return collection.save();
   });
@@ -46,9 +48,10 @@ ideaCollectionService.addIdea = function(boardId, index, content) {
 */
 ideaCollectionService.removeIdea = function(boardId, index, content) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
-  .then((collection) => [collection, Idea.model.find({boardId: boardId, content: content})])
-  .spread((collection, idea) => {
+  return [
+    IdeaCollection.model.findByIndex(boardId, index),
+    Idea.model.find({boardId: boardId, content: content})
+  ].spread((collection, idea) => {
     collection.ideas.remove(idea);
     return collection.save();
   });
