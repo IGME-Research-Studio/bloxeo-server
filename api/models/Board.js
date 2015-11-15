@@ -3,13 +3,13 @@
 */
 const shortid = require('shortid');
 const mongoose = require('mongoose');
-const IdeaCollection = require('IdeaCollection.js');
-const Idea = require('Idea.js');
+const IdeaCollection = require('./IdeaCollection.js');
+const Idea = require('./Idea.js');
 
 const schema = new mongoose.Schema({
   isPublic: {
     type: Boolean,
-    required: true,
+    default: true
   },
 
   boardId: {
@@ -47,6 +47,8 @@ const schema = new mongoose.Schema({
 
 // Middleware Hooks
 schema.pre('save', function(next) {
+  console.log('pre-save');
+
   if (this.isNew) {
     // generate a shortId for boardId
     this.boardId = shortid.generate();
@@ -54,13 +56,14 @@ schema.pre('save', function(next) {
     next();
   }
 });
-
+/*
 schema.post('save', function(next) {
+  console.log('post-save');
   // update cache
 
   next();
 });
-
+*/
 schema.post('remove', function(next) {
   // remove from cache
 

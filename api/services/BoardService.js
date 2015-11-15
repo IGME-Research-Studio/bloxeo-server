@@ -6,13 +6,11 @@ const boardService = {};
 
 // Create a board in the database
 boardService.create = function(boardObj) {
-
   return Board.create(boardObj);
 };
 
 // Remove a board from the database
 boardService.destroy = function(boardId) {
-
   return Board.remove({boardId: boardId});
 };
 
@@ -20,15 +18,11 @@ boardService.destroy = function(boardId) {
 boardService.addUser = function(boardId, userId) {
 
   return Board.model.find({boardId: boardId})
-
   .then(function(board) {
-
     board.users.add(userId);
-
     return board.save();
   })
   .catch(function(err) {
-
     throw new Error(err);
   });
 };
@@ -37,15 +31,11 @@ boardService.addUser = function(boardId, userId) {
 boardService.removeUser = function(boardId, userId) {
 
   return Board.model.find({boardId: boardId})
-
   .then(function(board) {
-
     board.users.remove(userId);
-
     return board.save();
   })
   .catch(function(err) {
-
     throw new Error(err);
   });
 };
@@ -54,15 +44,11 @@ boardService.removeUser = function(boardId, userId) {
 boardService.addAdmin = function(boardId, userId) {
 
   return Board.model.find({boardId: boardId})
-
   .then(function(board) {
-
     board.admins.add(userId);
-
     return board.save();
   })
   .catch(function(err) {
-
     throw new Error(err);
   });
 };
@@ -71,15 +57,11 @@ boardService.addAdmin = function(boardId, userId) {
 boardService.removeAdmin = function(boardId, userId) {
 
   return Board.model.find({boardId: boardId})
-
   .then(function(board) {
-
     board.admins.remove(userId);
-
     return board.save();
   })
   .catch(function(err) {
-
     throw new Error(err);
   });
 };
@@ -88,15 +70,11 @@ boardService.removeAdmin = function(boardId, userId) {
 boardService.addPendingUser = function(boardId, userId) {
 
   return Board.model.find({boardId: boardId})
-
   .then(function(board) {
-
     board.pendingUsers.add(userId);
-
     return board.save();
   })
   .catch(function(err) {
-
     throw new Error(err);
   });
 };
@@ -105,15 +83,11 @@ boardService.addPendingUser = function(boardId, userId) {
 boardService.removePendingUser = function(boardId, userId) {
 
   return Board.model.find({boardId: boardId})
-
   .then(function(board) {
-
     board.pendingUsers.remove(userId);
-
     return board.save();
   })
   .catch(function(err) {
-
     throw new Error(err);
   });
 };
