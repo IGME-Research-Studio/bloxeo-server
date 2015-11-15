@@ -12,9 +12,10 @@ const ideaService = {};
 /**
  * Create a new Idea
  */
-ideaService.create = function(user, content, boardId) {
+ideaService.create = function(user, boardId, content) {
 
-  return Idea.model.create({boardId: boardId, user: user, content: content});
+  const i =  new Idea.model({boardId: boardId, user: user, content: content});
+  return i.save();
 };
 
 /**
@@ -23,10 +24,7 @@ ideaService.create = function(user, content, boardId) {
 ideaService.destroy = function(boardId, ideaContent) {
 
   return Idea.model.find({boardId: boardId, content: ideaContent})
-    .then((idea) => idea.remove())
-    .catch(() => {
-      throw new Error('Idea could not be deleted');
-    });
+  .remove();
 };
 
 module.exports = ideaService;

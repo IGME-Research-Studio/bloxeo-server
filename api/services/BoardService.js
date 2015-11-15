@@ -13,7 +13,7 @@ boardService.create = function(name) {
 
 // Remove a board from the database
 boardService.destroy = function(boardId) {
-  
+
   return Board.model.remove({boardId: boardId});
 };
 
