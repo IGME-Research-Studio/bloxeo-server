@@ -38,5 +38,12 @@ const schema = new mongoose.Schema({
   },
 });
 
+// statics
+schema.statics.findByIndex = function(boardId, index) {
+  return model.find({boardId: boardId})
+  .then((collections) => collections[index]);
+};
+
+
 module.exports.schema = schema;
 module.exports.model = mongoose.model('IdeaCollection', schema);
