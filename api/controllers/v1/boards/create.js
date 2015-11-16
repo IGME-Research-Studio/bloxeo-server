@@ -1,15 +1,12 @@
 /**
  * BoardController#create
  *
- * @description :: Server-side logic for creating boards
- * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
-// import _ from 'lodash';
-
 // import boardService from '../../../services/BoardService';
-// import EVENT_API from '../../../constants/EVENT_API';
+import stream from '../../../event-stream';
 import valid from '../../../services/ValidatorService';
+import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 
 export default function create(req, res) {
   const isPublic = req.body.isPublic;
@@ -18,6 +15,10 @@ export default function create(req, res) {
     return res.badRequest(
       {message: 'Not all required parameters were supplied'});
   }
+
+  // stream.emit('broadcast', {boardId: 'boardId',
+  //                event: 'broadcast',
+  //                body: 'User joined',})
 
   return res.created({message: 'created'});
 

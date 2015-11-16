@@ -9,7 +9,7 @@ import Promise from 'bluebird';
 
 import CFG from './config';
 import routes from './routes';
-import sockets from './sockets';
+import dispatcher from './dispatcher';
 import database from './services/database';
 
 // const redisClient = Redis(CFG.redisURL);
@@ -33,7 +33,7 @@ database(CFG.mongoURL, CFG.mongoOpts)
   .catch(console.error);
 
 const app = setupApp();
-const io = sockets(app);
+const dispatch = dispatcher(app);
 
 export { app }
 

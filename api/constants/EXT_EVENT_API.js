@@ -1,14 +1,20 @@
 /**
-* EVENT_API
+* EXT_EVENT_API
 *
 * These are the names for our socket events that we should use internally
 * and what we should send to client on initialization.
 *
-* They are all past tense, because they are updates that are being emitted
-* from the server about things that have already happened.
+* Requests should be imperative
+* Responses should be past tense
 */
 
 module.exports = {
+  // Imperative requests
+  'SEND_CONSTANTS': 'SendConstants',
+  'JOIN_ROOM': 'JoinRoom',
+  'LEAVE_ROOM': 'LeaveRoom',
+
+  // Past-tense responses
   'JOINED_ROOM': 'JoinedRoom',
   'LEFT_ROOM': 'LeftRoom',
 

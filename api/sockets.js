@@ -7,7 +7,7 @@ export default function(server) {
   const io = socket(server);
 
   io.on('connection', function(socket) {
-    console.log('user connected');
+    console.log(socket.id);
   });
 
   /**
@@ -31,7 +31,7 @@ export default function(server) {
 
   io.on('authenticated', function(socket) {
       console.log(socket.decoded_token);
-    });
+  });
 
   return io;
 }
