@@ -102,16 +102,12 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
       const ideaCollectionCount = collection.ideas.length;
 
       collection.ideas.remove(ideaId);
-
-      if (collection.ideas.length === 0) {
-        return ideaCollectionService.destroy(boardId, index);
-      }
-
-      // save and return the collection
       return collection.save()
         .then((res) => {
+
           // If an idea wasn't removed from an idea collection, then assume that idea wasn't in the idea collection
           if (ideaCollectionCount === res.ideas.length) {
+
             throw new Error('Idea with content: `' + ideaContent + '` was not in the idea collection');
           }
           return res;
