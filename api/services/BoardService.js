@@ -56,6 +56,13 @@ boardService.removeFrom = function(attr, boardId, attrId) {
   });
 };
 
+boardService.update = function(boardId, updateObj) {
+  return Board.findOne({boardId: boardId})
+  .then(function(board) {
+    return Board.update({boardId: board.boardId}, updateObj);
+  });
+};
+
 // Return all idea collections for a board
 // @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
@@ -81,6 +88,13 @@ boardService.getIdeaCollections = function(boardId) {
         return collections;
       });
     });
+};
+
+boardService.getResults = function(boardId) {
+  return boardService.findBoardAndPopulate(boardId, 'ideaCollections')
+  .then(function(board) {
+    return board.ideaCollections.sort('votes desc');
+  });
 };
 
 boardService.getIdeas = function(boardId) {
