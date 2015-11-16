@@ -56,6 +56,13 @@ boardService.removeFrom = function(attr, boardId, attrId) {
   });
 };
 
+boardService.update = function(boardId, updateObj) {
+  return Board.findOne({boardId: boardId})
+  .then(function(board) {
+    return Board.update({boardId: board.boardId}, updateObj);
+  });
+};
+
 // Return all idea collections for a board
 // @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {

@@ -7,7 +7,7 @@
 
 const BoardService = require('../services/BoardService.js');
 const valid = require('../services/ValidatorService');
-
+const _ = require('lodash');
 const EVENT_API = require('../constants/EVENT_API');
 
 module.exports = {
@@ -35,6 +35,30 @@ module.exports = {
       .catch(function(err) {
         return res.serverError(err);
       });
+  },
+
+  update: function(req, res) {
+    const boardId = req.param('boardId');
+
+    // how can this be done better?
+    // I tried this and it didn't work:
+    // _.map(req.body, _.partial(_.ary(_.pick, 4), _, ['hasVoted', 'resultsLimit', 'description', 'name']));
+    const updateObj = _.pick(req.body, 'hasVoted');
+    updateObj.resultsLimit = _.pick(req.body, 'resultsLimit');
+    updateObj.description = _.pick(req.body, 'description');
+    updateObj.name = _.pick(req.body, 'name');
+
+    if (valid.isNull(boardId) || valid.isNull(req.body) || valid.isNull(updateObj)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    BoardService.update(boardId, updateObj)
+    .then(function(board) {
+      sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_BOARD,
+                                {board: board});
+      return res.ok({board: board});
+    });
   },
 
   destroy: function(req, res) {
