@@ -5,8 +5,6 @@
 * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
 */
 
-const Promise = require('bluebird');
-
 const BoardService = require('../services/BoardService');
 const IdeaCollectionService = require('../services/IdeaCollectionService');
 const valid = require('../services/ValidatorService');
@@ -181,32 +179,9 @@ module.exports = {
         {message: 'Not all required parameters were supplied'});
     }
 
-    BoardService.getIdeaCollections(boardId)
+    BoardService.workspaceToClient(boardId)
       .then(function(collections) {
-        const collectionsJSON = [];
-        let promises;
-
-        function getAllIdeas(indexOfCollection) {
-          return IdeaCollectionService.getAllIdeas(boardId, indexOfCollection);
-        }
-
-        function addToCollectionsJSON(content, i) {
-          collectionsJSON.push({
-            index: i,
-            content: content,
-          });
-        }
-
-        promises = _.map(collections, (e, i) => {
-          return getAllIdeas(i)
-            .then((ideaContent) => {
-              return addToCollectionsJSON(ideaContent, i);
-            });
-        });
-
-        Promise.all(promises).then(function() {
-          res.ok(_.sortBy(collectionsJSON, 'index'));
-        });
+        res.ok(collections);
       })
       .catch(function(err) {
         res.serverError({message: 'Failed to get all collections' + err});
