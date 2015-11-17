@@ -63,12 +63,12 @@ class EventStream extends EventEmitter {
     this.emit(INT_EVENTS.EMIT_TO, req);
   }
 
-  join(req) {
-    this.emit(INT_EVENTS.JOIN, req);
+  join(socket, boardId) {
+    this.emit(INT_EVENTS.JOIN, {socket: socket, boardId: boardId});
   }
 
-  leave(req) {
-    this.emit(INT_EVENTS.LEAVE, req);
+  leave(socket, boardId) {
+    this.emit(INT_EVENTS.LEAVE, {socket: socket, boardId: boardId});
   }
 
   /**

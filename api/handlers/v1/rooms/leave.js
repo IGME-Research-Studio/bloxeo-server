@@ -15,14 +15,16 @@ export default function leave(req) {
   const socket = req.socket;
   const boardId = req.boardId;
 
-  if (isNull(socket) || isNull(boardId)) {
-    stream.emit(INT_EVENTS.BROADCAST,
-      {message: 'Not all required parameters were supplied'});
+  if (isNull(socket)) {
+    return false;
+  }
+  else if (isNull(boardId)) {
+    stream.badRequest(EXT_EVENTS.LEFT_ROOM, {}, socket.id,
+      'Not all required parameters were supplied');
   }
   else {
-    stream.emit(INT_EVENTS.LEAVE, {socket: socket})
-    stream.emit(INT_EVENTS.BROADCAST,
-      {boardId: boardId, event: EXT_EVENTS.LEFT_ROOM,
-       body:'User with socket id ${socket.id} left board ${boardId}',})
+    stream.leave(socket, boardId);
+    stream.ok(boardId, EXT_EVENTS.LEFT_ROOM,
+       `User with socket id ${socket.id} left board ${boardId}`);
   }
 }
