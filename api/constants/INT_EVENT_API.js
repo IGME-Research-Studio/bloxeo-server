@@ -7,6 +7,7 @@
 
 module.exports = {
   BROADCAST: 'broadcast',
+  EMIT_TO: 'emitTo',
   JOIN: 'join',
   LEAVE: 'leave',
 };

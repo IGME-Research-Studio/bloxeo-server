@@ -13,22 +13,19 @@ import _ from 'lodash';
 import INT_EVENTS from './constants/INT_EVENT_API';
 
 /**
- * Helper method to construct a standard object to send to Socket.io
- * BoardId may be undefined for operations that don't occur on a board
- *
- * @param {Number} code equivalent HTTP status code
- * @param {String} msg a message describing the operation
- * @param {String} event the client-facing event that socket io
- * should broadcast
- * @param {Object} data arbitrary data object, what client wants to receive
- * @param {String} boardId optional parameter for operations that occur on
- * a board
- * @returns {Object}
- */
-function response(code, msg, event, data, boardId) {
+* Helper method to construct a standard object to send to Socket.io
+*
+* @param {Number} code equivalent HTTP status code
+* @param {String} msg a message describing the operation
+* @param {String} event the client-facing event that socket io
+* should broadcast
+* @param {Object} data arbitrary data object, what client wants to receive
+* @param {String} boardId
+*/
+function success(code, msg, event, data, boardId) {
   return {
     event: event,
-    boardId: boardId || undefined,
+    boardId: boardId,
     res: {
       ts: new Date().getTime(),
       code: code,
@@ -38,14 +35,32 @@ function response(code, msg, event, data, boardId) {
   };
 }
 
+function error(code, msg, event, data, socketId) {
+  return {
+    event: event,
+    socketId: socketId,
+    res: {
+      ts: new Date().getTime(),
+      code: code,
+      data: data,
+      message: msg,
+    }
+  };
+}
 class EventStream extends EventEmitter {
 
   /**
-  * Emits a broadcast event to tell socket to broadcast to clients
+  * Emits a broadcast event to tell socket.io to broadcast to a room
+  *
   * @param {Object} req can be anything to pass along to client
+  * @param {Object} req.boardId what board to send to
   */
   broadcast(req) {
     this.emit(INT_EVENTS.BROADCAST, req);
+  }
+
+  emitTo(req) {
+    this.emit(INT_EVENTS.EMIT_TO, req);
   }
 
   join(req) {
@@ -56,52 +71,60 @@ class EventStream extends EventEmitter {
     this.emit(INT_EVENTS.LEAVE, req);
   }
 
-  ok(event, data, message) {
+  /**
+  * 2xx codes use the following interface
+  * @param {String} event socket event to send to client
+  * @param {Object} data arbitrary data to send to client
+  * @param {String} boardId user facing boardId to broadcast the message to
+  * @param {String=} message optional HTTP-like message
+  * Sends a broadcast to the room identified by the boardId
+  */
+  ok(event, data, boardId, message) {
     const msg = message || 'Operation succesful';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(200, msg, event, data));
+    this.broadcast(succes(200, msg, event, data, boardId));
   }
 
-  created(event, data, message) {
+  created(event, data, boardId, message) {
     const msg = message || 'Resource created.';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(201, msg, event, data));
+    this.broadcast(succes(201, msg, event, data, boardId));
   }
 
-  accepted(event, data, message) {
+  accepted(event, data, boardId, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(202, msg, event, data));
+    this.broadcast(succes(202, msg, event, data, boardId));
   }
 
-  badRequest(event, data, message) {
+  /**
+  * 4xx and 5xx codes use the following interface
+  * @param {String} event socket event to send to client
+  * @param {Object} data arbitrary data to send to client
+  * @param {Object} socketId the requesting socket
+  * @param {String=} message optional HTTP-like message
+  * Sends a emission to the socket identified by the socket
+  */
+  badRequest(event, data, socketId, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(400, msg, event, data));
+    this.emitTo(error(400, msg, event, data, socketId));
   }
 
-  unauthorized(event, data, message) {
+  unauthorized(event, data, socketId, message) {
     const msg = message || 'Authentication required for this operation.';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(401, msg, event, data));
+    this.emitTo(error(401, msg, event, data, socketId));
   }
 
-  notFound(event, data, message) {
+  notFound(event, data, socketId, message) {
     const msg = message || 'Resource not found';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(404, msg, event, data));
+    this.emitTo(error(404, msg, event, data, socketId));
   }
 
-  serverError(event, data, message) {
+  serverError(event, data, socketId, message) {
     const msg = message || 'Something went wrong on the server';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(500, msg, event, data));
+    this.emitTo(error(500, msg, event, data, socketId));
   }
 
-  notImplemented(event, data, message) {
+  notImplemented(event, data, socketId, message) {
     const msg = message || 'Not available now, but may be in the future';
-    this.emit(INT_EVENTS.BROADCAST,
-      response(501, msg, event, data));
+    this.emitTo(error(501, msg, event, data, socketId));
   }
 }
 

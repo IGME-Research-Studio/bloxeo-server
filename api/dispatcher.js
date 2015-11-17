@@ -55,7 +55,11 @@ const dispatcher = function(server) {
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
-    io.sockets.in(req.boardId).emit(req.event, req.body);
+    io.sockets.in(req.boardId).emit(req.event, req.res);
+  });
+
+  stream.on(INT_EVENTS.EMIT_TO, (req) => {
+    io.sockets.to(req.socketId).emit(req.event, req.res);
   });
 
   stream.on(INT_EVENTS.JOIN, (req) => {
