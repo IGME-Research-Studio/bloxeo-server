@@ -16,15 +16,12 @@ export default function join(req) {
   const boardId = req.boardId;
 
   if (isNull(socket) || isNull(boardId)) {
-    stream.emit(INT_EVENTS.BROADCAST,
-      {code: 400, error: err,
-       body: 'Not all required parameters were supplied'});
+    stream.badRequest(EXT_EVENTS.JOINED_ROOM, err,
+      'Not all required parameters were supplied');
   }
   else {
-    stream.emit(INT_EVENTS.JOIN, {socket: socket})
-    stream.emit(INT_EVENTS.BROADCAST,
-      {code: 200, boardId: boardId,
-       event: EXT_EVENTS.JOINED_ROOM,
-       body: `User with socket id ${socket.id} joined board ${boardId}`,})
+    stream.join({socket: socket})
+    stream.ok(boardId, EXT_EVENTS.JOINED_ROOM,
+       `User with socket id ${socket.id} joined board ${boardId}`,})
   }
 }
