@@ -24,12 +24,6 @@ const schema = new mongoose.Schema({
     default: true,
   },
 
-  // sum of votes recieved
-  votes: {
-    type: Number,
-    default: 0,
-  },
-
   // Last user to have modified the collection
   lastUpdated: {
     type: mongoose.Schema.ObjectId,
