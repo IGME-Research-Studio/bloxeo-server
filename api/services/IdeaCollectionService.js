@@ -128,6 +128,9 @@ ideaCollectionService.removeIdea = function(boardId, index, ideaContent) {
 ideaCollectionService.update = function(boardId, index, updateObj) {
   return ideaCollectionService.findAndPopulate(boardId, index)
     .then(function(ideaCollection) {
+      if (updateObj === 'vote') {
+        updateObj = { votes: ideaCollection.votes + 1 };
+      }
       return IdeaCollection.update({id: ideaCollection.id}, updateObj);
     });
 };

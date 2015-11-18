@@ -72,6 +72,7 @@ const routes = {
   // @todo: Hack to allow for voting updates for now
   // @todo: not implemented yet, would currently use a mongo id for index
   'put /boards/:boardId/ideaCollections/:index': 'IdeaCollectionController.update',
+  'put /boards/:boardId/ideaCollections/:index/vote': 'IdeaCollectionController.vote',
 
   // only expose the ability to add on create for now
   'delete /boards/:boardId/ideaCollections': 'IdeaCollectionController.destroy',

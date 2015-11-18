@@ -118,6 +118,32 @@ module.exports = {
       });
   },
 
+  vote: function(req, res) {
+    const boardId = req.param('boardId');
+    const index = req.param('index');
+
+    if (valid.isNull(boardId) || !valid.isInt(index)) {
+      return res.badRequest(
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    IdeaCollectionService.update(boardId, index, 'vote')
+    .then(function() {
+      return IdeaCollectionService.findAndPopulate(boardId, index);
+    })
+    .then(function(ideaCollection) {
+        // Not actually sure what to pass back?
+      sails.sockets.broadcast(boardId, EVENT_API.MODIFIED_COLLECTION,
+                                {index: index, ideaCollection: ideaCollection});
+      return res.ok({index: index, ideaCollection: ideaCollection});
+    })
+    .catch(function(err) {
+      res.serverError(
+        {message: `Problem updating the ideaCollection. ${err}`});
+    });
+
+  },
+
   update: function(req, res) {
     const boardId = req.param('boardId');
     const index = req.param('index');
