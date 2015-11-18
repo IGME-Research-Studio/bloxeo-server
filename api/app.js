@@ -4,7 +4,6 @@ import bodyParser from 'body-parser';
 import enrouten from 'express-enrouten';
 import logger from 'morgan';
 import addStatusCodes from 'express-json-status-codes';
-import Promise from 'bluebird';
 // import redis from 'ioredis';
 
 import CFG from './config';
@@ -33,7 +32,7 @@ database(CFG.mongoURL, CFG.mongoOpts)
   .catch(console.error);
 
 const app = setupApp();
-const dispatch = dispatcher(app);
+dispatcher(app);
 
-export { app }
+export { app };
 

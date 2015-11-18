@@ -14,7 +14,7 @@ const mongo = function(url, options) {
     mongoose.connect(url, options);
 
     mongoose.connection.on('error', (err) => rej(err));
-    mongoose.connection.once('open', (data) => res(true));
+    mongoose.connection.once('open', () => res(true));
     // Maybe we should figure out how to reconnect?
     // mongoose.connection.on('disconnected', mongo.bind(this, url, options));
   });

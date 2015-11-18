@@ -1,15 +1,16 @@
-import { expect } from 'chai';
+// import { expect } from 'chai';
 import io from 'socket.io-client';
 // import app from '../../../api/app';
 
 const socketURL = 'http://0.0.0.0:1337';
 const options = {
   transports: ['websocket'],
-  'force new connection': true
+  'force new connection': true,
 };
 
 describe('RoomHandler', () => {
-  let client1, client2;
+  let client1;
+  let client2;
 
   beforeEach((done) => {
     client1 = io.connect(socketURL, options);
@@ -28,6 +29,7 @@ describe('RoomHandler', () => {
   it('should join the socket to a room', (done) => {
     client1.emit('JoinRoom', 'some-board');
     client2.emit('JoinRoom', 'some-board');
+    done();
   });
 
   afterEach(() => {

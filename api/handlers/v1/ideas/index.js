@@ -9,7 +9,6 @@
 import { isNull } from '../../../services/ValidatorService';
 import BoardService from '../../../services/BoardService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
-import INT_EVENTS from '../../../constants/INT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function index(req) {

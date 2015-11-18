@@ -8,7 +8,6 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
-import INT_EVENTS from '../../../constants/INT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function join(req) {

@@ -4,10 +4,10 @@
  */
 
 import socket from 'socket.io';
-import socketioJwt from 'socketio-jwt';
+// import socketioJwt from 'socketio-jwt';
+// import CFG from './config';
 
 import stream from './event-stream';
-import CFG from './config';
 
 import joinRoom from './handlers/v1/rooms/join';
 import leaveRoom from './handlers/v1/rooms/leave';

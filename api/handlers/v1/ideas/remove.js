@@ -10,7 +10,6 @@
 import { isNull } from '../../../services/ValidatorService';
 import BoardService from '../../../services/BoardService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
-import INT_EVENTS from '../../../constants/INT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function remove(req) {
@@ -26,7 +25,7 @@ export default function remove(req) {
       'Not all required parameters were supplied');
   }
   else {
-    IdeaService.delete(boardId, ideaContent)
+    IdeaService.delete(boardId, content)
       .then(function() {
         // find and populate all ideas
         return BoardService.findBoardAndPopulate(boardId, 'ideas');

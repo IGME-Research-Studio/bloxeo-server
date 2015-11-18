@@ -7,8 +7,6 @@
  */
 
 import { EventEmitter } from 'events';
-import util from 'util';
-import _ from 'lodash';
 
 import INT_EVENTS from './constants/INT_EVENT_API';
 
@@ -31,7 +29,7 @@ function success(code, msg, event, data, boardId) {
       code: code,
       data: data,
       message: msg,
-    }
+    },
   };
 }
 
@@ -44,7 +42,7 @@ function error(code, msg, event, data, socketId) {
       code: code,
       data: data,
       message: msg,
-    }
+    },
   };
 }
 class EventStream extends EventEmitter {
@@ -81,17 +79,17 @@ class EventStream extends EventEmitter {
   */
   ok(event, data, boardId, message) {
     const msg = message || 'Operation succesful';
-    this.broadcast(succes(200, msg, event, data, boardId));
+    this.broadcast(success(200, msg, event, data, boardId));
   }
 
   created(event, data, boardId, message) {
     const msg = message || 'Resource created.';
-    this.broadcast(succes(201, msg, event, data, boardId));
+    this.broadcast(success(201, msg, event, data, boardId));
   }
 
   accepted(event, data, boardId, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
-    this.broadcast(succes(202, msg, event, data, boardId));
+    this.broadcast(success(202, msg, event, data, boardId));
   }
 
   /**
