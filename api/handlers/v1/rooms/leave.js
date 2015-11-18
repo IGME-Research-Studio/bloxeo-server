@@ -1,5 +1,5 @@
 /**
-* /v1/room/leave
+* Rooms#leave
 *
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object

@@ -1,4 +1,6 @@
-/** * /v1/room/join *
+/**
+* Rooms#join
+*
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId the id of the room to join

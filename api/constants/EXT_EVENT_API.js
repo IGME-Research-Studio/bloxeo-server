@@ -11,8 +11,16 @@
 module.exports = {
   // Imperative requests
   'SEND_CONSTANTS': 'SendConstants',
+
   'JOIN_ROOM': 'JoinRoom',
   'LEAVE_ROOM': 'LeaveRoom',
+
+  'CREATE_IDEA': 'CreateIdea',
+  'REMOVE_IDEA': 'RemoveIdea',
+  'GET_IDEAS': 'GetIdeas',
+
+  // 'CREATE_COLLECTION': 'CreateCollection',
+  // 'REMOVE_COLLECTION': 'RemoveCollection',
 
   // Past-tense responses
   'JOINED_ROOM': 'JoinedRoom',
