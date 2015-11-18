@@ -10,11 +10,11 @@ const ideaCollectionService = {};
   @param {int} ideaId - Id of an inital Idea to add to the collection
   @returns {Promise} resolves to the last index
 */
-ideaCollectionService.create = function(boardId, ideaContent) {
+ideaCollectionService.create = function(boardId, content) {
 
-  return Idea.model.find({boardId: boardId, content: ideaContent})
-  .then((idea) => IdeaCollection.create({boardId: boardId, ideas: [idea]}))
-  .then( () => IdeaCollection.find({boardId: boardId}) )
+  return Idea.model.findOne({boardId: boardId, content: content})
+  .then( (idea) => (new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})).save())
+  .then( () => IdeaCollection.model.find({boardId: boardId}) )
   .then( (collections) => collections.length - 1)
   .catch(function(err) {
     throw new Error(err);
@@ -30,11 +30,10 @@ ideaCollectionService.create = function(boardId, ideaContent) {
 */
 ideaCollectionService.addIdea = function(boardId, index, content) {
 
-  return [
-    IdeaCollection.model.findByIndex(boardId, index),
-    Idea.model.find({boardId: boardId, content: content})
-  ].spread((collection, idea) => {
-    collection.ideas.add(idea);
+  return IdeaCollection.model.findByIndex(boardId, index)
+  .then((found) => [found, Idea.model.findOne({boardId: boardId, content: content})])
+  .spread((collection, idea) => {
+    collection.ideas.push(idea.id);
     return collection.save();
   });
 };
@@ -48,11 +47,10 @@ ideaCollectionService.addIdea = function(boardId, index, content) {
 */
 ideaCollectionService.removeIdea = function(boardId, index, content) {
 
-  return [
-    IdeaCollection.model.findByIndex(boardId, index),
-    Idea.model.find({boardId: boardId, content: content})
-  ].spread((collection, idea) => {
-    collection.ideas.remove(idea);
+  return IdeaCollection.model.findByIndex(boardId, index)
+  .then((found) => [found, Idea.model.findOne({boardId: boardId, content: content})])
+  .spread((collection, idea) => {
+    collection.ideas.pull(idea.id);
     return collection.save();
   });
 };
@@ -64,7 +62,7 @@ ideaCollectionService.removeIdea = function(boardId, index, content) {
 */
 ideaCollectionService.destroy = function(boardId, index) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
+  return IdeaCollection.schema.findByIndex(boardId, index)
   .then((collection) => collection.remove());
 };
 
@@ -73,7 +71,7 @@ ideaCollectionService.destroy = function(boardId, index) {
 */
 ideaCollectionService.getAllIdeas = function(boardId, index) {
 
-  return ideaCollection.model.findByIndex(boardId, index)
+  return IdeaCollection.model.findByIndex(boardId, index)
   .then((collection) => collection.ideas );
 };
 

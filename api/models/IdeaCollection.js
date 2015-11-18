@@ -6,10 +6,9 @@ const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({
   // Which board the collection belongs to
-  board: {
-    type: mongoose.Schema.ObjectId,
+  boardId: {
+    type: String,
     rquired: true,
-    ref: 'Board',
   },
 
   ideas: [
@@ -40,10 +39,13 @@ const schema = new mongoose.Schema({
 
 // statics
 schema.statics.findByIndex = function(boardId, index) {
-  return model.find({boardId: boardId})
+  return this.find({boardId: boardId})
+  .populate('ideas', 'content -_id')
   .then((collections) => collections[index]);
 };
 
+const model = mongoose.model('IdeaCollection', schema);
+
 
 module.exports.schema = schema;
-module.exports.model = mongoose.model('IdeaCollection', schema);
+module.exports.model = model;

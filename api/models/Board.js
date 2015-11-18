@@ -9,7 +9,7 @@ const Idea = require('./Idea.js');
 const schema = new mongoose.Schema({
   isPublic: {
     type: Boolean,
-    default: true
+    default: true,
   },
 
   boardId: {
@@ -55,20 +55,14 @@ schema.pre('save', function(next) {
     next();
   }
 });
-/*
-schema.post('save', function(next) {
-  console.log('post-save');
-  // update cache
 
-  next();
-});
-*/
 schema.post('remove', function(next) {
   // remove from cache
 
   // Remove all models that depend on the removed Board
   IdeaCollection.remove({boardId: this.boardId})
   .then(() => Idea.remove({boardId: this.boardId}))
+  .then(() => IdeaCollection.remove({boardId: this.boardId}))
   .then(() => next());
 
   next();

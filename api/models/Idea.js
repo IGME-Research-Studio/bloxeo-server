@@ -32,10 +32,12 @@ const model =  mongoose.model('Idea', schema);
 
 // Middleware
 schema.pre('save', function(next) {
+  const self = this;
+
   // Determine that the boardId & content combination is unique
   this.constructor.find({boardId: this.boardId, content: this.content})
   .then( (results) => {
-    if(results.length > 0 && results[0].id !== this.id) {
+    if (results.length > 0 && results[0].id !== this.id) {
       self.invalidate('content", "content must be unique to a Board');
       next(new Error('content must be unique'));
     }
