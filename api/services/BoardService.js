@@ -87,8 +87,8 @@ boardService.getWorkspace = function(boardId) {
     });
 };
 
-boardService.workspaceToClient = function(boardId) {
-  return boardService.getWorkspace(boardId)
+boardService.workspaceToClient = function(boardId, getMethod, sortBy) {
+  return boardService[getMethod](boardId)
     .then((collections) => {
       const mappedCollections = _.map(collections, (collection, i) => {
         const stripped = _.pick(collection, ['votes', 'draggable', 'inWorkspace']);
@@ -99,7 +99,7 @@ boardService.workspaceToClient = function(boardId) {
         return stripped;
       });
 
-      return _.sortBy(mappedCollections, 'index');
+      return _.sortBy(mappedCollections, sortBy);
     });
 };
 

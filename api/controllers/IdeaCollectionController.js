@@ -179,13 +179,33 @@ module.exports = {
         {message: 'Not all required parameters were supplied'});
     }
 
-    BoardService.workspaceToClient(boardId)
+    BoardService.workspaceToClient(boardId, 'getWorkspace', 'index')
       .then(function(collections) {
         res.ok(collections);
       })
       .catch(function(err) {
         res.serverError({message: 'Failed to get all collections' + err});
       });
+  },
+
+  getResults: function(req, res) {
+    const boardId = req.param('boardId');
+
+    if (valid.isNull(boardId)) {
+      return res.json(400,
+        {message: 'Not all required parameters were supplied'});
+    }
+
+    BoardService.workspaceToClient(boardId, 'getIdeaCollections', 'votes')
+    .then(function(collections) {
+      BoardService.findBoard(boardId)
+      .then(function(board) {
+        res.ok({results: collections.reverse(), limit: board.resultsLimit});
+      });
+    })
+    .catch(function(err) {
+      res.serverError({message: 'Failed to get results ' + err});
+    });
   },
 
   // move all non-duplicate ideas from one collection to another, destroy second collection

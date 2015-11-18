@@ -67,6 +67,7 @@ const routes = {
   * IdeaCollection routes
   */
   'get /boards/:boardId/ideaCollections': 'IdeaCollectionController.getCollections',
+  'get /boards/:boardId/ideaCollections/results': 'IdeaCollectionController.getResults',
   'post /boards/:boardId/ideaCollections': 'IdeaCollectionController.create',
   // @todo: Hack to allow for voting updates for now
   // @todo: not implemented yet, would currently use a mongo id for index
