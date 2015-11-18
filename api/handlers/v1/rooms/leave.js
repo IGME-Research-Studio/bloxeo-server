@@ -24,7 +24,7 @@ export default function leave(req) {
   }
   else {
     stream.leave(socket, boardId);
-    stream.ok(boardId, EXT_EVENTS.LEFT_ROOM,
+    stream.ok(EXT_EVENTS.LEFT_ROOM, {}, boardId,
        `User with socket id ${socket.id} left board ${boardId}`);
   }
 }
