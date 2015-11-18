@@ -1,5 +1,5 @@
 /**
-* IdeaCollection - Container for ideas
+* Result - Container for ideas and votes
 * @file
 */
 const mongoose = require('mongoose');
@@ -11,18 +11,19 @@ const schema = new mongoose.Schema({
     required: true,
   },
 
+  votes: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
+  // archive of ideas in the collection
   ideas: [
     {
       type: mongoose.Schema.ObjectId,
       ref: 'Idea',
     },
   ],
-
-  // whether the idea collection is draggable
-  draggable: {
-    type: Boolean,
-    default: true,
-  },
 
   // Last user to have modified the collection
   lastUpdated: {
@@ -38,7 +39,7 @@ schema.statics.findByIndex = function(boardId, index) {
   .then((collections) => collections[index]);
 };
 
-const model = mongoose.model('IdeaCollection', schema);
+const model = mongoose.model('Result', schema);
 
 
 module.exports.schema = schema;
