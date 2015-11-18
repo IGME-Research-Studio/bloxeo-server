@@ -1,7 +1,7 @@
 // Board Service Functionality
 const boardService = {};
 const Promise = require('bluebird');
-const _ = require('lodash');
+const utilityService = require('./UtilityService.js');
 
 // Create a board in the database
 boardService.create = function(boardObj) {
@@ -91,7 +91,7 @@ boardService.workspaceToClient = function(boardId) {
   return boardService.getWorkspace(boardId)
     .then((collections) => {
       const mappedCollections = _.map(collections, (collection, i) => {
-        const stripped = _.pick(collection, ['votes', 'draggable', 'inWorkspace']);
+        const stripped =  utilityService.project(collection, ['votes', 'draggable', 'inWorkspace']);
         stripped.index = i;
         stripped.ideas = _.map(collection.ideas, (idea) => {
           return idea.content;
