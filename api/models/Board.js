@@ -60,9 +60,8 @@ schema.post('remove', function(next) {
   // remove from cache
 
   // Remove all models that depend on the removed Board
-  IdeaCollection.remove({boardId: this.boardId})
-  .then(() => Idea.remove({boardId: this.boardId}))
-  .then(() => IdeaCollection.remove({boardId: this.boardId}))
+  IdeaCollection.model.remove({boardId: this.boardId})
+  .then(() => Idea.model.remove({boardId: this.boardId}))
   .then(() => next());
 
   next();
