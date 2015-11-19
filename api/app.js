@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import enrouten from 'express-enrouten';
 import logger from 'morgan';
 import addStatusCodes from 'express-json-status-codes';
+import log from 'winston';
 // import redis from 'ioredis';
 
 import CFG from './config';
@@ -23,13 +24,13 @@ const setupApp = function() {
     .disable('x-powered-by')
     .listen(CFG.port, function(err) {
       if (err) throw err;
-      console.log('Listening on port: ', CFG.port);
+      log.info('Listening on port: ', CFG.port);
     });
 };
 
 database(CFG.mongoURL, CFG.mongoOpts)
-  .then(() => console.log('Connected to mongo'))
-  .catch(console.error);
+  .then(() => log.info('Connected to mongo'))
+  .catch(log.error);
 
 const app = setupApp();
 dispatcher(app);
