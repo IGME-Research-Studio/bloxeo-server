@@ -57,7 +57,7 @@ ideaCollectionService.removeIdea = function(boardId, index, content) {
 
 /**
   Remove an IdeaCollection from a board then delete the model
-  @note Potentially want to add a userId to parameters track who destroyed the
+  @todo Potentially want to add a userId to parameters track who destroyed the
   idea collection model
 */
 ideaCollectionService.destroy = function(boardId, index) {

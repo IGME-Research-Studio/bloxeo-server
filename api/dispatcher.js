@@ -8,14 +8,11 @@ import sio from 'socket.io';
 // import CFG from './config';
 
 import stream from './event-stream';
-
 import joinRoom from './handlers/v1/rooms/join';
 import leaveRoom from './handlers/v1/rooms/leave';
-
 import createIdea from './handlers/v1/ideas/create';
 import destroyIdea from './handlers/v1/ideas/destroy';
 import getIdeas from './handlers/v1/ideas/index';
-
 import createCollection from './handlers/v1/ideaCollections/create';
 import destroyCollection from './handlers/v1/ideaCollections/destroy';
 import addIdea from './handlers/v1/ideaCollections/addIdea';

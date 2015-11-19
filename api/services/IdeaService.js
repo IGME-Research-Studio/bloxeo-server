@@ -2,7 +2,7 @@
  * Idea Service
  *
  * @file Contains logic for Idea related actions
- * @module services/idea
+ * @module IdeaService api/services/IdeaServices
  */
 
 const Idea = require('../models/Idea.js');
