@@ -27,4 +27,10 @@ ideaService.destroy = function(boardId, ideaContent) {
   .remove();
 };
 
+ideaService.getIdeas = function(boardId) {
+  return Idea.model.find({boardId: boardId})
+  .select('-_id')
+  .exec((ideas) => ideas);
+}
+
 module.exports = ideaService;

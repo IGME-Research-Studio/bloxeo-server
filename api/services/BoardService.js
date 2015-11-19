@@ -55,6 +55,28 @@ boardService.removeFrom = function(attr, boardId, attrId) {
   });
 };
 
+// find users
+boardService.getUsers = function(boardId) {
+  return Board.model.findOne({boardId: boardId})
+  .populate('users', '-_id')
+  .exec((board) => board.users);
+};
+
+// find admins
+boardService.getAdmins = function(boardId) {
+  return Board.model.findOne({boardId: boardId})
+  .populate('admins', '-_id')
+  .exec((board) => board.admins);
+};
+
+// find pending users
+boardService.getPendingUsers = function(boardId) {
+  return Board.model.findOne({boardId: boardId})
+  .populate('pendingUsers', '-_id')
+  .exec((board) => board.pendingUsers);
+};
+
+
 // Return all idea collections for a board
 // @note Does not populate User objects on Idea objects in a collection
 boardService.getIdeaCollections = function(boardId) {
