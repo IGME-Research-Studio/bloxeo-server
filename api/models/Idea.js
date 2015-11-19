@@ -16,7 +16,7 @@ const schema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true,
-  }
+  },
 
   // Who created the idea, used for color coding the ideas
   user: {

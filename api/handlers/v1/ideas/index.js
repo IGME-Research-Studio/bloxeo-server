@@ -7,7 +7,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
-import BoardService from '../../../services/BoardService';
+import { getIdeas } from '../../../services/BoardService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -23,8 +23,9 @@ export default function index(req) {
       'Not all required parameters were supplied');
   }
   else {
-    BoardService.getIdeas(boardId)
-      .then((ideas) => stream.ok(EXT_EVENTS.GET_IDEAS, ideas, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.GET_IDEAS, err, boardId));
+    getIdeas(boardId)
+      .then((ideas) => stream.ok(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
+      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
+                                         err, boardId));
   }
 }

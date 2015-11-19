@@ -18,7 +18,7 @@ export default function join(req) {
     return false;
   }
   else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.JOIN_ROOM, {}, socket.id,
       'Not all required parameters were supplied');
   }
   else {

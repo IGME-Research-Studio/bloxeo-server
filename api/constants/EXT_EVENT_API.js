@@ -10,32 +10,35 @@
 
 module.exports = {
   // Imperative requests
-  'SEND_CONSTANTS': 'SendConstants',
+  SEND_CONSTANTS: 'SendConstants',
 
-  'JOIN_ROOM': 'JoinRoom',
-  'LEAVE_ROOM': 'LeaveRoom',
+  JOIN_ROOM: 'JoinRoom',
+  LEAVE_ROOM: 'LeaveRoom',
 
-  'CREATE_IDEA': 'CreateIdea',
-  'REMOVE_IDEA': 'RemoveIdea',
-  'GET_IDEAS': 'GetIdeas',
+  CREATE_IDEA: 'CreateIdea',
+  DESTROY_IDEA: 'DestroyIdea',
+  GET_IDEAS: 'GetIdeas',
 
-  // 'CREATE_COLLECTION': 'CreateCollection',
-  // 'REMOVE_COLLECTION': 'RemoveCollection',
+  CREATE_COLLECTION: 'CreateCollection',
+  DESTROY_COLLECTION: 'DestroyCollection',
+  ADD_IDEA: 'AddIdea',
+  REMOVE_IDEA: 'RemoveIdea',
+  GET_COLLECTIONS: 'GetCollections',
 
   // Past-tense responses
-  'JOINED_ROOM': 'JoinedRoom',
-  'LEFT_ROOM': 'LeftRoom',
+  JOINED_ROOM: 'JoinedRoom',
+  LEFT_ROOM: 'LeftRoom',
 
-  'UPDATED_IDEAS': 'UpdatedIdeas',
+  UPDATED_IDEAS: 'UpdateIdeas',
 
-  'ADDED_COLLECTION': 'AddedCollection',
-  'REMOVED_COLLECTION': 'RemovedCollection',
-  'MODIFIED_COLLECTION': 'ModifiedCollection',
+  ADDED_COLLECTION: 'AddedCollection',
+  REMOVED_COLLECTION: 'RemovedCollection',
+  MODIFIED_COLLECTION: 'ModifiedCollection',
 
-  'ADDED_USER': 'AddedUser',
-  'REMOVED_USER': 'RemovedUser',
-  'ADDED_ADMIN': 'AddedAdmin',
-  'REMOVED_ADMIN': 'RemovedAdmin',
-  'ADDED_PENDING_USER': 'AddedPendingUser',
-  'REMOVED_PENDING_USER': 'RemovedPendingUser',
+  ADDED_USER: 'AddedUser',
+  REMOVED_USER: 'RemovedUser',
+  ADDED_ADMIN: 'AddedAdmin',
+  REMOVED_ADMIN: 'RemovedAdmin',
+  ADDED_PENDING_USER: 'AddedPendingUser',
+  REMOVED_PENDING_USER: 'RemovedPendingUser',
 };

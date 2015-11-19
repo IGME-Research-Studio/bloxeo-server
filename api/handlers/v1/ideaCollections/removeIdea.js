@@ -9,6 +9,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
+import { removeIdea as removeIdeaFromCollection, getAllIdeas } from '../../../services/IdeaCollectionService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -22,16 +23,13 @@ export default function removeIdea(req) {
     return false;
   }
   else if (isNull(boardId) || isNull(content) || isNull(index)) {
-    stream.badRequest(EXT_EVENTS.UPDATED_IDEAS, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.MODIFIED_COLLECTION, {}, socket.id,
       'Not all required parameters were supplied');
   }
   else {
-    IdeaCollectionService.removeIdea(boardId, index, req.body.content)
-      .then(function() {
-        return IdeaCollectionService.getAllIdeas(boardId, index);
-      })
-      .then(function(contents) {
-        // Inform all klients of the updated collection
+    removeIdeaFromCollection(boardId, index, content)
+      .then(() => getAllIdeas(boardId, index))
+      .then((contents) => {
         stream.ok(EVENT_API.MODIFIED_COLLECTION,
                   {index: index, content: contents}, boardId);
       })
