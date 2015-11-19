@@ -41,17 +41,15 @@ describe('BoardService', function() {
   describe('Add and remove associations', () => {
     // Since add and remove are all doing the same thing, no need to duplicate
     // the tests, just dynamically run them.
-    [ {assoc: 'users', add: 'addUser', remove: 'removeUser'},
-      {assoc: 'pendingUsers', add: 'addPendingUser', remove: 'removePendingUser'},
-      {assoc: 'admins', add: 'addAdmin', remove: 'removeAdmin'},
-      {assoc: 'ideas', add: 'addIdea', remove: 'removeIdea'},
-      {assoc: 'ideaCollections', add: 'addIdeaCollection', remove: 'removeIdeaCollection'},
+    [ {assoc: 'users'},
+      {assoc: 'pendingUsers'},
+      {assoc: 'admins'},
+      {assoc: 'ideas'},
+      {assoc: 'ideaCollections'},
     ].forEach((obj) => {
       const assoc = obj.assoc;
-      const add = obj.add;
-      const remove = obj.remove;
 
-      describe(`#${add}()`, () => {
+      describe(`#addTo ${assoc}()`, () => {
 
         it(`Should add ${assoc} to a board`, (done) => {
           let firstBoard;
@@ -65,7 +63,7 @@ describe('BoardService', function() {
             return createModelBasedOnString(assoc);
           })
           .then((newCollection) => {
-            return BoardService[add](firstBoard.boardId, newCollection.id);
+            return BoardService.addTo([assoc], firstBoard.boardId, newCollection.id);
           })
           .then(() => {
             return BoardService.findBoardAndPopulate(firstBoard.boardId, assoc);
@@ -78,7 +76,7 @@ describe('BoardService', function() {
         });
       });
 
-      describe(`#${remove}()`, () => {
+      describe(`#removeFrom ${assoc}()`, () => {
 
         it(`Should remove ${assoc} from a board`, function(done) {
           let firstBoard;
@@ -92,10 +90,10 @@ describe('BoardService', function() {
             return createModelBasedOnString(assoc);
           })
           .then((newCollection) => {
-            return BoardService[add](firstBoard.boardId, newCollection.id);
+            return BoardService.addTo([assoc], firstBoard.boardId, newCollection.id);
           })
           .then((board) => {
-            return BoardService[remove](firstBoard.boardId,
+            return BoardService.removeFrom([assoc], firstBoard.boardId,
                                         _.last(board[assoc]).id);
           })
           .then((board) => {
@@ -162,7 +160,7 @@ describe('BoardService', function() {
         .then((board) => {
           return Idea.create({content: 'purple'})
             .then((idea) => {
-              return BoardService.addIdea(board.boardId, idea.id);
+              return BoardService.addTo('ideas', board.boardId, idea.id);
             });
         })
         .then((created) => BoardService.getIdeas(created.boardId))

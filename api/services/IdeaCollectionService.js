@@ -4,11 +4,11 @@ const Idea = require('../models/Idea.js');
 const ideaCollectionService = {};
 
 /**
-  Create an IdeaCollection and add an inital idea
-  @param {String} boardId
-  @param {int} userId - Id of the User who create the collection
-  @param {int} ideaId - Id of an inital Idea to add to the collection
-  @returns {Promise} resolves to the last index
+* Create an IdeaCollection and add an inital idea
+* @param {String} boardId
+* @param {int} userId - Id of the User who create the collection
+* @param {int} ideaId - Id of an inital Idea to add to the collection
+* @returns {Promise} resolves to the last index
 */
 ideaCollectionService.create = function(boardId, content) {
 
@@ -22,11 +22,11 @@ ideaCollectionService.create = function(boardId, content) {
 };
 
 /**
-  Add an Idea to an Idea collection
-  @param {String} boardId
-  @param {int} index - Index of IdeaCollection to add an Idea from
-  @param {String} content - The content of an Idea to add
-  @param {int} userId - Id of the User who added the idea
+* Add an Idea to an Idea collection
+* @param {String} boardId
+* @param {int} index - Index of IdeaCollection to add an Idea from
+* @param {String} content - The content of an Idea to add
+* @param {int} userId - Id of the User who added the idea
 */
 ideaCollectionService.addIdea = function(boardId, index, content) {
 

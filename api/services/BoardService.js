@@ -3,6 +3,8 @@
 */
 const Board = require('../models/Board');
 const boardService = {};
+const Promise = require('bluebird');
+const _ = require('lodash');
 
 // Create a board in the database
 boardService.create = function(name) {
@@ -17,12 +19,17 @@ boardService.destroy = function(boardId) {
   return Board.model.remove({boardId: boardId});
 };
 
-// Add a user to the board
-boardService.addUser = function(boardId, userId) {
+/**
+ * Add a model to the board
+ * @param {String} attr - ('user'|'pendingUser'|'admin')
+ * @param {String} boardId
+ * @param {String} attrId
+ */
+boardService.addTo = function(attr, boardId, attrId) {
 
   return Board.model.find({boardId: boardId})
   .then(function(board) {
-    board.users.add(userId);
+    board[attr].add(attrId);
     return board.save();
   })
   .catch(function(err) {
@@ -30,12 +37,17 @@ boardService.addUser = function(boardId, userId) {
   });
 };
 
-// Remove a user from the board
-boardService.removeUser = function(boardId, userId) {
+/**
+ * Remove a model to the board
+ * @param {String} attr - ('user'|'pendingUser'|'admin')
+ * @param {String} boardId
+ * @param {String} attrId
+ */
+boardService.removeFrom = function(attr, boardId, attrId) {
 
   return Board.model.find({boardId: boardId})
   .then(function(board) {
-    board.users.remove(userId);
+    board[attr].remove(attrId);
     return board.save();
   })
   .catch(function(err) {
@@ -43,56 +55,82 @@ boardService.removeUser = function(boardId, userId) {
   });
 };
 
-// Add an admin to the board
-boardService.addAdmin = function(boardId, userId) {
+// Return all idea collections for a board
+// @note Does not populate User objects on Idea objects in a collection
+boardService.getIdeaCollections = function(boardId) {
+  return Board.findOne({boardId: boardId})
+    .populate('ideaCollections')
+    .then(function(board) {
+      return board.ideaCollections;
+    })
+    .then(function(allCollections) {
 
-  return Board.model.find({boardId: boardId})
-  .then(function(board) {
-    board.admins.add(userId);
-    return board.save();
-  })
-  .catch(function(err) {
-    throw new Error(err);
-  });
+      const collectionPromises = _.map(allCollections, function(collection) {
+        return IdeaCollection
+          .findOne({id: collection.id})
+          .populate('ideas');
+      });
+
+      return Promise.all(collectionPromises)
+        .then(function(collections) {
+          return _.filter(collections, (el) => el !== undefined);
+        });
+    });
 };
 
-// Remove an admin to the board
-boardService.removeAdmin = function(boardId, userId) {
-
-  return Board.model.find({boardId: boardId})
-  .then(function(board) {
-    board.admins.remove(userId);
-    return board.save();
-  })
-  .catch(function(err) {
-    throw new Error(err);
-  });
+boardService.getWorkspace = function(boardId) {
+  return boardService.getIdeaCollections(boardId)
+    .then((collections) => {
+      return _.filter(collections, (collection) => collection.inWorkspace);
+    });
 };
 
-// Add a pending user to the board
-boardService.addPendingUser = function(boardId, userId) {
+boardService.workspaceToClient = function(boardId) {
+  return boardService.getWorkspace(boardId)
+    .then((collections) => {
+      const mappedCollections = _.map(collections, (collection, i) => {
+        const stripped = _.pick(collection, ['votes', 'draggable', 'inWorkspace']);
+        stripped.index = i;
+        stripped.ideas = _.map(collection.ideas, (idea) => {
+          return idea.content;
+        });
+        return stripped;
+      });
 
-  return Board.model.find({boardId: boardId})
-  .then(function(board) {
-    board.pendingUsers.add(userId);
-    return board.save();
-  })
-  .catch(function(err) {
-    throw new Error(err);
-  });
+      return _.sortBy(mappedCollections, 'index');
+    });
 };
 
-// Remove a pending user from the board
-boardService.removePendingUser = function(boardId, userId) {
+boardService.getIdeas = function(boardId) {
+  return boardService.findBoardAndPopulate(boardId, 'ideas')
+    .then((populatedBoard) => boardService.ideasToClient(populatedBoard))
+    .catch((err) => err);
+};
 
-  return Board.model.find({boardId: boardId})
-  .then(function(board) {
-    board.pendingUsers.remove(userId);
-    return board.save();
-  })
-  .catch(function(err) {
-    throw new Error(err);
-  });
+/**
+* @param {Object} board a board object that has already been populated
+* @returns {Array} an ideas array with all non-client-friendly content
+* stripped out.
+*/
+boardService.ideasToClient = function(board) {
+
+  return _.invoke(board.ideas, 'toClient');
+};
+
+/**
+* Find a board
+* @param {string} boardId a boardId (not mongoid)
+* @return {Promise} resolves to a single board object
+*/
+boardService.findBoard = function(boardId) {
+
+  return Board.findOne({boardId: boardId});
+};
+
+// Find and populate a board with collection string
+boardService.findBoardAndPopulate = function(boardId, collection) {
+
+  return Board.findOne({boardId: boardId}).populate(collection);
 };
 
 module.exports = boardService;
