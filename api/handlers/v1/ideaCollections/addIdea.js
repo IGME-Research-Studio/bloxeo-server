@@ -29,9 +29,9 @@ export default function addIdea(req) {
   else {
     addIdeaToCollection(boardId, index, content)
       .then(() => getAllIdeas(boardId, index))
-      .then((contents) => stream.ok(EVENT_API.MODIFIED_COLLECTION,
+      .then((contents) => stream.ok(EXT_EVENTS.MODIFIED_COLLECTION,
                   {index: index, content: contents}, boardId))
-      .catch((err) => stream.serverError(EVENT_API.MODIFIED_COLLECTION,
+      .catch((err) => stream.serverError(EXT_EVENTS.MODIFIED_COLLECTION,
                                          err, socket));
   }
 }
