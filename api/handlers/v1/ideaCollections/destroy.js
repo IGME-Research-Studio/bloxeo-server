@@ -21,7 +21,7 @@ export default function destroy(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(index)) {
-    stream.badRequest(EXT_EVENTS.DESTROY_COLLECTION, {}, socket,
+    stream.badRequest(EXT_EVENTS.REMOVED_COLLECTION, {}, socket,
       'Not all required parameters were supplied');
   }
   else {

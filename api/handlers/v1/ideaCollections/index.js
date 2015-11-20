@@ -19,7 +19,7 @@ export default function index(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.GET_COLLECTIONS, {}, socket,
+    stream.badRequest(EXT_EVENTS.RECEIVED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {

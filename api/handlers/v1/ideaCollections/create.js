@@ -25,7 +25,7 @@ export default function create(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(content)) {
-    stream.badRequest(EXT_EVENTS.CREATE_COLLECTION, {}, socket,
+    stream.badRequest(EXT_EVENTS.ADDED_COLLECTION, {}, socket,
       'Not all required parameters were supplied');
   }
   else {

@@ -22,7 +22,7 @@ export default function remove(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.REMOVE_IDEA, {}, socket,
+    stream.badRequest(EXT_EVENTS.UPDATED_IDEAS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
