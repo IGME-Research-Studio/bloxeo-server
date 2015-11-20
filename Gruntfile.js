@@ -1,7 +1,7 @@
 module.exports = function (grunt) {
   'use strict';
 
-  var testFiles = ['test/**/*.js'],
+  var testFiles = ['test/unit/**/*.js'],
       srcFiles = ['api/**/*.js'],
       jsFiles = srcFiles.concat(testFiles);
 

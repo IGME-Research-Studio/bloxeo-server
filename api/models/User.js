@@ -1,45 +1,37 @@
 /**
 * User.js
-*
-* @description :: TODO: You might write a short summary of how this model works and what it represents here.
-* @docs        :: http://sailsjs.org/#!documentation/models
+* @file
 */
 
-module.exports = {
+const mongoose = require('mongoose');
 
-  schema: true,
-
-  attributes: {
-
-    isFullAccount: {
-
-      type: 'boolean',
-      required: true,
-    },
-
-    username: {
-
-      type: 'string',
-      required: true,
-    },
-
-    password: {
-
-      type: 'string',
-      required: function() {
-        return this.isFullAccount;
-      },
-    },
-
-    email: {
-
-      type: 'email',
-      unique: true,
-      required: function() {
-        return this.isFullAccount;
-      },
-    },
-
+const schema = new mongoose.Schema({
+  isFullAccount: {
+    type: Boolean,
+    required: true,
   },
-};
 
+  username: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+
+  password: {
+    type: String,
+    required: function() {
+      return this.isFullAccount;
+    },
+  },
+
+  email: {
+    type: String,
+    unique: true,
+    required: function() {
+      return this.isFullAccount;
+    },
+  },
+});
+
+module.exports.schema = schema;
+module.exports.model = mongoose.model('User', schema);

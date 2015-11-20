@@ -1,78 +1,71 @@
 /**
-* Room.js
-*
-* @description :: TODO: You might write a short summary of how this model works and what it represents here.
-* @docs        :: http://sailsjs.org/#!documentation/models
+* Board.js
 */
-
 const shortid = require('shortid');
+const mongoose = require('mongoose');
+const IdeaCollection = require('./IdeaCollection.js');
+const Idea = require('./Idea.js');
 
-module.exports = {
-
-  schema: true,
-
-  attributes: {
-
-    name: {
-      type: 'string',
-    },
-
-    description: {
-      type: 'string',
-    },
-
-    resultsLimit: {
-      type: 'integer',
-      defaultsTo: 3,
-    },
-
-    hasVoted: {
-      type: 'boolean',
-      defaultsTo: false,
-    },
-
-    boardId: {
-
-      type: 'string',
-    },
-
-    isPublic: {
-
-      type: 'boolean',
-      required: true,
-    },
-
-    admins: {
-
-      collection: 'user',
-    },
-
-    users: {
-
-      collection: 'user',
-    },
-
-    pendingUsers: {
-
-      collection: 'user',
-    },
-
-    ideas: {
-
-      collection: 'idea',
-      via: 'board',
-    },
-
-    ideaCollections: {
-
-      collection: 'ideaCollection',
-      via: 'board',
-    },
+const schema = new mongoose.Schema({
+  isPublic: {
+    type: Boolean,
+    default: true,
   },
 
-  beforeCreate: function(model, cb) {
-    model.boardId = shortid.generate();
-    cb();
+  boardId: {
+    type: String,
+    unique: true,
+    trim: true,
   },
-};
 
+  name: {
+    type: String,
+    trim: true,
+  },
+
+  users: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+    },
+  ],
+
+  admins: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+    },
+  ],
+
+  pendingUsers: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+    },
+  ],
+});
+
+// Middleware Hooks
+schema.pre('save', function(next) {
+
+  if (this.isNew) {
+    // generate a shortId for boardId
+    this.boardId = shortid.generate();
+
+    next();
+  }
+});
+
+schema.post('remove', function(next) {
+  // remove from cache
+
+  // Remove all models that depend on the removed Board
+  IdeaCollection.model.remove({boardId: this.boardId})
+  .then(() => Idea.model.remove({boardId: this.boardId}))
+  .then(() => next());
+
+  next();
+});
+
+module.exports.schema = schema;
+module.exports.model = mongoose.model('Board', schema);
