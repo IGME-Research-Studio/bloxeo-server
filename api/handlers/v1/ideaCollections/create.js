@@ -32,11 +32,11 @@ export default function create(req) {
       })
       .spread((ideaStrings, collectionIndex) => {
         // Inform all clients a new collection has been added to the board
-        stream.ok(EVENT_API.ADDED_COLLECTION,
+        stream.ok(EXT_EVENTS.ADDED_COLLECTION,
                   {index: collectionIndex, content: ideaStrings}, boardId);
       })
       .catch((err) => {
-        stream.serverError(EVENT_API.ADDED_COLLECTION, err, socket.id);
+        stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket.id);
       });
 
   }

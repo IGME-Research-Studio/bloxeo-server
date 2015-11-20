@@ -57,6 +57,14 @@ class EventStream extends EventEmitter {
     this.emit(INT_EVENTS.BROADCAST, req);
   }
 
+  /**
+  * Emits an event to a specific socket
+  *
+  * @param {Object} req
+  * @param {Object} req.socketId the socket to emit to
+  * @param {Object} req.event the socket event
+  * @param {Object} req.res data to send to client
+  */
   emitTo(req) {
     this.emit(INT_EVENTS.EMIT_TO, req);
   }

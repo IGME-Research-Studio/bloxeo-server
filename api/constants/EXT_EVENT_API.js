@@ -10,7 +10,7 @@
 
 module.exports = {
   // Imperative requests
-  SEND_CONSTANTS: 'SendConstants',
+  GET_CONSTANTS: 'GetConstants',
 
   JOIN_ROOM: 'JoinRoom',
   LEAVE_ROOM: 'LeaveRoom',
@@ -26,6 +26,10 @@ module.exports = {
   GET_COLLECTIONS: 'GetCollections',
 
   // Past-tense responses
+  RECIEVED_CONSTANTS: 'RecievedConstants',
+  RECIEVED_IDEAS: 'RecievedIdeas',
+  RECIEVED_COLLECTIONS: 'RecievedCollections',
+
   JOINED_ROOM: 'JoinedRoom',
   LEFT_ROOM: 'LeftRoom',
 
