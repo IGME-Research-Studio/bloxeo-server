@@ -5,9 +5,9 @@ const Board = require('../models/Board');
 const boardService = {};
 
 // Create a board in the database
-boardService.create = function(name) {
+boardService.create = function() {
 
-  const b = new Board.model({name: name});
+  const b = new Board.model();
   return b.save().then((result) => result.boardId);
 };
 

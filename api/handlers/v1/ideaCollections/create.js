@@ -8,6 +8,7 @@
 * collection with.
 */
 
+import _ from 'lodash';
 import { isNull } from '../../../services/ValidatorService';
 import { create as createCollection, getAllIdeas } from '../../../services/IdeaCollectionService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
@@ -17,6 +18,8 @@ export default function create(req) {
   const socket = req.socket;
   const boardId = req.boardId;
   const content = req.content;
+  const top = req.top;
+  const left = req.left;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');
@@ -27,8 +30,9 @@ export default function create(req) {
   }
   else {
     createCollection(boardId, content)
-      .then((collection) => {
-        stream.ok(EXT_EVENTS.ADDED_COLLECTION, collection, boardId);
+      .then((res) => {
+        stream.ok(EXT_EVENTS.ADDED_COLLECTION,
+                  _.merge({top: top, left: left}, res), boardId);
       })
       .catch((err) => {
         stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket);

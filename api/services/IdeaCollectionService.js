@@ -13,9 +13,11 @@ const ideaCollectionService = {};
 ideaCollectionService.create = function(boardId, content) {
 
   return Idea.model.findOne({boardId: boardId, content: content})
-  .then( (idea) => (new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})).save())
-  .then( () => IdeaCollection.model.find({boardId: boardId}) )
-  .then( (collections) => collections.length - 1)
+  .then((idea) => (new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})).save())
+  .then((collection) => [collection, IdeaCollection.model.find({boardId: boardId})] )
+  .spread((collection, collections) => {
+     return {content: collection, index: collections.length-1}
+  })
   .catch(function(err) {
     throw new Error(err);
   });
