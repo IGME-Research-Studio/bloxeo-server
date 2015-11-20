@@ -27,17 +27,11 @@ export default function create(req) {
   }
   else {
     createCollection(boardId, content)
-      .then((collectionIndex) => {
-        return [getAllIdeas(boardId, collectionIndex), collectionIndex];
-      })
-      .spread((ideaStrings, collectionIndex) => {
-        // Inform all clients a new collection has been added to the board
-        stream.ok(EXT_EVENTS.ADDED_COLLECTION,
-                  {index: collectionIndex, content: ideaStrings}, boardId);
+      .then((collection) => {
+        stream.ok(EXT_EVENTS.ADDED_COLLECTION, collection, boardId);
       })
       .catch((err) => {
         stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket);
       });
-
   }
 }

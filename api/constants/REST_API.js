@@ -31,11 +31,11 @@
 */
 const REST_API = {
   // Boards
-  getBoards: '/v1/boards',
-  getBoard: '/v1/boards/<%= boardId %>',
-  createBoard: '/v1/boards',
-  updateBoard: '/v1/boards/<%= boardId %>',
-  deleteBoard: '/v1/boards',
+  getBoards: ['GET', '/v1/boards'],
+  getBoard: ['GET', '/v1/boards/<%= boardId %>'],
+  createBoard: ['POST', '/v1/boards'],
+  updateBoard: ['PATCH', '/v1/boards/<%= boardId %>'],
+  deleteBoard: ['DELETE', '/v1/boards'],
 };
 
 module.exports = REST_API;

@@ -5,8 +5,7 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
-// import boardService from '../../../services/BoardService';
-// import EVENT_API from '../../../constants/EVENT_API';
+import boardService from '../../../services/BoardService';
 import valid from '../../../services/ValidatorService';
 
 export default function destroy(req, res) {
@@ -17,7 +16,7 @@ export default function destroy(req, res) {
       {message: 'Not all required parameters were supplied'});
   }
 
-  // boardService.destroy(boardId)
-  //   .then((deleted) => res.ok(deleted))
-  //   .catch((err) => res.serverError(err));
+  boardService.destroy(boardId)
+    .then((deleted) => res.ok({boardId: boardId}))
+    .catch((err) => res.serverError(err));
 }
