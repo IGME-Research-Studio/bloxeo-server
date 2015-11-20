@@ -3,6 +3,7 @@ import compression from 'compression';
 import bodyParser from 'body-parser';
 import enrouten from 'express-enrouten';
 import logger from 'morgan';
+import cors from 'cors';
 import addStatusCodes from 'express-json-status-codes';
 import log from 'winston';
 // import redis from 'ioredis';
@@ -19,6 +20,7 @@ const setupApp = function() {
   return extendedExpress()
     .use(logger('dev'))
     .use(compression())
+    .use(cors())
     .use(bodyParser.urlencoded({extended: true}))
     .use(enrouten(routes))
     .disable('x-powered-by')

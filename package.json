@@ -26,6 +26,7 @@
     "bluebird": "^3.0.1",
     "body-parser": "^1.14.1",
     "compression": "^1.6.0",
+    "cors": "^2.7.1",
     "express": "^4.13.3",
     "express-enrouten": "^1.2.1",
     "express-json-status-codes": "^1.0.1",
