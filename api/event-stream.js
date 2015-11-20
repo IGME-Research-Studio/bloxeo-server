@@ -33,10 +33,10 @@ function success(code, msg, event, data, boardId) {
   };
 }
 
-function error(code, msg, event, data, socketId) {
+function error(code, msg, event, data, socket) {
   return {
     event: event,
-    socketId: socketId,
+    socket: socket,
     res: {
       ts: new Date().getTime(),
       code: code,

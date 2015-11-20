@@ -21,7 +21,7 @@ const schema = new mongoose.Schema({
   // Who created the idea, used for color coding the ideas
   user: {
     type: mongoose.Schema.ObjectId,
-    required: true,
+    // required: true,
     ref: 'User',
   },
 
