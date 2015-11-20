@@ -20,10 +20,10 @@ export default function addIdea(req) {
   const index = req.index;
 
   if (isNull(socket)) {
-    return false;
+    throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(content) || isNull(index)) {
-    stream.badRequest(EXT_EVENTS.MODIFIED_COLLECTION, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.ADD_IDEA, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
@@ -32,6 +32,6 @@ export default function addIdea(req) {
       .then((contents) => stream.ok(EVENT_API.MODIFIED_COLLECTION,
                   {index: index, content: contents}, boardId))
       .catch((err) => stream.serverError(EVENT_API.MODIFIED_COLLECTION,
-                                         err, socket.id));
+                                         err, socket));
   }
 }

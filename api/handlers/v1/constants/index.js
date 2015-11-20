@@ -9,7 +9,7 @@ import stream from '../../../event-stream';
 export default function index(req) {
   const socket = req.socket;
 
-  stream.emitTo({event: EXT_EVENTS.CONSTANTS,
-                 socket: socket.id,
+  stream.emitTo({event: EXT_EVENTS.RECEIVED_CONSTANTS,
+                 socket: socket,
                  res: constantsService()});
 }

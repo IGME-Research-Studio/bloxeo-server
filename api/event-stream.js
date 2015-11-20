@@ -61,7 +61,7 @@ class EventStream extends EventEmitter {
   * Emits an event to a specific socket
   *
   * @param {Object} req
-  * @param {Object} req.socketId the socket to emit to
+  * @param {Object} req.socket the socket to emit to
   * @param {Object} req.event the socket event
   * @param {Object} req.res data to send to client
   */
@@ -104,33 +104,33 @@ class EventStream extends EventEmitter {
   * 4xx and 5xx codes use the following interface
   * @param {String} event socket event to send to client
   * @param {Object} data arbitrary data to send to client
-  * @param {Object} socketId the requesting socket
+  * @param {Object} socket the requesting socket
   * @param {String=} message optional HTTP-like message
   * Sends a emission to the socket identified by the socket
   */
-  badRequest(event, data, socketId, message) {
+  badRequest(event, data, socket, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
-    this.emitTo(error(400, msg, event, data, socketId));
+    this.emitTo(error(400, msg, event, data, socket));
   }
 
-  unauthorized(event, data, socketId, message) {
+  unauthorized(event, data, socket, message) {
     const msg = message || 'Authentication required for this operation.';
-    this.emitTo(error(401, msg, event, data, socketId));
+    this.emitTo(error(401, msg, event, data, socket));
   }
 
-  notFound(event, data, socketId, message) {
+  notFound(event, data, socket, message) {
     const msg = message || 'Resource not found';
-    this.emitTo(error(404, msg, event, data, socketId));
+    this.emitTo(error(404, msg, event, data, socket));
   }
 
-  serverError(event, data, socketId, message) {
+  serverError(event, data, socket, message) {
     const msg = message || 'Something went wrong on the server';
-    this.emitTo(error(500, msg, event, data, socketId));
+    this.emitTo(error(500, msg, event, data, socket));
   }
 
-  notImplemented(event, data, socketId, message) {
+  notImplemented(event, data, socket, message) {
     const msg = message || 'Not available now, but may be in the future';
-    this.emitTo(error(501, msg, event, data, socketId));
+    this.emitTo(error(501, msg, event, data, socket));
   }
 }
 

@@ -3,8 +3,6 @@
 */
 const Board = require('../models/Board');
 const boardService = {};
-const Promise = require('bluebird');
-const _ = require('lodash');
 
 // Create a board in the database
 boardService.create = function(name) {

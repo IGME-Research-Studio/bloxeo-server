@@ -7,7 +7,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
-import { workspaceToClient } from '../../../services/BoardService';
+import { getIdeaCollections } from '../../../services/IdeaCollectionService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -16,17 +16,17 @@ export default function index(req) {
   const boardId = req.boardId;
 
   if (isNull(socket)) {
-    return false;
+    throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.GET_COLLECTIONS, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.GET_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
-    workspaceToClient(boardId)
-      .then((collections) => stream.ok(EVENT_API.GET_COLLECTIONS,
+    getIdeaCollections(boardId)
+      .then((collections) => stream.ok(EXT_EVENTS.RECEIVED_COLLECTIONS,
                                        collections, boardId))
-      .catch((err) => stream.serverError(EVENT_API.GET_COLLECTIONS,
-                                        err, socket.id));
+      .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_COLLECTIONS,
+                                        err, socket));
   }
 }

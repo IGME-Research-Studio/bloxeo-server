@@ -21,15 +21,13 @@ ideaCollectionService.create = function(boardId, content) {
   });
 };
 
-
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
-  return IdeaCollection.find({boardId: boardId})
+  return IdeaCollection.model.find({boardId: boardId})
   .select('-_id')
   .populate('ideas', '-_id')
   .exec((collections) => collections);
 };
-
 
 /**
 * Add an Idea to an Idea collection

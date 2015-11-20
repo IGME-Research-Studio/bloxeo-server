@@ -19,10 +19,10 @@ export default function remove(req) {
   const content = req.content;
 
   if (isNull(socket)) {
-    return false;
+    throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.REMOVE_IDEA, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.REMOVE_IDEA, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
@@ -31,6 +31,6 @@ export default function remove(req) {
       .then((board) => stream.ok(EXT_EVENTS.UPDATED_IDEAS,
                                  ideasToClient(board), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
-                                         err, boardId));
+                                         err, socket));
   }
 }

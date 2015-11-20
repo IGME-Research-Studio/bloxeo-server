@@ -7,7 +7,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
-import { getIdeas } from '../../../services/BoardService';
+import { getIdeas } from '../../../services/IdeaService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -16,16 +16,16 @@ export default function index(req) {
   const socket = req.socket;
 
   if (isNull(socket)) {
-    return false;
+    throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.GET_IDEAS, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.GET_IDEAS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
     getIdeas(boardId)
-      .then((ideas) => stream.ok(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
-                                         err, boardId));
+      .then((ideas) => stream.ok(EXT_EVENTS.RECEIVED_IDEAS, ideas, boardId))
+      .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_IDEAS,
+                                         err, socket));
   }
 }

@@ -31,6 +31,6 @@ ideaService.getIdeas = function(boardId) {
   return Idea.model.find({boardId: boardId})
   .select('-_id')
   .exec((ideas) => ideas);
-}
+};
 
 module.exports = ideaService;

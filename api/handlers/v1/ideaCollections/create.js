@@ -19,10 +19,10 @@ export default function create(req) {
   const content = req.content;
 
   if (isNull(socket)) {
-    return false;
+    throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(content)) {
-    stream.badRequest(EXT_EVENTS.ADDED_COLLECTION, {}, socket.id,
+    stream.badRequest(EXT_EVENTS.CREATE_COLLECTION, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
@@ -36,7 +36,7 @@ export default function create(req) {
                   {index: collectionIndex, content: ideaStrings}, boardId);
       })
       .catch((err) => {
-        stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket.id);
+        stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket);
       });
 
   }
