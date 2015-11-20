@@ -8,6 +8,7 @@ import sio from 'socket.io';
 // import CFG from './config';
 
 import stream from './event-stream';
+import getConstants from './handlers/v1/constants/index';
 import joinRoom from './handlers/v1/rooms/join';
 import leaveRoom from './handlers/v1/rooms/leave';
 import createIdea from './handlers/v1/ideas/create';
@@ -50,6 +51,10 @@ const dispatcher = function(server) {
    */
 
   io.on('connection', function(socket) {
+    socket.on(EXT_EVENTS.GET_CONSTANTS, (req) => {
+      getConstants(_.merge({socket: socket}, req));
+    });
+
     socket.on(EXT_EVENTS.JOIN_ROOM, (req) => {
       joinRoom(_.merge({socket: socket}, req));
     });
@@ -82,7 +87,6 @@ const dispatcher = function(server) {
     socket.on(EXT_EVENTS.GET_COLLECTIONS, (req) => {
       getCollections(_.merge({socket: socket}, req));
     });
-
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
