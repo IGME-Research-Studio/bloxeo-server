@@ -10,6 +10,7 @@ export default function index(req) {
   const socket = req.socket;
 
   stream.emitTo({event: EXT_EVENTS.RECEIVED_CONSTANTS,
+                 code: 200,
                  socket: socket,
                  res: constantsService()});
 }

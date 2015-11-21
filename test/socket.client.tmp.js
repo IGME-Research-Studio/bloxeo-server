@@ -16,15 +16,15 @@ client1.on('connect', function() {
 
   client1.emit('GET_CONSTANTS');
   client1.emit('JOIN_ROOM', {boardId: boardId});
-  client1.emit('GET_COLLECTIONS', {boardId: boardId});
-  client1.emit('GET_IDEAS', {boardId: boardId});
-
-  client1.emit('CREATE_IDEA', {boardId: boardId, content: 'blah4'});
-  client1.emit('DESTROY_IDEA', {boardId: boardId, content: 'blah4'});
+  // client1.emit('GET_COLLECTIONS', {boardId: boardId});
+  // client1.emit('GET_IDEAS', {boardId: boardId});
+  //
+  // client1.emit('CREATE_IDEA', {boardId: boardId, content: 'blah4'});
+  // client1.emit('DESTROY_IDEA', {boardId: boardId, content: 'blah4'});
 
   client1.emit('CREATE_COLLECTION', {boardId: boardId, content: 'blah2'});
-  client1.emit('REMOVE_IDEA', {boardId: boardId, content: 'blah2', index: 0});
-  client1.emit('DESTROY_COLLECTION', {boardId: boardId, index: 0});
+  // client1.emit('REMOVE_IDEA', {boardId: boardId, content: 'blah2', index: 0});
+  // client1.emit('DESTROY_COLLECTION', {boardId: boardId, index: 0});
 });
 
 _.keys(EVENT_API).forEach(function(event) {

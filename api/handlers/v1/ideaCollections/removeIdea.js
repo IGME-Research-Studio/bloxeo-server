@@ -30,10 +30,12 @@ export default function removeIdea(req) {
     removeIdeaFromCollection(boardId, index, content)
       .then(() => getAllIdeas(boardId, index))
       .then((contents) => {
+        console.log(contents);
         stream.ok(EXT_EVENTS.MODIFIED_COLLECTION,
                   {index: index, content: contents}, boardId);
       })
       .catch(function(err) {
+        cosnole.log(err);
         stream.serverError(EXT_EVENTS.MODIFIED_COLLECTION, err, socket);
       });
   }

@@ -1,5 +1,6 @@
 const IdeaCollection = require('../models/IdeaCollection.js');
 const Idea = require('../models/Idea.js');
+const _ = require('lodash');
 
 const ideaCollectionService = {};
 
@@ -13,11 +14,17 @@ const ideaCollectionService = {};
 ideaCollectionService.create = function(boardId, content) {
 
   return Idea.model.findOne({boardId: boardId, content: content})
-  .then((idea) => (new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})).save())
-  .then((collection) => IdeaCollection.model.find({boardId: boardId}))
-  .spread((collections) => {
-    console.log(collections);
-    return {content: collection.ideas, index: collections.length-1}
+  .then((idea) => {
+    return new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})
+      .save((err, createdCollection) => {
+        return IdeaCollection.model.populate(createdCollection, 'ideas');
+      });
+  })
+  .then((collection) => {
+    return [collection, IdeaCollection.model.find({boardId: boardId}, 'ideas')];
+  })
+  .spread((collection, collections) => {
+    return {content: collection, index: collections.length-1}
   })
   .catch(function(err) {
     throw new Error(err);
@@ -50,12 +57,12 @@ ideaCollectionService.addIdea = function(boardId, index, content) {
 };
 
 /**
-  Remove an Idea from an Idea collection
-  @param {String} boardId
-  @param {int} index - Index of IdeaCollection to remove an Idea from
-  @param {String} content - The content of an Idea to remove
-  @param {int} userId - Id of the User who removed the idea
-  */
+ * Remove an Idea from an Idea collection
+ * @param {String} boardId
+ * @param {int} index - Index of IdeaCollection to remove an Idea from
+ * @param {String} content - The content of an Idea to remove
+ * @param {int} userId - Id of the User who removed the idea
+ */
 ideaCollectionService.removeIdea = function(boardId, index, content) {
 
   return IdeaCollection.model.findByIndex(boardId, index)
@@ -67,10 +74,10 @@ ideaCollectionService.removeIdea = function(boardId, index, content) {
 };
 
 /**
-  Remove an IdeaCollection from a board then delete the model
-  @todo Potentially want to add a userId to parameters track who destroyed the
-  idea collection model
-  */
+ * Remove an IdeaCollection from a board then delete the model
+ * @todo Potentially want to add a userId to parameters track who destroyed the
+ * idea collection model
+ */
 ideaCollectionService.destroy = function(boardId, index) {
 
   return IdeaCollection.model.findByIndex(boardId, index)
@@ -78,8 +85,8 @@ ideaCollectionService.destroy = function(boardId, index) {
 };
 
 /**
-  Returns the content of each idea in an IdeaCollection
-  */
+ * Returns the content of each idea in an IdeaCollection
+ */
 ideaCollectionService.getAllIdeas = function(boardId, index) {
 
   return IdeaCollection.model.findByIndex(boardId, index)

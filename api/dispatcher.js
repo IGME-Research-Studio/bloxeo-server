@@ -105,7 +105,7 @@ const dispatcher = function(server) {
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
-    log.info(INT_EVENTS.BROADCAST, req.boardId, req.event);
+    log.info(INT_EVENTS.BROADCAST, req.event, req.boardId);
     io.in(req.boardId).emit(req.event, req.res);
   });
 
