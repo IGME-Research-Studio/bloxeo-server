@@ -17,11 +17,13 @@ ideaCollectionService.create = function(boardId, content) {
   .then((idea) => {
     return new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})
       .save((err, createdCollection) => {
-        return IdeaCollection.model.populate(createdCollection, 'ideas');
+        return IdeaCollection.model.populate(createdCollection,
+                 {path: 'ideas', select: 'content -_id'});
       });
   })
   .then((collection) => {
-    return [collection, IdeaCollection.model.find({boardId: boardId}, 'ideas')];
+    return [collection,
+            IdeaCollection.model.find({boardId: boardId}, 'ideas')];
   })
   .spread((collection, collections) => {
     return {content: collection, index: collections.length-1}
