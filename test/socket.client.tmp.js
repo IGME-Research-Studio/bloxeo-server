@@ -14,12 +14,14 @@ var client1 = io.connect(socketURL, options);
 client1.on('connect', function() {
   console.log('connected');
 
-  client1.emit('GET_CONSTANTS');
+  // client1.emit('GET_CONSTANTS');
   client1.emit('JOIN_ROOM', {boardId: boardId});
   // client1.emit('GET_COLLECTIONS', {boardId: boardId});
   // client1.emit('GET_IDEAS', {boardId: boardId});
   //
-  // client1.emit('CREATE_IDEA', {boardId: boardId, content: 'blah4'});
+  // client1.emit('CREATE_IDEA', {boardId: boardId, content: 'will'});
+  // client1.emit('CREATE_IDEA', {boardId: boardId, content: 'ill'});
+  // client1.emit('CREATE_IDEA', {boardId: boardId, content: 'peter'});
   // client1.emit('DESTROY_IDEA', {boardId: boardId, content: 'blah4'});
 
   client1.emit('CREATE_COLLECTION', {boardId: boardId, content: 'blah2'});

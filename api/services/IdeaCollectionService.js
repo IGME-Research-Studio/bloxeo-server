@@ -22,11 +22,10 @@ ideaCollectionService.create = function(boardId, content) {
       });
   })
   .then((collection) => {
-    return [collection,
-            IdeaCollection.model.find({boardId: boardId}, 'ideas')];
+    return [collection, IdeaCollection.model.count({boardId: boardId})];
   })
-  .spread((collection, collections) => {
-    return {content: collection, index: collections.length-1}
+  .spread((collection, count) => {
+    return {content: collection, index: count-1}
   })
   .catch(function(err) {
     throw new Error(err);
@@ -37,7 +36,7 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.model.find({boardId: boardId})
   .select('-_id')
-  .populate('ideas', '-_id')
+  .populate('ideas', 'content -_id')
   .exec((collections) => collections);
 };
 

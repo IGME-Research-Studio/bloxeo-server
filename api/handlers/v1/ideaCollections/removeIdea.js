@@ -35,7 +35,6 @@ export default function removeIdea(req) {
                   {index: index, content: contents}, boardId);
       })
       .catch(function(err) {
-        cosnole.log(err);
         stream.serverError(EXT_EVENTS.MODIFIED_COLLECTION, err, socket);
       });
   }

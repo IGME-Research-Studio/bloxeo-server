@@ -31,12 +31,10 @@ export default function create(req) {
   else {
     createCollection(boardId, content)
       .then((res) => {
-        console.log('success', res);
         stream.ok(EXT_EVENTS.ADDED_COLLECTION,
                   _.merge({top: top, left: left}, res), boardId);
       })
       .catch((err) => {
-        console.log('error', err);
         stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket);
       });
   }
