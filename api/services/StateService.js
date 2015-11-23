@@ -3,7 +3,7 @@
 
   @file Contains logic for controlling the state of a board
 */
-const RedisService = require('./RedisService');
+const RedisService = require('./RedisService.js');
 
 const stateService = {};
 
