@@ -4,8 +4,6 @@
  */
 
 import mongoose from 'mongoose';
-import mochaMongoose from 'mocha-mongoose';
-import Monky from 'monky';
 import log from 'winston';
 import CFG from '../../config';
 import Promise from 'bluebird';
@@ -26,8 +24,8 @@ const database = (cb) => {
   mongoose.connect(CFG.mongoURL, CFG.mongoOpts);
 
   mongoose.connection.on('error', (err) => log.error(err));
-  mongoose.connection.once('open', (cb) => {
-    log.info('Connected to Mongoose')
+  mongoose.connection.once('open', () => {
+    log.verbose('Connected to Mongoose');
     if (cb) cb();
   });
 

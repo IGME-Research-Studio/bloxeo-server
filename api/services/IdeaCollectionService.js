@@ -3,8 +3,6 @@ import { model as Idea} from '../models/Idea.js';
 
 const ideaCollectionService = {};
 
-console.log(IdeaCollection.findOnBoard);
-
 /**
  * Create an IdeaCollection and add an initial idea
  * @param {String} boardId

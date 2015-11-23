@@ -1,5 +1,6 @@
 import rc from 'rc';
 import crypto from 'crypto';
+import log from 'winston';
 
 let mongoURL;
 switch (process.env.NODE_ENG) {
@@ -17,6 +18,7 @@ default:
 }
 
 const DEFAULT_CFG = {
+  logLevel: 'debug',
   mongoURL: mongoURL,
   mongoOpts: { server: { socketOptions: { keepAlive: 1 } } },
   redisURL: process.env.REDISCLOUD_URL || 'redis://localhost:6379',

@@ -63,50 +63,50 @@ const dispatcher = function(server) {
     log.info(socket.id);
 
     socket.on(EXT_EVENTS.GET_CONSTANTS, (req) => {
-      log.debug(EXT_EVENTS.GET_CONSTANTS);
+      log.verbose(EXT_EVENTS.GET_CONSTANTS, req);
       getConstants(_.merge({socket: socket}, req));
     });
 
     socket.on(EXT_EVENTS.JOIN_ROOM, (req) => {
-      log.debug(EXT_EVENTS.JOIN_ROOM);
+      log.verbose(EXT_EVENTS.JOIN_ROOM, req);
       joinRoom(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.LEAVE_ROOM, (req) => {
-      log.debug(EXT_EVENTS.LEAVE_ROOM);
+      log.verbose(EXT_EVENTS.LEAVE_ROOM, req);
       leaveRoom(_.merge({socket: socket}, req));
     });
 
     socket.on(EXT_EVENTS.CREATE_IDEA, (req) => {
-      log.debug(EXT_EVENTS.CREATE_IDEA);
+      log.verbose(EXT_EVENTS.CREATE_IDEA, req);
       createIdea(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.DESTROY_IDEA, (req) => {
-      log.debug(EXT_EVENTS.DESTROY_IDEA);
+      log.verbose(EXT_EVENTS.DESTROY_IDEA, req);
       destroyIdea(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.GET_IDEAS, (req) => {
-      log.debug(EXT_EVENTS.GET_IDEAS);
+      log.verbose(EXT_EVENTS.GET_IDEAS, req);
       getIdeas(_.merge({socket: socket}, req));
     });
 
     socket.on(EXT_EVENTS.CREATE_COLLECTION, (req) => {
-      log.debug(EXT_EVENTS.CREATE_COLLECTION);
+      log.verbose(EXT_EVENTS.CREATE_COLLECTION, req);
       createCollection(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.DESTROY_COLLECTION, (req) => {
-      log.debug(EXT_EVENTS.DESTROY_COLLECTION);
+      log.verbose(EXT_EVENTS.DESTROY_COLLECTION, req);
       destroyCollection(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.ADD_IDEA, (req) => {
-      log.debug(EXT_EVENTS.ADD_IDEA);
+      log.verbose(EXT_EVENTS.ADD_IDEA, req);
       addIdea(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.REMOVE_IDEA, (req) => {
-      log.debug(EXT_EVENTS.REMOVE_IDEA);
+      log.verbose(EXT_EVENTS.REMOVE_IDEA, req);
       removeIdea(_.merge({socket: socket}, req));
     });
     socket.on(EXT_EVENTS.GET_COLLECTIONS, (req) => {
-      log.debug(EXT_EVENTS.GET_COLLECTIONS);
+      log.verbose(EXT_EVENTS.GET_COLLECTIONS, req);
       getCollections(_.merge({socket: socket}, req));
     });
   });

@@ -15,6 +15,7 @@ import database from './services/database';
 
 // const redisClient = Redis(CFG.redisURL);
 const extendedExpress = addStatusCodes(express);
+log.level = CFG.logLevel;
 
 const setupApp = function() {
   return extendedExpress()
