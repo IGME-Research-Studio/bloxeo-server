@@ -30,12 +30,12 @@ const setupApp = function() {
     });
 };
 
-database(CFG.mongoURL, CFG.mongoOpts)
-  .then(() => log.info('Connected to mongo'))
-  .catch(log.error);
+database();
 
 const app = setupApp();
 dispatcher(app);
+
+database();
 
 export { app };
 

@@ -1,23 +1,37 @@
 /**
-* Wrapper for database setup and connections
-* @TODO add redis
-* @file
-*/
+ * Wrapper for database setup and connections
+ * @file
+ */
 
 import mongoose from 'mongoose';
+import mochaMongoose from 'mocha-mongoose';
+import Monky from 'monky';
+import log from 'winston';
+import CFG from '../../config';
 import Promise from 'bluebird';
 
-mongoose.Promise = Promise;
+/**
+ * A singleton that sets up the connection to mongoose if it hasn't already
+ * been established. Otherwise it returns undefined.
+ * @param {Function} cb - optional callback to trigger when connected
+ * @returns {undefined}
+ */
+const database = (cb) => {
+  if (mongoose.connection.db) {
+    if (cb) cb();
+    return mongoose;
+  }
 
-const mongo = function(url, options) {
-  return new Promise((res, rej) => {
-    mongoose.connect(url, options);
+  mongoose.Promise = Promise;
+  mongoose.connect(CFG.mongoURL, CFG.mongoOpts);
 
-    mongoose.connection.on('error', (err) => rej(err));
-    mongoose.connection.once('open', () => res(true));
-    // Maybe we should figure out how to reconnect?
-    // mongoose.connection.on('disconnected', mongo.bind(this, url, options));
+  mongoose.connection.on('error', (err) => log.error(err));
+  mongoose.connection.once('open', (cb) => {
+    log.info('Connected to Mongoose')
+    if (cb) cb();
   });
+
+  return mongoose;
 };
 
-export default mongo;
+export default database;

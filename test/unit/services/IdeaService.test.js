@@ -1,14 +1,18 @@
-import { expect } from 'chai';
-import mongoose from 'mongoose';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import mochaMongoose from 'mocha-mongoose';
 import Monky from 'monky';
 import Promise from 'bluebird';
 
 import CFG from '../../../config';
+import database from '../../../api/services/database';
 import IdeaService from '../../../api/services/IdeaService.js';
 
-const testMongoURL = CFG.mongoURL;
-const clearDB = mochaMongoose(testMongoURL, {noClear: true});
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
+const mongoose = database();
+const clearDB = mochaMongoose(CFG.mongoURL, {noClear: true});
 const monky = new Monky(mongoose);
 
 mongoose.model('Board', require('../../../api/models/Board.js').schema);
@@ -17,15 +21,12 @@ monky.factory('Board', {boardId: '1'});
 monky.factory('Idea', {boardId: '1', content: 'idea number #n'});
 
 describe('IdeaService', function() {
-  this.timeout(10000);
 
   before((done) => {
-    if (mongoose.connection.db) return done();
-
-    mongoose.connect(testMongoURL, done);
+    database(done);
   });
 
-  describe('#index', () => {
+  describe('#index(boardId)', () => {
     beforeEach((done) => {
       Promise.all([
         monky.create('Board'),
@@ -69,11 +70,13 @@ describe('IdeaService', function() {
     });
   });
 
-  describe('#create', () => {
+  describe('#create(user, boardId, ideaContent)', () => {
 
     beforeEach((done) => {
       Promise.all([
         monky.create('Board'),
+        monky.create('Board', {boardId: 2}),
+        monky.create('Idea', {content: '1'}),
       ])
       .then(() => {
         done();
@@ -81,6 +84,16 @@ describe('IdeaService', function() {
     });
 
     afterEach((done) => clearDB(done));
+
+    it('should not create duplicates on a board and throw correct validation error', (done) => {
+      expect(IdeaService.create(null, '1', '1'))
+        .to.be.rejectedWith(/content must be unique/).notify(done);
+    });
+
+    it('should allow duplicates on different boards', (done) => {
+      expect(IdeaService.create(null, '2', '1'))
+        .to.not.be.rejected.notify(done);
+    });
 
     it('should return all the ideas in the correct format to send back to client', (done) => {
       IdeaService.create(null, '1', 'blah')
@@ -99,7 +112,7 @@ describe('IdeaService', function() {
     });
   });
 
-  describe('#destroy', () => {
+  describe('#destroy(boardId, ideaContent)', () => {
     beforeEach((done) => {
       Promise.all([
         monky.create('Board'),

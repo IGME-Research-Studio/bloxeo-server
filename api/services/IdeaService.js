@@ -11,9 +11,9 @@ const ideaService = {};
 /**
  * Create a new Idea
  */
-ideaService.create = function(user, boardId, content) {
+ideaService.create = function(user, boardId, ideaContent) {
 
-  return new Idea({boardId: boardId, user: user, content: content}).save()
+  return new Idea({boardId: boardId, user: user, content: ideaContent}).save()
   .then(() => ideaService.getIdeas(boardId));
 };
 

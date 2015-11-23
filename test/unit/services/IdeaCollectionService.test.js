@@ -1,169 +1,171 @@
-const expect = require('chai').expect;
-const BoardService = require('../../../api/services/BoardService.js');
-const IdeaCollectionService = require('../../../api/services/IdeaCollectionService.js');
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import mochaMongoose from 'mocha-mongoose';
+import Monky from 'monky';
+import Promise from 'bluebird';
+import _ from 'lodash';
 
-/**
-* Create an Idea Collection given a boardId, userId, and IdeaID
-*/
+import CFG from '../../../config';
+import database from '../../../api/services/database';
+import IdeaCollectionService from '../../../api/services/IdeaCollectionService.js';
+
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
+const mongoose = database();
+const clearDB = mochaMongoose(CFG.mongoURL, {noClear: true});
+const monky = new Monky(mongoose);
+
+mongoose.model('Board', require('../../../api/models/Board.js').schema);
+mongoose.model('Idea', require('../../../api/models/Idea.js').schema);
+mongoose.model('IdeaCollection', require('../../../api/models/IdeaCollection.js').schema);
+
+monky.factory('Board', {boardId: '2'});
+monky.factory('Idea', {boardId: '2', content: 'idea number #n'});
+monky.factory('IdeaCollection', {boardId: '2'});
+
 describe('IdeaCollectionService', function() {
 
-  describe('#create()', () => {
+  before((done) => {
+    database(done);
+  });
 
-    xit('Should create an Idea Collection', (done) => {
+  describe('#getAllIdeas(boardId, key)', () => {
+    let createdCollectionKey;
 
-      // Create a Board
-      BoardService.create({isPublic: true})
-      .then((board) => {
-        return [
-          board,
-          User.create({isFullAccount: false, username: 'brax2themax'}),
-        ];
-      })
-      .spread((user, board) => {
-        return [
-          board,
-          user,
-          Idea.create({content: 'purple'}),
-        ];
-      })
-      .spread((board, user, idea) => {
-        return [
-          Board.find({boardId: boardId}).populate('ideaCollections'),
-          IdeaCollectionService.create(board.boardId, user.id, idea.id),
-        ];
-      })
-      .spread((board, collectionIndex) => {
-
-        expect(collectionIndex).to.be.a('number');
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board'),
+        Promise.all([
+          monky.create('Idea'),
+          monky.create('Idea'),
+          monky.create('Idea'),
+        ])
+        .then((allIdeas) => monky.create('IdeaCollection', { ideas: allIdeas })),
+        monky.create('Idea'),
+      ])
+      .then((res) => {
+        createdCollectionKey = res[1].key;
         done();
-      })
-      .catch(done);
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('should return all the ideas in a collection', (done) => {
+      IdeaCollectionService.getAllIdeas('2', createdCollectionKey)
+        .then((ideas) => {
+          try {
+            expect(ideas.length).to.equal(3);
+            expect(ideas).to.be.an('array');
+            expect(ideas[0]).to.be.an('object');
+            expect(ideas[0]).to.have.property('content').and.be.a('string');
+            expect(ideas[0]).to.not.contain.keys(['user', '_id', 'boardId']);
+            done();
+          }
+          catch (e) {
+            done(e);
+          }
+        });
+    });
+  });
+
+  describe('#getIdeaCollections(boardId)', () => {
+
+    beforeEach((done) => {
+      // create 2 boards and 2 collections
+      Promise.all([
+        monky.create('Board'),
+        Promise.all([
+          monky.create('Idea'),
+          monky.create('Idea'),
+          monky.create('Idea'),
+        ])
+        .then((allIdeas) => monky.create('IdeaCollection',
+              { ideas: allIdeas, key: 'collection1' })),
+
+        monky.create('Board', {boardId: '3'}),
+        Promise.all([
+          monky.create('Idea', {boardId: '3'}),
+        ])
+        .then((allIdeas) => monky.create('IdeaCollection',
+              { boardId: '3', ideas: allIdeas, key: 'collection2' })),
+      ])
+      .then(() => done());
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('should return all collections on a board', (done) => {
+      IdeaCollectionService.getIdeaCollections('2')
+        .then((collections) => {
+          try {
+            expect(collections).to.be.an('object');
+            expect(collections).to.have.property('collection1').and.be.an('object');
+            expect(collections.collection1).to.have.property('key')
+              .and.equal('collection1');
+            expect(collections.collection1).to.have.property('ideas')
+              .and.be.an('array')
+              .and.have.length(3);
+            done();
+          }
+          catch (e) {
+            done(e);
+          }
+        });
+    });
+  });
+
+  describe('#create(boardId, content)', () => {
+
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board', {boardId: '4'}),
+        monky.create('Idea', {boardId: '4', content: 'idea 1'}),
+        monky.create('Idea', {boardId: '4', content: 'idea 2'}),
+      ])
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('Should create an IdeaCollection with a single existing Idea', (done) => {
+      IdeaCollectionService.create('4', 'idea 1')
+        .then((collections) => {
+          try {
+            expect(collections).to.be.an('object');
+            expect(_.keys(collections)).to.have.length(1);
+            done();
+          }
+          catch (e) {
+            done(e);
+          }
+        });
+    });
+
+    it('should not allow creating a collection with a non-existant idea', (done) => {
+      expect(IdeaCollectionService.create('4', 'idea 25243324'))
+        .to.be.rejected.notify(done);
     });
   });
 
   describe('#addIdea()', () => {
 
-    xit('Should add an idea to an idea collection', (done) => {
-
-      // Create a Board
-      BoardService.create({isPublic: true})
-
-      .then((board) => {
-
-        // Create a User
-        User.create({isFullAccount: false, username: 'brax2themax'})
-
-        .then((user) => {
-
-          // Create an Idea
-          Idea.create({content: 'will', board: board})
-          .then(() => {
-            return Idea.create({content: 'peter', board: board});
-          })
-          .then((idea) => {
-
-            // Create an Idea Collection
-            IdeaCollectionService.create(board.boardId, user.id, idea.id)
-
-            .then((collectionIndex) => {
-
-              IdeaCollectionService.addIdea(board.boardId, collectionIndex, 'will')
-
-              .then(() => {
-
-                done();
-              })
-              .catch(done);
-            });
-          });
-        });
-      });
+    xit('Should add an idea to an idea collection', () => {
     });
   });
 
   describe('#removeIdea()', () => {
 
-    xit('Should remove an idea from an idea collection', (done) => {
-
-      // Create a Board
-      BoardService.create({isPublic: true})
-
-      .then((board) => {
-
-        // Create a User
-        User.create({isFullAccount: false, username: 'brax2themax'})
-
-        .then((user) => {
-
-          // Create an Idea
-          Idea.create({content: 'will', board: board})
-
-          .then(() => {
-            return Idea.create({content: 'peter', board: board});
-          })
-          .then((idea) => {
-
-            // Create an Idea Collection
-            IdeaCollectionService.create(board.boardId, user.id, idea.id)
-
-            .then((collectionIndex) => {
-
-              IdeaCollectionService.addIdea(board.boardId, collectionIndex, 'will')
-
-              .then(() => {
-
-                IdeaCollectionService.removeIdea(board.boardId, collectionIndex, 'will')
-
-                .then(() => {
-
-                  done();
-                });
-              });
-            });
-          });
-        });
-      });
+    xit('Should remove an idea from an idea collection', () => {
     });
   });
 
   describe('#destroy()', () => {
 
-    xit('destroy an idea collection', (done) => {
-
-      // Create a Board
-      BoardService.create({isPublic: true})
-
-      .then((board) => {
-
-        // Create a User
-        User.create({isFullAccount: false, username: 'brax2themax'})
-
-        .then((user) => {
-
-          // Create an Idea
-          Idea.create({content: 'will', board: board})
-
-          .then(() => {
-            return Idea.create({content: 'peter', board: board});
-          })
-          .then((idea) => {
-
-            // Create an Idea Collection
-            IdeaCollectionService.create(board.boardId, user.id, idea.id)
-
-            .then((collectionIndex) => {
-
-              IdeaCollectionService.destroy(board.boardId, collectionIndex)
-
-              .then(() => {
-
-                done();
-              })
-              .catch(done);
-            });
-          });
-        });
-      });
+    xit('destroy an idea collection', () => {
     });
   });
 });
