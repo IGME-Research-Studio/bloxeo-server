@@ -1,9 +1,8 @@
-import { expect, should } from 'chai';
+import { expect } from 'chai';
 import mongoose from 'mongoose';
 import mochaMongoose from 'mocha-mongoose';
 import Monky from 'monky';
 import Promise from 'bluebird';
-import _ from 'lodash';
 
 import CFG from '../../../config';
 import IdeaService from '../../../api/services/IdeaService.js';
@@ -76,7 +75,7 @@ describe('IdeaService', function() {
       Promise.all([
         monky.create('Board'),
       ])
-      .then((res) => {
+      .then(() => {
         done();
       });
     });
@@ -107,7 +106,7 @@ describe('IdeaService', function() {
         monky.create('Idea', {content: '1'}),
         monky.create('Idea', {content: '2'}),
       ])
-      .then((res) => {
+      .then(() => {
         done();
       });
     });
@@ -120,14 +119,14 @@ describe('IdeaService', function() {
         IdeaService.getIdeas('1')
         .then((ideas) => {
           try {
-            expect(ideas[0].content).to.equal('1')
+            expect(ideas[0].content).to.equal('1');
             done();
           }
           catch (e) {
             done(e);
           }
-        })
-      })
+        });
+      });
     });
 
     it('should return all the ideas in the correct format to send back to client', (done) => {
