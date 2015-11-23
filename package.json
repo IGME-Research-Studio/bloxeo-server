@@ -8,8 +8,8 @@
     "unit-test": "grunt unit-test",
     "lint": "grunt lint",
     "watch": "grunt watch",
-    "mocha": "mocha --compilers=js:babel-core/register --recursive",
-    "covers": "istanbul cover _mocha -- --compilers=js:babel-core/register --recursive"
+    "mocha": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive",
+    "covers": "NODE_ENV=test istanbul cover _mocha -- --compilers=js:babel-core/register --recursive"
   },
   "main": "app.js",
   "repository": {
@@ -58,6 +58,9 @@
     "grunt-mocha-test": "^0.12.7",
     "istanbul": "^0.4.0",
     "mocha": "^2.3.2",
+    "mocha-mongoose": "^1.1.1",
+    "mongodb": "^2.0.49",
+    "monky": "^0.6.8",
     "socket.io-client": "^1.3.7",
     "supertest": "^1.1.0"
   }

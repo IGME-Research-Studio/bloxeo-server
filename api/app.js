@@ -8,7 +8,7 @@ import addStatusCodes from 'express-json-status-codes';
 import log from 'winston';
 // import redis from 'ioredis';
 
-import CFG from './config';
+import CFG from '../config';
 import routes from './routes';
 import dispatcher from './dispatcher';
 import database from './services/database';

@@ -1,44 +1,40 @@
-const expect = require('chai').expect;
-const should = require('chai').should();
+import { expect, should } from 'chai';
+import mongoose from 'mongoose';
+import mochaMongoose from 'mocha-mongoose';
+import Monky from 'monky';
+
+import CFG from '../../../config';
+
+const testMongoURL = CFG.mongoURL;
+const clearDB = mochaMongoose(testMongoURL, {noClear: true});
+const monky = new Monky(mongoose);
 
 describe('IdeaModel', () => {
 
   describe('#create()', () => {
-
     it('Should create an Idea', (done) => {
-
       Idea.create({
-
         content: 'Purple',
       })
-
       .then((idea) => {
-
         expect(idea.content).to.be.a('string');
         done();
       })
-
       .catch(done);
     });
 
     it('Should not create an Idea w/o content', (done) => {
-
       Idea.create()
-
       .exec(function(err, idea) {
-
         should.exist(err);
         should.not.exist(idea);
         done();
       });
     });
 
-    it('Should not create an Idea with only whitespace content', (done) => {
-
+    xit('Should not create an Idea with only whitespace content', (done) => {
       Idea.create({content: '      '})
-
       .exec(function(err, idea) {
-
         should.exist(err);
         should.not.exist(idea);
         done();
@@ -49,17 +45,13 @@ describe('IdeaModel', () => {
   describe('#find()', () => {
 
     it('Should check the find function', (done) => {
-
       Idea.find()
-
       .then((ideas) => {
-
         for (let i = 0; i < ideas.length; i++) {
           expect(ideas[i].content).to.be.a('string');
         }
         done();
       })
-
       .catch(done);
     });
   });
@@ -67,15 +59,11 @@ describe('IdeaModel', () => {
   describe('#findOne()', () => {
 
     it('Should check the findOne function', (done) => {
-
       Idea.findOne({content: 'Purple'})
-
       .then((idea) => {
-
         expect(idea.content).to.equal('Purple');
         done();
       })
-
       .catch(done);
     });
   });
@@ -83,11 +71,8 @@ describe('IdeaModel', () => {
   describe('#update()', () => {
 
     xit('Should update an Idea', (done) => {
-
       Idea.update({content: 'Purple'}, {content: 'Green'})
-
       .then(() => {
-
         done();
       })
 
@@ -98,14 +83,10 @@ describe('IdeaModel', () => {
   describe('#destroy()', () => {
 
     xit('Should destroy an Idea', (done) => {
-
       Idea.destroy({content: 'Green'})
-
       .then(() => {
-
         done();
       })
-
       .catch(done);
     });
   });

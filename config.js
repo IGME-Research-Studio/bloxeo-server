@@ -1,8 +1,23 @@
 import rc from 'rc';
 import crypto from 'crypto';
 
+let mongoURL;
+switch (process.env.NODE_ENG) {
+case 'TEST':
+case 'test':
+  mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/jails-test';
+  break;
+case 'PROD':
+case 'prod':
+  mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017';
+  break;
+default:
+  mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/jails';
+  break;
+}
+
 const DEFAULT_CFG = {
-  mongoURL: process.env.MONGOLAB_URI || 'mongodb://localhost:27017/jails',
+  mongoURL: mongoURL,
   mongoOpts: { server: { socketOptions: { keepAlive: 1 } } },
   redisURL: process.env.REDISCLOUD_URL || 'redis://localhost:6379',
   port: process.env.PORT || '1337',

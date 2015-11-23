@@ -1,6 +1,7 @@
 /**
 * Board.js
 */
+
 const shortid = require('shortid');
 const mongoose = require('mongoose');
 const IdeaCollection = require('./IdeaCollection.js');
@@ -45,19 +46,8 @@ const schema = new mongoose.Schema({
   ],
 });
 
-// Middleware Hooks
-// schema.pre('save', function(next) {
-//
-//   if (this.isNew) {
-//     // generate a shortId for boardId
-//     this.boardId = shortid.generate();
-//
-//     next();
-//   }
-// });
-
 schema.post('remove', function(next) {
-  // remove from cache
+  // @TODO remove from cache
 
   // Remove all models that depend on the removed Board
   IdeaCollection.model.remove({boardId: this.boardId})

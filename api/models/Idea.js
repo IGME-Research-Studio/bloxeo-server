@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
   // Which board the idea belongs to
   boardId: {
     type: String,
-    rquired: true,
+    required: true,
   },
 
   isActive: {
