@@ -35,9 +35,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contributing guidelines.
 
 We use ES6 JavaScript transpiled with Babel and enforced by Airbnb's eslint config.
 
-One hiccup is that files in the `config/` folder are loaded inside Sails and thus are not transpiled by default. All you need to do is explicitly tell Babel to transpile a config file by putting `require('babel/register')` at the top of the file.
-
-
 ## Documentation
 
 Github page coming soon.
