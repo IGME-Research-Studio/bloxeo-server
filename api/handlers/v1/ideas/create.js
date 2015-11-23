@@ -8,8 +8,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
-import { addIdea } from '../../../services/BoardService';
-import { create as createIdea, getIdeas } from '../../../services/IdeaService';
+import { create as createIdea } from '../../../services/IdeaService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -28,9 +27,8 @@ export default function create(req) {
   else {
     // @todo pass user along
     createIdea(null, boardId, content)
-      .then(() => getIdeas(boardId))
       .then((ideas) => stream.created(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
-                                         err, socket));
+                                         err.message, socket));
   }
 }

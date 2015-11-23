@@ -4,7 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
-* @param {string} req.index index of the collection
+* @param {string} req.key key of the collection
 */
 
 import { isNull } from '../../../services/ValidatorService';
@@ -15,23 +15,19 @@ import stream from '../../../event-stream';
 export default function destroy(req) {
   const socket = req.socket;
   const boardId = req.boardId;
-  const index = req.index;
+  const key = req.key;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(index)) {
-    stream.badRequest(EXT_EVENTS.REMOVED_COLLECTION, {}, socket,
+  else if (isNull(boardId) || isNull(key)) {
+    stream.badRequest(EXT_EVENTS.UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
-    removeCollection(boardId, index)
-      .then(() => {
-        // notify all clients that a collection was removed
-        stream.ok(EXT_EVENTS.REMOVED_COLLECTION, {index: index}, boardId);
-      })
-      .catch((err) => {
-        stream.serverError(EXT_EVENTS.REMOVED_COLLECTION, err, socket);
-      });
+    removeCollection(boardId, key)
+      .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, boardId))
+      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
+                                         err.message, socket));
   }
 }

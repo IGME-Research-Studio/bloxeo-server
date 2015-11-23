@@ -1,96 +1,98 @@
-const IdeaCollection = require('../models/IdeaCollection.js');
-const Idea = require('../models/Idea.js');
-const _ = require('lodash');
+import { model as IdeaCollection } from '../models/IdeaCollection.js';
+import { model as Idea} from '../models/Idea.js';
 
 const ideaCollectionService = {};
 
 /**
- * Create an IdeaCollection and add an inital idea
+ * Create an IdeaCollection and add an initial idea
  * @param {String} boardId
- * @param {int} userId - Id of the User who create the collection
- * @param {int} ideaId - Id of an inital Idea to add to the collection
- * @returns {Promise} resolves to the last index
+ * @param {String} content - the content of an Idea to create the collection
+ * @returns {Promise} resolves to all collection
  */
 ideaCollectionService.create = function(boardId, content) {
 
-  return Idea.model.findOne({boardId: boardId, content: content})
-  .then((idea) => {
-    return new IdeaCollection.model({boardId: boardId, ideas: [idea.id]})
-      .save((err, createdCollection) => {
-        return IdeaCollection.model.populate(createdCollection,
-                 {path: 'ideas', select: 'content -_id'});
-      });
-  })
-  .then((collection) => {
-    return [collection, IdeaCollection.model.count({boardId: boardId})];
-  })
-  .spread((collection, count) => {
-    return {content: collection, index: count-1}
-  })
-  .catch(function(err) {
+  return Idea.findOne({boardId: boardId, content: content})
+  .then((idea) => new IdeaCollection({boardId: boardId, ideas: [idea.id]}).save())
+  .then(() => IdeaCollection.findOnBoard(boardId))
+  .catch((err) => {
     throw new Error(err);
   });
 };
 
-ideaCollectionService.getIdeaCollections = function(boardId) {
+/**
+ * Remove an IdeaCollection from a board then delete the model
+ * @param {String} boardId
+ * @param {String} key - The key of the collection to remove
+ * @returns {Promise} - resolves to all collections on the board
+ * @todo Potentially want to add a userId to parameters track who destroyed the
+ * idea collection model
+ */
+ideaCollectionService.destroy = function(boardId, key) {
 
-  return IdeaCollection.model.find({boardId: boardId})
-  .select('-_id')
-  .populate('ideas', 'content -_id')
-  .exec((collections) => collections);
+  return IdeaCollection.findByKey(boardId, key)
+  .then((collection) => collection.remove())
+  .then(() => IdeaCollection.findOnBoard(boardId))
+  .catch((err) => {
+    throw new Error(err);
+  });
 };
 
 /**
  * Add an Idea to an Idea collection
  * @param {String} boardId
- * @param {int} index - Index of IdeaCollection to add an Idea from
+ * @param {String} key - Key of an IdeaCollection to add an Idea to
  * @param {String} content - The content of an Idea to add
- * @param {int} userId - Id of the User who added the idea
  */
-ideaCollectionService.addIdea = function(boardId, index, content) {
+ideaCollectionService.addIdea = function(boardId, key, content) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
-  .then((found) => [found, Idea.model.findOne({boardId: boardId, content: content})])
-  .spread((collection, idea) => {
+  return Promise.all([
+    IdeaCollection.findByKey(boardId, key),
+    Idea.findOne({boardId: boardId, content: content}),
+  ])
+  .then(([collection, idea]) => {
     collection.ideas.push(idea.id);
     return collection.save();
+  })
+  .then(() => ideaCollectionService.getAllIdeas(boardId, key))
+  .catch((err) => {
+    throw new Error(err);
   });
 };
 
 /**
  * Remove an Idea from an Idea collection
  * @param {String} boardId
- * @param {int} index - Index of IdeaCollection to remove an Idea from
+ * @param {String} key - The key of the collection to remove
  * @param {String} content - The content of an Idea to remove
- * @param {int} userId - Id of the User who removed the idea
+ * @returns {Promise} - all ideas in the collection
  */
-ideaCollectionService.removeIdea = function(boardId, index, content) {
+ideaCollectionService.removeIdea = function(boardId, key, content) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
-  .then((found) => [found, Idea.model.findOne({boardId: boardId, content: content})])
-  .spread((collection, idea) => {
+  return Promise.all([
+    IdeaCollection.findByKey(boardId, key),
+    Idea.findOne({boardId: boardId, content: content}),
+  ])
+  .then(([collection, idea]) => {
     collection.ideas.pull(idea.id);
     return collection.save();
+  })
+  .then(() => ideaCollectionService.getAllIdeas(boardId, key))
+  .catch((err) => {
+    throw new Error(err);
   });
 };
 
-/**
- * Remove an IdeaCollection from a board then delete the model
- * @todo Potentially want to add a userId to parameters track who destroyed the
- * idea collection model
- */
-ideaCollectionService.destroy = function(boardId, index) {
+ideaCollectionService.getIdeaCollections = function(boardId) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
-  .then((collection) => collection.remove());
+  return IdeaCollection.findOnBoard(boardId);
 };
 
 /**
  * Returns the content of each idea in an IdeaCollection
  */
-ideaCollectionService.getAllIdeas = function(boardId, index) {
+ideaCollectionService.getAllIdeas = function(boardId, key) {
 
-  return IdeaCollection.model.findByIndex(boardId, index)
+  return IdeaCollection.findByKey(boardId, key)
   .then((collection) => collection.ideas );
 };
 

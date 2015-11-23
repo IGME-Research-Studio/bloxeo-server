@@ -27,6 +27,6 @@ export default function index(req) {
       .then((collections) => stream.ok(EXT_EVENTS.RECEIVED_COLLECTIONS,
                                        collections, boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_COLLECTIONS,
-                                        err, socket));
+                                        err.message, socket));
   }
 }

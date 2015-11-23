@@ -4,7 +4,6 @@
  */
 
 import boardService from '../../../services/BoardService';
-import valid from '../../../services/ValidatorService';
 
 export default function create(req, res) {
   boardService.create()

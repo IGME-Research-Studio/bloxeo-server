@@ -2,11 +2,10 @@
  * Idea Service
  *
  * @file Contains logic for Idea related actions
- * @module IdeaService api/services/IdeaServices
+ * @module IdeaService api/services/IdeaService
  */
 
-const Idea = require('../models/Idea.js');
-
+import { model as Idea } from '../models/Idea.js';
 const ideaService = {};
 
 /**
@@ -14,8 +13,8 @@ const ideaService = {};
  */
 ideaService.create = function(user, boardId, content) {
 
-  const i =  new Idea.model({boardId: boardId, user: user, content: content});
-  return i.save();
+  return new Idea({boardId: boardId, user: user, content: content}).save()
+  .then(() => ideaService.getIdeas(boardId));
 };
 
 /**
@@ -23,14 +22,12 @@ ideaService.create = function(user, boardId, content) {
  */
 ideaService.destroy = function(boardId, ideaContent) {
 
-  return Idea.model.find({boardId: boardId, content: ideaContent})
-  .remove();
+  return Idea.find({boardId: boardId, content: ideaContent}).remove()
+  .then(() => ideaService.getIdeas(boardId));
 };
 
 ideaService.getIdeas = function(boardId) {
-  return Idea.model.find({boardId: boardId})
-  .select('-_id')
-  .exec((ideas) => ideas);
+  return Idea.findOnBoard(boardId);
 };
 
 module.exports = ideaService;

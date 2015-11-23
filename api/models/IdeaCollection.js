@@ -2,9 +2,18 @@
 * IdeaCollection - Container for ideas
 * @file
 */
-const mongoose = require('mongoose');
+
+import _ from 'lodash';
+import mongoose from 'mongoose';
+import shortid from 'shortid';
 
 const schema = new mongoose.Schema({
+  key: {
+    type: String,
+    unique: true,
+    default: shortid.generate,
+  },
+
   // Which board the collection belongs to
   boardId: {
     type: String,
@@ -32,14 +41,33 @@ const schema = new mongoose.Schema({
 });
 
 // statics
-schema.statics.findByIndex = function(boardId, index) {
-  return this.find({boardId: boardId})
+/**
+ * Find a single collections identified by a boardId and collection key
+ * @param {String} boardId
+ * @param {String} key
+ * @returns {Promise} - resolves to a mongo ideaCollection with its ideas
+ * populated
+ */
+schema.statics.findByKey = function(boardId, key) {
+  return this.findOne({boardId: boardId, key: key})
   .populate('ideas', 'content -_id')
-  .then((collections) => collections[index]);
+  .exec();
 };
 
-const model = mongoose.model('IdeaCollection', schema);
+/**
+ * Find all collections associated with a given board
+ * @param {String} boardId
+ * @returns {Promise} - resolves to a key/value pair of collection keys and
+ * collection objects
+ */
+schema.statics.findOnBoard = function(boardId) {
+  return this.find({boardId: boardId})
+  .select('ideas key -_id')
+  .populate('ideas', 'content -_id')
+  .exec()
+  .then((collections) =>_.chain(collections)
+        .indexBy('key').value());
+};
 
-
-module.exports.schema = schema;
-module.exports.model = model;
+export { schema };
+export const model = mongoose.model('IdeaCollection', schema);

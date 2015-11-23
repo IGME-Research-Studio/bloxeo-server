@@ -15,7 +15,7 @@ const schema = new mongoose.Schema({
   boardId: {
     type: String,
     unique: true,
-    trim: true,
+    default: shortid.generate,
   },
 
   name: {
@@ -46,15 +46,15 @@ const schema = new mongoose.Schema({
 });
 
 // Middleware Hooks
-schema.pre('save', function(next) {
-
-  if (this.isNew) {
-    // generate a shortId for boardId
-    this.boardId = shortid.generate();
-
-    next();
-  }
-});
+// schema.pre('save', function(next) {
+//
+//   if (this.isNew) {
+//     // generate a shortId for boardId
+//     this.boardId = shortid.generate();
+//
+//     next();
+//   }
+// });
 
 schema.post('remove', function(next) {
   // remove from cache

@@ -8,7 +8,6 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
-import { findBoardAndPopulate, ideasToClient } from '../../../services/BoardService';
 import { destroy } from '../../../services/IdeaService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
@@ -27,10 +26,8 @@ export default function remove(req) {
   }
   else {
     destroy(boardId, content)
-      .then(() => findBoardAndPopulate(boardId, 'ideas'))
-      .then((board) => stream.ok(EXT_EVENTS.UPDATED_IDEAS,
-                                 ideasToClient(board), boardId))
+      .then((ideas) => stream.ok(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
-                                         err, socket));
+                                         err.message, socket));
   }
 }

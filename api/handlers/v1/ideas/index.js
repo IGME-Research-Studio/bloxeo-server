@@ -26,6 +26,6 @@ export default function index(req) {
     getIdeas(boardId)
       .then((ideas) => stream.ok(EXT_EVENTS.RECEIVED_IDEAS, ideas, boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_IDEAS,
-                                         err, socket));
+                                         err.message, socket));
   }
 }

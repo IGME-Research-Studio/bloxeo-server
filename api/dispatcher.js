@@ -25,7 +25,15 @@ import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
 
 const dispatcher = function(server) {
-  const io = sio(server, {origins: '*:*'});
+  const io = sio(server, {
+    origins: '*:*',
+    logger: {
+      debug: log.debug,
+      info: log.info,
+      error: log.error,
+      warn: log.warn,
+    },
+  });
 
   /**
    * In the future we will authenticate all communication within a room w/JWT
@@ -53,7 +61,6 @@ const dispatcher = function(server) {
 
   io.on('connection', function(socket) {
     log.info(socket.id);
-    getCollections({socket: socket, boardId: 'NJfCalyXe'});
 
     socket.on(EXT_EVENTS.GET_CONSTANTS, (req) => {
       log.debug(EXT_EVENTS.GET_CONSTANTS);

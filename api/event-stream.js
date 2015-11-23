@@ -14,13 +14,13 @@ import INT_EVENTS from './constants/INT_EVENT_API';
 * Helper method to construct a standard object to send to Socket.io
 *
 * @param {Number} code equivalent HTTP status code
-* @param {String} msg a message describing the operation
 * @param {String} event the client-facing event that socket io
 * should broadcast
 * @param {Object} data arbitrary data object, what client wants to receive
 * @param {String} boardId
+* @param {String} msg a message describing the operation
 */
-function success(code, msg, event, data, boardId) {
+function success(code, event, data, boardId, msg) {
   return {
     event: event,
     boardId: boardId,
@@ -33,7 +33,7 @@ function success(code, msg, event, data, boardId) {
   };
 }
 
-function error(code, msg, event, data, socket) {
+function error(code, event, data, socket, msg) {
   return {
     event: event,
     socket: socket,
@@ -87,17 +87,17 @@ class EventStream extends EventEmitter {
   */
   ok(event, data, boardId, message) {
     const msg = message || 'Operation succesful';
-    this.broadcast(success(200, msg, event, data, boardId));
+    this.broadcast(success(200, event, data, boardId, msg));
   }
 
   created(event, data, boardId, message) {
     const msg = message || 'Resource created.';
-    this.broadcast(success(201, msg, event, data, boardId));
+    this.broadcast(success(201, event, data, boardId, msg));
   }
 
   accepted(event, data, boardId, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
-    this.broadcast(success(202, msg, event, data, boardId));
+    this.broadcast(success(202, event, data, boardId, msg));
   }
 
   /**
@@ -110,27 +110,27 @@ class EventStream extends EventEmitter {
   */
   badRequest(event, data, socket, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
-    this.emitTo(error(400, msg, event, data, socket));
+    this.emitTo(error(400, event, data, socket, msg));
   }
 
   unauthorized(event, data, socket, message) {
     const msg = message || 'Authentication required for this operation.';
-    this.emitTo(error(401, msg, event, data, socket));
+    this.emitTo(error(401, event, data, socket, msg));
   }
 
   notFound(event, data, socket, message) {
     const msg = message || 'Resource not found';
-    this.emitTo(error(404, msg, event, data, socket));
+    this.emitTo(error(404, event, data, socket, msg));
   }
 
   serverError(event, data, socket, message) {
     const msg = message || 'Something went wrong on the server';
-    this.emitTo(error(500, msg, event, data, socket));
+    this.emitTo(error(500, event, data, socket, msg));
   }
 
   notImplemented(event, data, socket, message) {
     const msg = message || 'Not available now, but may be in the future';
-    this.emitTo(error(501, msg, event, data, socket));
+    this.emitTo(error(501, event, data, socket, msg));
   }
 }
 

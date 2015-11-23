@@ -10,7 +10,7 @@
 
 import _ from 'lodash';
 import { isNull } from '../../../services/ValidatorService';
-import { create as createCollection, getAllIdeas } from '../../../services/IdeaCollectionService';
+import { create as createCollection } from '../../../services/IdeaCollectionService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -25,17 +25,14 @@ export default function create(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(content)) {
-    stream.badRequest(EXT_EVENTS.ADDED_COLLECTION, {}, socket,
+    stream.badRequest(EXT_EVENTS.UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
     createCollection(boardId, content)
-      .then((res) => {
-        stream.ok(EXT_EVENTS.ADDED_COLLECTION,
-                  _.merge({top: top, left: left}, res), boardId);
-      })
-      .catch((err) => {
-        stream.serverError(EXT_EVENTS.ADDED_COLLECTION, err, socket);
-      });
+      .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
+                               _.merge({top: top, left: left}, res), boardId))
+      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
+                                         err.message, socket));
   }
 }

@@ -4,7 +4,8 @@
 * @TODO validate content&boardId combination is unique
 * @TODO Post remove - delete idea from any collections that may contain it
 */
-const mongoose = require('mongoose');
+
+import mongoose from 'mongoose';
 
 const schema = new mongoose.Schema({
   // Which board the idea belongs to
@@ -33,8 +34,6 @@ const schema = new mongoose.Schema({
   },
 });
 
-const model =  mongoose.model('Idea', schema);
-
 // Middleware
 schema.pre('save', function(next) {
   const self = this;
@@ -43,7 +42,7 @@ schema.pre('save', function(next) {
   this.constructor.find({boardId: this.boardId, content: this.content})
   .then( (results) => {
     if (results.length > 0 && results[0].id !== this.id) {
-      self.invalidate('content", "content must be unique to a Board');
+      self.invalidate('content', 'content must be unique to a Board');
       next(new Error('content must be unique'));
     }
     else {
@@ -52,6 +51,11 @@ schema.pre('save', function(next) {
   });
 });
 
+schema.statics.findOnBoard = function(boardId) {
+  return this.find({boardId: boardId})
+  .select('content -_id')
+  .exec();
+};
 
-module.exports.schema = schema;
-module.exports.model = model;
+export { schema };
+export const model = mongoose.model('Idea', schema);
