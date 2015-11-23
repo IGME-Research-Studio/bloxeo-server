@@ -4,7 +4,8 @@
   "description": "Storm app server",
   "scripts": {
     "start": "node index.js",
-    "test": "grunt test",
+    "pretest": "grunt lint",
+    "test": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive test/",
     "unit-test": "grunt unit-test",
     "lint": "grunt lint",
     "watch": "grunt watch",
