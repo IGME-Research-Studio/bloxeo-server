@@ -1,5 +1,8 @@
-import { model as IdeaCollection } from '../models/IdeaCollection.js';
-import { model as Idea} from '../models/Idea.js';
+import _ from 'lodash';
+
+import { model as IdeaCollection } from '../models/IdeaCollection';
+import { model as Idea } from '../models/Idea';
+import { toClient, errorHandler } from '../services/utils';
 
 const ideaCollectionService = {};
 
@@ -13,10 +16,8 @@ ideaCollectionService.create = function(boardId, content) {
 
   return Idea.findOne({boardId: boardId, content: content})
   .then((idea) => new IdeaCollection({boardId: boardId, ideas: [idea.id]}).save())
-  .then(() => IdeaCollection.findOnBoard(boardId))
-  .catch((err) => {
-    throw new Error(err);
-  });
+  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .catch(errorHandler);
 };
 
 /**
@@ -29,12 +30,36 @@ ideaCollectionService.create = function(boardId, content) {
  */
 ideaCollectionService.destroy = function(boardId, key) {
 
-  return IdeaCollection.findByKey(boardId, key)
+  return IdeaCollection.findOne({boardId: boardId, key: key})
   .then((collection) => collection.remove())
-  .then(() => IdeaCollection.findOnBoard(boardId))
-  .catch((err) => {
-    throw new Error(err);
-  });
+  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .catch(errorHandler);
+};
+
+/**
+ * Dry-out add/remove ideas
+ * @param {String} operation - 'ADD', 'add', 'REMOVE', 'remove'
+ * @param {String} boardId
+ * @param {String} key - Key of an IdeaCollection to add an Idea to
+ * @param {String} content - The content of an Idea to add
+ * @returns {Promise} - all ideas in the collection
+ */
+ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
+  let method;
+  if (operation.toLowerCase() === 'add') method = 'push';
+  else if (operation.toLowerCase() === 'remove') method = 'pull';
+  else throw new Error(`Invalid operation ${operation}`);
+
+  return Promise.all([
+    IdeaCollection.findOne({boardId: boardId, key: key}),
+    Idea.findOne({boardId: boardId, content: content}),
+  ])
+  .then(([collection, idea]) => {
+    collection.ideas[method](idea.id);
+    return collection.save();
+  })
+  .then(() => ideaCollectionService.getAllIdeas(boardId, key))
+  .catch(errorHandler);
 };
 
 /**
@@ -42,21 +67,11 @@ ideaCollectionService.destroy = function(boardId, key) {
  * @param {String} boardId
  * @param {String} key - Key of an IdeaCollection to add an Idea to
  * @param {String} content - The content of an Idea to add
+ * @returns {Promise} - all ideas in the collection
  */
 ideaCollectionService.addIdea = function(boardId, key, content) {
 
-  return Promise.all([
-    IdeaCollection.findByKey(boardId, key),
-    Idea.findOne({boardId: boardId, content: content}),
-  ])
-  .then(([collection, idea]) => {
-    collection.ideas.push(idea.id);
-    return collection.save();
-  })
-  .then(() => ideaCollectionService.getAllIdeas(boardId, key))
-  .catch((err) => {
-    throw new Error(err);
-  });
+  return ideaCollectionService.changeIdeas('add', boardId, key, content);
 };
 
 /**
@@ -68,23 +83,15 @@ ideaCollectionService.addIdea = function(boardId, key, content) {
  */
 ideaCollectionService.removeIdea = function(boardId, key, content) {
 
-  return Promise.all([
-    IdeaCollection.findByKey(boardId, key),
-    Idea.findOne({boardId: boardId, content: content}),
-  ])
-  .then(([collection, idea]) => {
-    collection.ideas.pull(idea.id);
-    return collection.save();
-  })
-  .then(() => ideaCollectionService.getAllIdeas(boardId, key))
-  .catch((err) => {
-    throw new Error(err);
-  });
+  return ideaCollectionService.changeIdeas('remove', boardId, key, content);
 };
 
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
-  return IdeaCollection.findOnBoard(boardId);
+  return IdeaCollection.findOnBoard(boardId)
+  .then(toClient)
+  .then((collections) => _.indexBy(collections, 'key'))
+  .catch(errorHandler);
 };
 
 /**
@@ -93,7 +100,9 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 ideaCollectionService.getAllIdeas = function(boardId, key) {
 
   return IdeaCollection.findByKey(boardId, key)
-  .then((collection) => collection.ideas );
+  .then((collections) => toClient(collections.ideas))
+  .catch(errorHandler);
 };
+
 
 module.exports = ideaCollectionService;

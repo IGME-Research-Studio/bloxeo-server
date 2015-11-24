@@ -3,7 +3,6 @@
 * @file
 */
 
-import _ from 'lodash';
 import mongoose from 'mongoose';
 import shortid from 'shortid';
 
@@ -50,6 +49,7 @@ const schema = new mongoose.Schema({
  */
 schema.statics.findByKey = function(boardId, key) {
   return this.findOne({boardId: boardId, key: key})
+  .select('ideas key -_id')
   .populate('ideas', 'content -_id')
   .exec();
 };
@@ -64,9 +64,7 @@ schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
   .select('ideas key -_id')
   .populate('ideas', 'content -_id')
-  .exec()
-  .then((collections) =>_.chain(collections)
-        .indexBy('key').value());
+  .exec();
 };
 
 export { schema };
