@@ -5,12 +5,12 @@
 * @module services/ConstantService.js
 */
 
-const EVENT_API = require('../constants/EVENT_API.js');
-const REST_API = require('../constants/REST_API.js');
+const EXT_EVENT_API = require('../constants/EXT_EVENT_API');
+const REST_API = require('../constants/REST_API');
 
 module.exports = function() {
   return {
-    'EVENT_API': EVENT_API,
+    'EVENT_API': EXT_EVENT_API,
     'REST_API': REST_API,
   };
 };

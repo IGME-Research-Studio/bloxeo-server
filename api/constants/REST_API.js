@@ -24,11 +24,6 @@
 * }
 */
 
-// const prefix = require('../services/VersionService').prefixRoute;
-const VersionService = require('../services/VersionService');
-const prefix = VersionService.prefixTemplateRoute.bind(VersionService);
-const _ = require('lodash');
-
 /*
 * @todo: I would like to find a nice way to send the method along, so that
 * we could change the method from a post to a delete for example and client
@@ -36,31 +31,11 @@ const _ = require('lodash');
 */
 const REST_API = {
   // Boards
-  getBoards: '/boards',
-  getBoard: '/boards/<%= boardId %>',
-  createBoard: '/boards',
-  updateBoard: '/boards/<%= boardId %>',
-  deleteBoard: '/boards',
-
-  // Rooms (Socket only)
-  joinRoom: '/rooms/<%= boardId %>/join',
-  leaveRoom: '/rooms/<%= boardId %>/leave',
-
-  // Ideas
-  getIdeas: '/boards/<%= boardId %>/ideas',
-  createIdea: '/boards/<%= boardId %>/ideas',
-  deleteIdea: '/boards/<%= boardId %>/ideas',
-
-  // IdeaCollections
-  getIdeaCollections: '/boards/<%= boardId %>/ideaCollections',
-  createIdeaCollection: '/boards/<%= boardId %>/ideaCollections',
-  updateIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>',
-  removeIdeaCollection: '/boards/<%= boardId %>/ideaCollections',
-
-  addIdeaToIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>/ideas',
-  removeIdeaFromIdeaCollection: '/boards/<%= boardId %>/ideaCollections/<%= index %>/ideas',
+  getBoards: ['GET', '/v1/boards'],
+  getBoard: ['GET', '/v1/boards/<%= boardId %>'],
+  createBoard: ['POST', '/v1/boards'],
+  updateBoard: ['PATCH', '/v1/boards/<%= boardId %>'],
+  deleteBoard: ['DELETE', '/v1/boards'],
 };
 
-module.exports = _.mapValues(REST_API, function(route) {
-  return prefix(route);
-});
+module.exports = REST_API;
