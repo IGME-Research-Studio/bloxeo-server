@@ -1,5 +1,4 @@
 import _ from 'lodash';
-
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import { model as Idea } from '../models/Idea';
 import { toClient, errorHandler } from '../services/utils';
