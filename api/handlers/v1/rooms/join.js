@@ -7,6 +7,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
+import BoardService from '../../../services/BoardService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -22,8 +23,17 @@ export default function join(req) {
       'Not all required parameters were supplied');
   }
   else {
-    stream.join(socket, boardId);
-    stream.ok(EXT_EVENTS.JOINED_ROOM, {}, boardId,
-       `User with socket id ${socket.id} joined board ${boardId}`);
+    BoardService.exists(boardId)
+    .then((exists) => {
+      if (exists) {
+        stream.join(socket, boardId);
+        stream.ok(EXT_EVENTS.JOINED_ROOM, {}, boardId,
+           `User with socket id ${socket.id} joined board ${boardId}`);
+      }
+      else {
+        stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket,
+          'Board not found');
+      }
+    });
   }
 }

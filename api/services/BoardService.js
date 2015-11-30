@@ -17,6 +17,12 @@ boardService.destroy = function(boardId) {
   return Board.model.remove({boardId: boardId});
 };
 
+// find if a board exists
+boardService.exists = function(boardId) {
+  return Board.find({boardId: boardId}).limit(1)
+  .then((r) => (r.length > 0) ? true : false);
+};
+
 // find users
 boardService.getUsers = function(boardId) {
   return Board.model.findOne({boardId: boardId})
