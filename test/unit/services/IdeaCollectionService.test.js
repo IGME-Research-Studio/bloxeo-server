@@ -56,11 +56,12 @@ describe('IdeaCollectionService', function() {
       IdeaCollectionService.getAllIdeas('2', createdCollectionKey)
         .then((ideas) => {
           try {
-            expect(ideas.length).to.equal(3);
+            expect(ideas).to.have.length(3);
             expect(ideas).to.be.an('array');
             expect(ideas[0]).to.be.an('object');
-            expect(ideas[0]).to.have.property('content').and.be.a('string');
-            expect(ideas[0]).to.not.contain.keys(['user', '_id', 'boardId']);
+            expect(ideas[0]).to.have.property('content')
+              .and.be.a('string');
+            expect(ideas[0]).to.have.keys(['content']);
             done();
           }
           catch (e) {
@@ -101,7 +102,8 @@ describe('IdeaCollectionService', function() {
         .then((collections) => {
           try {
             expect(collections).to.be.an('object');
-            expect(collections).to.have.property('collection1').and.be.an('object');
+            expect(collections).to.have.property('collection1')
+              .and.be.an('object');
             expect(collections.collection1).to.have.property('key')
               .and.equal('collection1');
             expect(collections.collection1).to.have.property('ideas')

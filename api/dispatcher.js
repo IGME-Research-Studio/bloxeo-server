@@ -112,12 +112,14 @@ const dispatcher = function(server) {
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
-    log.info(INT_EVENTS.BROADCAST, req.event, req.boardId);
+    log.info(INT_EVENTS.BROADCAST, req.event);
+    log.info('\t', JSON.stringify(req.res, null, 2));
     io.in(req.boardId).emit(req.event, req.res);
   });
 
   stream.on(INT_EVENTS.EMIT_TO, (req) => {
-    log.info(INT_EVENTS.EMIT_TO, req.event, req.socket.id);
+    log.info(INT_EVENTS.EMIT_TO, req.event);
+    log.info('\t', JSON.stringify(req.res, null, 2));
     io.to(req.socket.id).emit(req.event, req.res);
   });
 
