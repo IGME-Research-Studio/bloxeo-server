@@ -43,16 +43,20 @@ const schema = new mongoose.Schema({
 // Middleware
 schema.pre('save', function(next) {
   const self = this;
-  const savedArrayLength = this.ideas.length;
 
-  // Remove duplicates from the ideas array
-  const uniqueArray = _.uniq(this.ideas, 'content');
-  if (savedArrayLength !== uniqueArray.length) {
-    self.invalidate('ideas', 'Idea collections must have unique ideas');
-    next(new Error('Idea collections must have unique ideas'));
+  if (this.isNew) {
+    next();
   }
   else {
-    next();
+    // Remove duplicates from the ideas array
+    const uniqueArray = _.uniq(this.ideas, 'content');
+    if (this.ideas.length !== uniqueArray.length) {
+      self.invalidate('ideas', 'Idea collections must have unique ideas');
+      next(new Error('Idea collections must have unique ideas'));
+    }
+    else {
+      next();
+    }
   }
 });
 
