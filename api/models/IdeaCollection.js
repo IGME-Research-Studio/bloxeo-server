@@ -5,6 +5,7 @@
 
 import mongoose from 'mongoose';
 import shortid from 'shortid';
+import _ from 'lodash';
 
 const schema = new mongoose.Schema({
   key: {
@@ -37,6 +38,22 @@ const schema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'User',
   },
+});
+
+// Middleware
+schema.pre('save', function(next) {
+  const self = this;
+  const savedArrayLength = this.ideas.length;
+
+  // Remove duplicates from the ideas array
+  const uniqueArray = _.uniq(this.ideas, 'content');
+  if (savedArrayLength !== uniqueArray.length) {
+    self.invalidate('ideas', 'Idea collections must have unique ideas');
+    next(new Error('Idea collections must have unique ideas'));
+  }
+  else {
+    next();
+  }
 });
 
 // statics
