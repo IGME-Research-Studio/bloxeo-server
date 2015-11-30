@@ -154,20 +154,79 @@ describe('IdeaCollectionService', function() {
   });
 
   describe('#addIdea()', () => {
+    let key;
 
-    xit('Should add an idea to an idea collection', () => {
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board', {boardId: '1'}),
+        monky.create('Idea', {boardId: '1', content: 'idea1'}),
+        monky.create('Idea', {boardId: '1', content: 'idea2'}),
+      ])
+      .then(() => {
+        IdeaCollectionService.create('1', 'idea1')
+        .then((result) => {
+          key = Object.keys(result)[0];
+          done();
+        });
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('Should add an idea to an idea collection', (done) => {
+      IdeaCollectionService.addIdea('1', key, 'idea2').then(done());
+    });
+
+    it('Should reject adding a duplicate idea to an exiting idea collection', (done) => {
+      expect(IdeaCollectionService.addIdea('1', key, 'idea1')).to.be.rejected.notify(done);
     });
   });
 
   describe('#removeIdea()', () => {
+    let key;
 
-    xit('Should remove an idea from an idea collection', () => {
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board', {boardId: '1'}),
+        monky.create('Idea', {boardId: '1', content: 'idea1'}),
+      ])
+      .then(() => {
+        IdeaCollectionService.create('1', 'idea1')
+        .then((result) => {
+          key = Object.keys(result)[0];
+          done();
+        });
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('Should remove an idea from an idea collection', (done) => {
+      IdeaCollectionService.removeIdea('1', key, 'idea1').then(done());
     });
   });
 
   describe('#destroy()', () => {
+    let key;
 
-    xit('destroy an idea collection', () => {
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board', {boardId: '1'}),
+        monky.create('Idea', {boardId: '1', content: 'idea1'}),
+      ])
+      .then(() => {
+        IdeaCollectionService.create('1', 'idea1')
+        .then((result) => {
+          key = Object.keys(result)[0];
+          done();
+        });
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('destroy an idea collection', (done) => {
+      IdeaCollectionService.destroy('1', key).then(done());
     });
   });
 });

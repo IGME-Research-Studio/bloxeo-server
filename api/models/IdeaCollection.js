@@ -49,7 +49,9 @@ schema.pre('save', function(next) {
   }
   else {
     // Remove duplicates from the ideas array
-    const uniqueArray = _.uniq(this.ideas, 'content');
+    const uniqueArray = _.uniq(this.ideas, function(idea) {
+      return String(idea);
+    });
     if (this.ideas.length !== uniqueArray.length) {
       self.invalidate('ideas', 'Idea collections must have unique ideas');
       next(new Error('Idea collections must have unique ideas'));
