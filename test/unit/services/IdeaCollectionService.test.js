@@ -153,6 +153,53 @@ describe('IdeaCollectionService', function() {
     });
   });
 
+  describe('#updateIdeaCollection(boardId, key, content)', () => {
+
+    beforeEach((done) => {
+      // create 2 boards and 2 collections
+      const updateObj = {draggable: false};
+
+      Promise.all([
+        monky.create('Board', {boardId: '5'}),
+        Promise.all([
+          monky.create('Idea'),
+          monky.create('Idea'),
+          monky.create('Idea'),
+        ])
+        .then((allIdeas) => monky.create('IdeaCollection',
+              { ideas: allIdeas, key: 'collection1' })),
+      ])
+      .then(() => {
+        IdeaCollectionService.updateIdeaCollection('5', 'collection1', updateObj);
+        done();
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('should update draggable to false', (done) => {
+      IdeaCollectionService.getIdeaCollections('2')
+        .then((collections) => {
+          try {
+            expect(collections).to.be.an('object');
+            expect(collections).to.have.property('collection1')
+              .and.be.an('object');
+            expect(collections.collection1).to.have.property('key')
+              .and.equal('collection1');
+            expect(collections.collection1).to.have.property('ideas')
+              .and.be.an('array')
+              .and.have.length(3);
+            expect(collection.collection1).to.have.property('draggable')
+              .and.equal(false);
+            done();
+          }
+          catch (e) {
+            done(e);
+          }
+        });
+    });
+  });
+
   describe('#addIdea()', () => {
 
     xit('Should add an idea to an idea collection', () => {

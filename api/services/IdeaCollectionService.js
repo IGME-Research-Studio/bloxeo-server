@@ -85,6 +85,15 @@ ideaCollectionService.removeIdea = function(boardId, key, content) {
   return ideaCollectionService.changeIdeas('remove', boardId, key, content);
 };
 
+ideaCollectionService.updateIdeaCollection = function(boardId, key, content) {
+  return IdeaCollection.findOneAndUpdate({boardId: boardId, key: key}, content, {'new': true}, function(err) {
+    if (err) {
+      errorHander(err);
+    }
+    return ideaCollectionService.getAllIdeas(boardId, key);
+  });
+};
+
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
