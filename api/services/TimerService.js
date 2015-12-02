@@ -5,7 +5,7 @@
 */
 const RedisService = require('./RedisService');
 const timerService = {};
-const iDExtenstion = 'Timer_ID';
+const iDExtenstion = '-Timer';
 
 /**
 * Returns a promise containing a boolean if the timer started correctly
