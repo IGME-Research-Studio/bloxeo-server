@@ -11,10 +11,11 @@ const ideaCollectionService = {};
  * @param {String} content - the content of an Idea to create the collection
  * @returns {Promise} resolves to all collections on a board
  */
-ideaCollectionService.create = function(boardId, content) {
+ideaCollectionService.create = function(userId, boardId, content) {
 
   return Idea.findOne({boardId: boardId, content: content})
-  .then((idea) => new IdeaCollection({boardId: boardId, ideas: [idea.id]}).save())
+  .then((idea) => new IdeaCollection({lastUpdatedId: userId, boardId: boardId,
+                                     ideas: [idea.id]}).save())
   .then(() => ideaCollectionService.getIdeaCollections(boardId))
   .catch(errorHandler);
 };

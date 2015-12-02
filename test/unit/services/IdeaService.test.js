@@ -17,8 +17,12 @@ const monky = new Monky(mongoose);
 
 mongoose.model('Board', require('../../../api/models/Board.js').schema);
 mongoose.model('Idea', require('../../../api/models/Idea.js').schema);
+mongoose.model('User', require('../../../api/models/User.js').schema);
+
 monky.factory('Board', {boardId: '1'});
-monky.factory('Idea', {boardId: '1', content: 'idea number #n'});
+monky.factory('User', {username: 'brapnis#n'});
+monky.factory('Idea', {boardId: '1', content: 'idea number #n',
+                       userId: monky.ref('User')});
 
 describe('IdeaService', function() {
 
@@ -60,7 +64,7 @@ describe('IdeaService', function() {
             expect(ideas).to.be.an('array');
             expect(ideas[0]).to.be.an('object');
             expect(ideas[0]).to.have.property('content').and.be.a('string');
-            expect(ideas[0]).to.not.contain.keys(['user', '_id', 'boardId']);
+            expect(ideas[0]).to.not.contain.keys(['userId', '_id', 'boardId']);
             done();
           }
           catch (e) {
@@ -70,10 +74,12 @@ describe('IdeaService', function() {
     });
   });
 
-  describe('#create(user, boardId, ideaContent)', () => {
+  describe('#create(userId, boardId, ideaContent)', () => {
+    let USER_ID;
 
     beforeEach((done) => {
       Promise.all([
+        monky.create('User').then((user) => {USER_ID = user._id; return user;}),
         monky.create('Board'),
         monky.create('Board', {boardId: 2}),
         monky.create('Idea', {content: '1'}),
@@ -86,23 +92,23 @@ describe('IdeaService', function() {
     afterEach((done) => clearDB(done));
 
     it('should not create duplicates on a board and throw correct validation error', (done) => {
-      expect(IdeaService.create(null, '1', '1'))
+      expect(IdeaService.create(USER_ID, '1', '1'))
         .to.be.rejectedWith(/content must be unique/).notify(done);
     });
 
     it('should allow duplicates on different boards', (done) => {
-      expect(IdeaService.create(null, '2', '1'))
+      expect(IdeaService.create(USER_ID, '2', '1'))
         .to.not.be.rejected.notify(done);
     });
 
     it('should return all the ideas in the correct format to send back to client', (done) => {
-      IdeaService.create(null, '1', 'blah')
+      IdeaService.create(USER_ID, '1', 'blah')
         .then((ideas) => {
           try {
             expect(ideas).to.be.an('array');
             expect(ideas[0]).to.be.an('object');
             expect(ideas[0]).to.have.property('content').and.be.a('string');
-            expect(ideas[0]).to.not.contain.keys(['user', '_id', 'boardId']);
+            expect(ideas[0]).to.not.contain.keys(['userId', '_id', 'boardId']);
             done();
           }
           catch (e) {
@@ -149,7 +155,7 @@ describe('IdeaService', function() {
             expect(ideas).to.be.an('array');
             expect(ideas[0]).to.be.an('object');
             expect(ideas[0]).to.have.property('content').and.be.a('string');
-            expect(ideas[0]).to.not.contain.keys(['user', '_id', 'boardId']);
+            expect(ideas[0]).to.not.contain.keys(['userId', '_id', 'boardId']);
             done();
           }
           catch (e) {
