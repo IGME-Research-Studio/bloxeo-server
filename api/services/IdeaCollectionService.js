@@ -64,7 +64,7 @@ ideaCollectionService.destroyByKey = function(boardId, key) {
 
 /**
 */
-ideaCollectionService.destroy = function(collection){
+ideaCollectionService.destroy = function(collection) {
 
   return collection.remove()
   .then(() => ideaCollectionService.getIdeaCollections(boardId))
