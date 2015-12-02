@@ -19,7 +19,7 @@ boardService.destroy = function(boardId) {
 
 // find if a board exists
 boardService.exists = function(boardId) {
-  return Board.find({boardId: boardId}).limit(1)
+  return Board.model.find({boardId: boardId}).limit(1)
   .then((r) => (r.length > 0) ? true : false);
 };
 
