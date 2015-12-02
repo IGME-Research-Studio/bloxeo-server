@@ -71,6 +71,20 @@ self.findBoard = function(boardId) {
 };
 
 /**
+ * Find boards for user
+ * @param {String} username
+ * @returns {Promise<[MongooseObjects]|Error>} Boards for the given user
+ */
+self.getBoardsForUser = function(userId) {
+  return Board.model.find({})
+  .where('users')
+  .elemMatch((elem) => {
+    elem.where('users', userId);
+  })
+  .then((boards) => boards);
+};
+
+/**
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists

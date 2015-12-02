@@ -69,19 +69,9 @@ const schema = new mongoose.Schema({
       ref: 'User',
     },
   ],
-
-  // @TODO implement along with private rooms
-  // pendingUsers: [
-  //   {
-  //     type: mongoose.Schema.ObjectId,
-  //     ref: 'User',
-  //   },
-  // ],
 });
 
 schema.post('remove', function(next) {
-  // @TODO remove from cache
-
   // Remove all models that depend on the removed Board
   IdeaCollection.model.remove({boardId: this.boardId})
   .then(() => Idea.model.remove({boardId: this.boardId}))
