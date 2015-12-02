@@ -25,7 +25,7 @@ const database = (cb) => {
 
   mongoose.connection.on('error', (err) => log.error(err));
   mongoose.connection.once('open', () => {
-    log.verbose('Connected to Mongoose');
+    log.info(`Connected to Mongoose ${CFG.mongoURL}`);
     if (cb) cb();
   });
 
