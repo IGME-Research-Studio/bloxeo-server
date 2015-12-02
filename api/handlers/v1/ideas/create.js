@@ -25,7 +25,7 @@ export default function create(req) {
       'Not all required parameters were supplied');
   }
   else {
-    // @todo pass user along
+    // @TODO pass user along
     createIdea(null, boardId, content)
       .then((ideas) => stream.created(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,

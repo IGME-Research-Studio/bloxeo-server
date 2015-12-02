@@ -1,27 +1,36 @@
 /**
 * UserService: contains actions related to users and boards.
+*
+* @file Contains logic for User related actions
+* @module UserService api/services/UserService
 */
-const User = require('../models/User');
-const tokenService = require('./TokenService');
+
+import tokenService from './TokenService';
+import { model as User } from '../models/Idea.js';
+import { toClient, errorHandler } from '../services/utils';
+
 const userService = {};
 
-// Create a user in the database
-// partial stub to test JWT
-userService.create = function() {
-
-  const tokenData = {
-    'name': 'vader',
-  };
-  const token = tokenService.generateNewToken(tokenData);
-
-  return token;
+/**
+ * Create a user from the database
+ * @param {String} username
+ * @returns {Promise}
+ */
+userService.create = function(username) {
+  return new User({username: username}).save()
+  .then((user) => tokenService.generateNewToken(user))
+  .then(toClient)
+  .catch(errorHandler);
 };
 
-// Remove a user from the database
-// stub
+/**
+ * Remove a user from the database
+ * @param {String} userId - mongoId of the user
+ * @returns {Promise}
+ */
 userService.destroy = function(userId) {
 
-  return User.model.remove({userId: userId});
+  return User.model.remove({userId: userId}).save();
 };
 
-module.exports = userService;
+export default userService;

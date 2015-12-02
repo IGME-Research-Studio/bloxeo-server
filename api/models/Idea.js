@@ -20,7 +20,7 @@ const schema = new mongoose.Schema({
   },
 
   // Who created the idea, used for color coding the ideas
-  user: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     // required: true,
     ref: 'User',

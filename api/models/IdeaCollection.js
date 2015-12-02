@@ -40,8 +40,9 @@ const schema = new mongoose.Schema({
   },
 
   // Last user to have modified the collection
-  lastUpdated: {
+  lastUpdatedId: {
     type: mongoose.Schema.ObjectId,
+    required: true,
     ref: 'User',
   },
 });

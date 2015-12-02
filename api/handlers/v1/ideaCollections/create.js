@@ -29,7 +29,8 @@ export default function create(req) {
       'Not all required parameters were supplied');
   }
   else {
-    createCollection(boardId, content)
+    // @TODO pass user along
+    createCollection(null, boardId, content)
       .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                                _.merge({top: top, left: left}, res), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
