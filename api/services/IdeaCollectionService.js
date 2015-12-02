@@ -2,6 +2,8 @@ import _ from 'lodash';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import { model as Idea } from '../models/Idea';
 import { toClient, errorHandler } from '../services/utils';
+import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import stream from '../../../event-stream';
 
 const ideaCollectionService = {};
 
@@ -27,11 +29,20 @@ ideaCollectionService.create = function(boardId, content) {
  * @todo Potentially want to add a userId to parameters track who destroyed the
  * idea collection model
  */
-ideaCollectionService.destroy = function(boardId, key) {
+ideaCollectionService.destroyByKey = function(boardId, key) {
 
   return IdeaCollection.findOne({boardId: boardId, key: key})
-  .then((collection) => collection.remove())
+  .then((collection) => ideaCollectionService.destroy(collection))
+  .catch(errorHandler);
+};
+
+/**
+*/
+ideaCollectionService.destroy = function(collection){
+
+  return collection.remove()
   .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, collection.boardId))
   .catch(errorHandler);
 };
 
