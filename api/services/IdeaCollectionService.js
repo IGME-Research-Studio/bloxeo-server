@@ -55,11 +55,19 @@ ideaCollectionService.createFromResult = function(result) {};
  * @todo Potentially want to add a userId to parameters track who destroyed the
  * idea collection model
  */
-ideaCollectionService.destroy = function(boardId, key) {
+ideaCollectionService.destroyByKey = function(boardId, key) {
 
   return ideaCollectionService.findByKey(boardId, key)
   .then((collection) => collection.remove())
   .then(() => ideaCollectionService.getIdeaCollections(boardId));
+};
+
+/**
+*/
+ideaCollectionService.destroy = function(collection){
+
+  return collection.remove()
+  .then(() => ideaCollectionService.getIdeaCollections(boardId))
 };
 
 /**
