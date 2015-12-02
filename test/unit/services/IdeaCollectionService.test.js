@@ -213,6 +213,14 @@ describe('IdeaCollectionService', function() {
       expect(IdeaCollectionService.removeIdea('1', collectionWith1Idea, 'idea1'))
         .to.eventually.not.have.key(collectionWith1Idea);
     });
+
+    it('Should destroy an idea collection when it is empty', (done) => {
+      IdeaCollectionService.removeIdea('1', key, 'idea1')
+      .then((result) => {
+        expect(result).to.be.an('undefined');
+        done();
+      });
+    });
   });
 
   describe('#destroy()', () => {
@@ -227,9 +235,14 @@ describe('IdeaCollectionService', function() {
       });
     });
 
+    afterEach((done) => clearDB(done));
+
     it('destroy an idea collection', () => {
       return expect(IdeaCollectionService.destroy('1', DEF_COLLECTION_KEY))
       .to.be.eventually.become({});
+
+    it('destroy an idea collection by key', (done) => {
+      IdeaCollectionService.destroyByKey('1', key).then(done());
     });
   });
 });
