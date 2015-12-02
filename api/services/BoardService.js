@@ -38,4 +38,14 @@ boardService.getPendingUsers = function(boardId) {
   .exec((board) => board.pendingUsers);
 };
 
+// find boards for user
+boardService.getBoardsForUser = function(username) {
+  return Board.model.find({})
+  .populate('users', '-_id')
+  .where('users').elemMatch(function (elem) {
+    elem.where('username', username);
+  })
+  .exec(boards => boards);
+};
+
 module.exports = boardService;
