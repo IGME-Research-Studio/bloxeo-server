@@ -54,8 +54,13 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
     Idea.findOne({boardId: boardId, content: content}),
   ])
   .then(([collection, idea]) => {
-    collection.ideas[method](idea.id);
-    return collection.save();
+    if (operation.toLowerCase() === 'remove' && collection.ideas.length === 1) {
+      return collection.remove();
+    }
+    else {
+      collection.ideas[method](idea.id);
+      return collection.save();
+    }
   })
   .then(() => ideaCollectionService.getAllIdeas(boardId, key))
   .catch(errorHandler);
