@@ -2,8 +2,8 @@ import _ from 'lodash';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import { model as Idea } from '../models/Idea';
 import { toClient, errorHandler } from '../services/utils';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import EXT_EVENTS from '../constants/EXT_EVENT_API';
+import stream from '../event-stream';
 
 const ideaCollectionService = {};
 
@@ -38,10 +38,10 @@ ideaCollectionService.destroyByKey = function(boardId, key) {
 
 /**
 */
-ideaCollectionService.destroy = function(collection){
+ideaCollectionService.destroy = function(collection) {
 
   return collection.remove()
-  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .then(() => ideaCollectionService.getIdeaCollections(collection.boardId))
   .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, collection.boardId))
   .catch(errorHandler);
 };
@@ -66,7 +66,7 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
   ])
   .then(([collection, idea]) => {
     if (operation.toLowerCase() === 'remove' && collection.ideas.length === 1) {
-      return IdeaCollectionService.destroy(collection);
+      return ideaCollectionService.destroy(collection);
     }
     else {
       collection.ideas[method](idea.id);
