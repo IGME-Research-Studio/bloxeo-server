@@ -10,7 +10,8 @@
     "lint": "grunt lint",
     "watch": "grunt watch",
     "mocha": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive",
-    "covers": "NODE_ENV=test istanbul cover _mocha -- --compilers=js:babel-core/register --recursive"
+    "covers": "NODE_ENV=test istanbul cover _mocha -- --compilers=js:babel-core/register --recursive",
+    "cleanup": "Node tasks/db_cleanup.js"
   },
   "main": "app.js",
   "repository": {
