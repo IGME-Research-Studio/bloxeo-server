@@ -31,7 +31,7 @@ export default function join(req) {
            `User with socket id ${socket.id} joined board ${boardId}`);
       }
       else {
-        stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket,
+        stream.notFound(EXT_EVENTS.JOINED_ROOM, {}, socket,
           'Board not found');
       }
     });
