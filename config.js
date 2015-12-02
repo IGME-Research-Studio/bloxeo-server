@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import log from 'winston';
 
 let mongoURL;
-switch (process.env.NODE_ENG) {
+switch (process.env.NODE_ENV) {
 case 'TEST':
 case 'test':
   mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/jails-test';
