@@ -104,14 +104,22 @@ service.getVoteList = function(boardId, userId) {
 */
 service.vote = function(boardId, userId, key, increment) {
   // find collection
-  // increment the vote if needed
+  return IdeaCollection.findOne({boardId: boardId, key: key})
+  .then((collection) => {
+    // increment the vote if needed
+    if (increment === true) {
+      collection.vote++;
+      return collection.save();
+    }
+  })
+  .then(() => {
+    // remove collection from users vote list
+      // fetch user's remaining collections to vote on from redis
+      // remove the collection from the list and set on redis
 
-  // remove collection from users vote list
-    // fetch user's remaining collections to vote on from redis
-    // remove the collection from the list and set on redis
-
-  // if it was the last collection for them to vote on
-    // setUserReady()
+    // if it was the last collection for them to vote on
+      // setUserReady()
+  });
 };
 
 /**
@@ -121,9 +129,14 @@ service.vote = function(boardId, userId, key, increment) {
 */
 service.getResults = function(boardId) {
   // fetch all results for the board
-  // map each round into an array
+  return Result.findOnBoard(boardId)
+  .then((results) => {
+    // map each round into an array
+    const rounds = [];
+    results.map((r) => rounds[r.round].push(r));
 
-  // return array
+    return rounds;
+  })
 };
 
 module.exports = service;
