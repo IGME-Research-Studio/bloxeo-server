@@ -24,6 +24,12 @@ const schema = new mongoose.Schema({
     trim: true,
   },
 
+  round: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
   users: [
     {
       type: mongoose.Schema.ObjectId,
