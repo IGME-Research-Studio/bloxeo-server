@@ -44,6 +44,9 @@ ideaCollectionService.create = function(userId, boardId, content) {
   }));
 };
 
+// add a collection back to the workspace
+ideaCollectionService.createFromResult = function(result) {};
+
 /**
  * Remove an IdeaCollection from a board then delete the model
  * @param {String} boardId
@@ -121,6 +124,11 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
   .then((collections) => _.indexBy(collections, 'key'));
+};
+
+// destroy duplicate collections
+ideaCollectionService.removeDuplicates = function(boardId, key) {
+  // return remaining collections after removing duplicates
 };
 
 module.exports = ideaCollectionService;
