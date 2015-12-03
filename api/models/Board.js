@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import shortid from 'shortid';
 import IdeaCollection from './IdeaCollection.js';
 import Idea from './Idea.js';
+import Result from './Result';
 
 const schema = new mongoose.Schema({
   isPublic: {
@@ -58,6 +59,7 @@ schema.post('remove', function(next) {
   // Remove all models that depend on the removed Board
   IdeaCollection.model.remove({boardId: this.boardId})
   .then(() => Idea.model.remove({boardId: this.boardId}))
+  .then(() => Result.model.remove({boardId: this.boardId}))
   .then(() => next());
 
   next();
