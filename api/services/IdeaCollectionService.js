@@ -112,5 +112,4 @@ ideaCollectionService.removeDuplicates = function(boardId) {
 };
 
 
-
 module.exports = ideaCollectionService;
