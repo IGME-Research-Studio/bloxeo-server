@@ -95,22 +95,6 @@ service.isUserReady = function(boardId, userId) {
   .then((ready) => ready === 1);
 };
 
-/**
-* @param {String} userId
-* @return {Promise}
-*/
-service.isUserReady = function(boardId, userId) {
-  // pull ready list from redis
-  // compare against connected users
-  const users = [];
-
-  // use Redis.sismember(key, val) to determine if a user is ready
-
-  // if all users are ready
-    // if board.state == creation - startVoting()
-    // if board.state == voting - finishVoting()
-};
-
 
 /**
 * Returns all remaming collections to vote on, if empty the user is done voting
