@@ -27,6 +27,12 @@ const schema = new mongoose.Schema({
     },
   ],
 
+  votes: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
   // whether the idea collection is draggable
   draggable: {
     type: Boolean,

@@ -19,6 +19,9 @@ ideaCollectionService.create = function(boardId, content) {
   .catch(errorHandler);
 };
 
+// add a collection back to the workspace
+ideaCollectionService.createFromResult = function(result) {};
+
 /**
  * Remove an IdeaCollection from a board then delete the model
  * @param {String} boardId
@@ -102,6 +105,12 @@ ideaCollectionService.getAllIdeas = function(boardId, key) {
   .then((collections) => toClient(collections.ideas))
   .catch(errorHandler);
 };
+
+// destroy duplicate collections
+ideaCollectionService.removeDuplicates = function(boardId, key) {
+  // return remaining collections after removing duplicates
+};
+
 
 
 module.exports = ideaCollectionService;
