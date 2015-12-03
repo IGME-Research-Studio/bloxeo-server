@@ -4,6 +4,11 @@
 * ending the voting state
 */
 
+import { model as Board } from '../models/Board';
+import { model as Result } from '../models/Result';
+import { model as IdeaCollection } from '../models/IdeaCollection';
+import IdeaCollectionService from './IdeaCollectionService';
+
 const service = {};
 
 /**
@@ -13,7 +18,12 @@ const service = {};
 */
 service.startVoting = function(boardId) {
   // increment the voting round on the board model
-  // remove duplicate collections
+  Board.findOne({boardId: boardId})
+  .then((b) => {
+    b.round++;
+    return b.save();
+  })  // remove duplicate collections
+  .then(() => IdeaCollectionService.removeDuplicates(boardId));
 };
 
 /**
@@ -22,8 +32,21 @@ service.startVoting = function(boardId) {
 * @return {Promise}
 */
 service.finishVoting = function(boardId) {
-  // send all collections to results
-  // destroy old collections
+  return Board.findOne({boardId:boardId})
+  .then((board) => board.round)
+  .then((round) => {
+    // send all collections to results
+    IdeaCollection.find({boardId: boardId})
+    .select('-_id -__v')
+    .then((collections) => {
+      collections.map((collection) => {
+        collection.round = round;
+        const r = new Result(collection);
+        return r.save();
+      });
+    })
+  }) // Destroy old idea collections
+  .then(() => IdeaCollection.remove({boardId: boardId}));
 };
 
 /**
