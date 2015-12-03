@@ -7,9 +7,12 @@
 import { model as Board } from '../models/Board';
 import { model as Result } from '../models/Result';
 import { model as IdeaCollection } from '../models/IdeaCollection';
+import Redis from './RedisService';
+import Promise from 'bluebird';
 import IdeaCollectionService from './IdeaCollectionService';
 
 const service = {};
+const keyPrefix = 'boardId-voting-';
 
 /**
 * Increments the voting round and removes duplicate collections
@@ -58,23 +61,45 @@ service.finishVoting = function(boardId) {
 */
 service.setUserReady = function(boardId, userId) {
   // in redis push UserId into ready list
-  // check ready status
+  return Redis.sadd(keyPrefix + 'ready', userId)
+  .then(() => service.isRoomReady(boardId));
 };
 
 /**
 * Check if all connected users are ready to move forward
 * @param {String} boardId
-* @param {String} userId
 * @return {Promise}
 */
-service.checkReadyStatus = function(boardId, userId) {
+service.isRoomReady = function(boardId) {
   // pull ready list from redis
   // compare against connected users
+  const users = [];
+
+  // use Redis.sismember(key, val) to determine if a user is ready
 
   // if all users are ready
     // if board.state == creation - startVoting()
     // if board.state == voting - finishVoting()
 };
+
+/**
+* Check if a connected user is ready to move forward
+* @param {String} boardId
+* @param {String} userId
+* @return {Promise}
+*/
+service.isUserReady = function(boardId, userId) {
+  // pull ready list from redis
+  // compare against connected users
+  const users = [];
+
+  // use Redis.sismember(key, val) to determine if a user is ready
+
+  // if all users are ready
+    // if board.state == creation - startVoting()
+    // if board.state == voting - finishVoting()
+};
+
 
 /**
 * Returns all remaming collections to vote on, if empty the user is done voting
@@ -83,7 +108,36 @@ service.checkReadyStatus = function(boardId, userId) {
 * @return {Array} remaining collections to vote on for a user
 */
 service.getVoteList = function(boardId, userId) {
-  // pull from redis the users remaining collections to vote on
+  // check if user's key exists
+  return Redis.exists(keyPrefix + 'userId')
+  .then((exists) => {
+    if (exists === 0) {
+      // check if the user is ready (done with voting)
+      return service.isUserReady(boardId, userId)
+      .then((ready) => {
+        if (ready) {
+          return [];
+        }
+
+        return IdeaCollection.findOnBoard('boardId')
+        .then((collections) => {
+          Redis.sadd(keyPrefix + 'userId', collections.map((c) => c.key);
+          return collections;
+        });
+      });
+    } else {
+      // pull from redis the users remaining collections to vote on
+      return Redis.smembers(keyPrefix + 'userId')
+      .then((keys) => {
+        return Promise.all(keys.map((k) => {
+          return IdeaCollection.findByKey(k);
+        }));
+      });
+    }
+  })
+
+
+
     // if key does not exist, then the user hasn't started voting yet
       // create and populate a list of all collections for the user, return it
 
