@@ -127,7 +127,7 @@ ideaCollectionService.getAllIdeas = function(boardId, key) {
 };
 
 // destroy duplicate collections
-ideaCollectionService.removeDuplicates = function(boardId, key) {
+ideaCollectionService.removeDuplicates = function(boardId) {
   // return remaining collections after removing duplicates
 };
 
