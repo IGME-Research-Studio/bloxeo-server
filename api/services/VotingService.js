@@ -9,6 +9,7 @@ import { model as Result } from '../models/Result';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import Redis from './RedisService';
 import Promise from 'bluebird';
+import _ from 'lodash';
 import IdeaCollectionService from './IdeaCollectionService';
 
 const service = {};
@@ -35,7 +36,7 @@ service.startVoting = function(boardId) {
 * @return {Promise}
 */
 service.finishVoting = function(boardId) {
-  return Board.findOne({boardId:boardId})
+  return Board.findOne({boardId: boardId})
   .then((board) => board.round)
   .then((round) => {
     // send all collections to results
@@ -47,7 +48,7 @@ service.finishVoting = function(boardId) {
         const r = new Result(collection);
         return r.save();
       });
-    })
+    });
   }) // Destroy old idea collections
   .then(() => IdeaCollection.remove({boardId: boardId}));
 };
@@ -71,15 +72,16 @@ service.setUserReady = function(boardId, userId) {
 * @return {Promise}
 */
 service.isRoomReady = function(boardId) {
-  // pull ready list from redis
-  // compare against connected users
-  const users = [];
-
-  // use Redis.sismember(key, val) to determine if a user is ready
-
-  // if all users are ready
-    // if board.state == creation - startVoting()
-    // if board.state == voting - finishVoting()
+  return Board.getConnectedUsers()
+  .then((users) => {
+    return users.map((u) => {
+      return service.isUserReady(boardId, u)
+      .then((isReady) => {
+        return {ready: isReady};
+      });
+    });
+  })
+  .then((states) => _.every(states, 'ready', true));
 };
 
 /**
@@ -89,15 +91,8 @@ service.isRoomReady = function(boardId) {
 * @return {Promise}
 */
 service.isUserReady = function(boardId, userId) {
-  // pull ready list from redis
-  // compare against connected users
-  const users = [];
-
-  // use Redis.sismember(key, val) to determine if a user is ready
-
-  // if all users are ready
-    // if board.state == creation - startVoting()
-    // if board.state == voting - finishVoting()
+  return Redis.sismember(keyPrefix + 'ready', userId)
+  .then((ready) => ready === 1);
 };
 
 
@@ -108,7 +103,6 @@ service.isUserReady = function(boardId, userId) {
 * @return {Array} remaining collections to vote on for a user
 */
 service.getVoteList = function(boardId, userId) {
-  // check if user's key exists
   return Redis.exists(keyPrefix + 'userId')
   .then((exists) => {
     if (exists === 0) {
@@ -121,31 +115,19 @@ service.getVoteList = function(boardId, userId) {
 
         return IdeaCollection.findOnBoard('boardId')
         .then((collections) => {
-          Redis.sadd(keyPrefix + 'userId', collections.map((c) => c.key);
+          Redis.sadd(keyPrefix + 'userId', collections.map((c) => c.key));
           return collections;
         });
       });
-    } else {
+    }
+    else {
       // pull from redis the users remaining collections to vote on
       return Redis.smembers(keyPrefix + 'userId')
       .then((keys) => {
-        return Promise.all(keys.map((k) => {
-          return IdeaCollection.findByKey(k);
-        }));
+        return Promise.all(keys.map((k) => IdeaCollection.findByKey(k)));
       });
     }
-  })
-
-
-
-    // if key does not exist, then the user hasn't started voting yet
-      // create and populate a list of all collections for the user, return it
-
-    // if the list is empty, the user has finished voting
-      // setUserReady()
-      // inform the client
-
-  // return the list
+  });
 };
 
 /**
@@ -163,16 +145,18 @@ service.vote = function(boardId, userId, key, increment) {
     // increment the vote if needed
     if (increment === true) {
       collection.vote++;
-      return collection.save();
+      collection.save(); // save async, don't hold up client
     }
-  })
-  .then(() => {
-    // remove collection from users vote list
-      // fetch user's remaining collections to vote on from redis
-      // remove the collection from the list and set on redis
 
-    // if it was the last collection for them to vote on
-      // setUserReady()
+    return Redis.srem(keyPrefix + userId, key)
+    .then(() => Redis.exists(keyPrefix + userId))
+    .then((exists) => {
+      if (exists === 0) {
+        return service.setUserReady(boardId, userId);
+      }
+
+      return true; // @NOTE what to return here? vote was successful
+    });
   });
 };
 
@@ -190,7 +174,7 @@ service.getResults = function(boardId) {
     results.map((r) => rounds[r.round].push(r));
 
     return rounds;
-  })
+  });
 };
 
 module.exports = service;
