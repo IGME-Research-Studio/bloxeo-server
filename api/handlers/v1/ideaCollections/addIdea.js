@@ -9,7 +9,7 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
-import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
+import { addIdea as addIdeaToCollection } from '../../../services/IdeaCollectionService';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
