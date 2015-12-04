@@ -5,8 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "pretest": "grunt lint",
-    "test": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive test/",
-    "unit-test": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive test/",
+    "test": "grunt test",
+    "unit-test": "grunt test",
     "lint": "grunt lint",
     "watch": "grunt watch",
     "mocha": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive",
