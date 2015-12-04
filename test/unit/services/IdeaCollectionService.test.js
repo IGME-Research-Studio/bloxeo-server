@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 import CFG from '../../../config';
 import database from '../../../api/services/database';
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService.js';
+import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
