@@ -28,9 +28,9 @@ export default function removeIdea(req) {
   }
   else {
     removeIdeaFromCollection(boardId, key, content)
-      .then((contents) => stream.ok(EXT_EVENTS.UPDATED_COLLECTION,
+      .then((contents) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                   {key: key, content: contents}, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.UPDATE_COLLECTION,
+      .catch((err) => stream.serverError(EXT_EVENTS.UPDATE_COLLECTIONS,
                                          err.message, socket));
   }
 }
