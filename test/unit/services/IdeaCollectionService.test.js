@@ -183,34 +183,35 @@ describe('IdeaCollectionService', function() {
   });
 
   describe('#removeIdea()', () => {
-    let key;
+    const collectionWith1Idea = '1';
+    const collectionWith2Ideas = '2';
 
     beforeEach((done) => {
       Promise.all([
         monky.create('Board', {boardId: '1'}),
         monky.create('Idea', {boardId: '1', content: 'idea1'}),
+        monky.create('Idea', {boardId: '1', content: 'idea2'}),
+        monky.create('IdeaCollection', {boardId: '1', content: 'idea1',
+                     key: collectionWith1Idea}),
+        monky.create('IdeaCollection', {boardId: '1', content: 'idea1',
+                     key: collectionWith2Ideas}),
       ])
       .then(() => {
-        IdeaCollectionService.create('1', 'idea1')
-        .then((result) => {
-          key = Object.keys(result)[0];
-          done();
-        });
+        IdeaCollectionService.addIdea('1', collectionWith2Ideas, 'idea2')
+        .then(done());
       });
     });
 
     afterEach((done) => clearDB(done));
 
-    it('Should remove an idea from an idea collection', (done) => {
-      IdeaCollectionService.removeIdea('1', key, 'idea1').then(done());
+    it('Should remove an idea from an idea collection', () => {
+      expect(IdeaCollectionService.removeIdea('1', collectionWith2Ideas, 'idea1'))
+        .to.eventually.have.length(1);
     });
 
-    it('Should destroy an idea collection when it is empty', (done) => {
-      IdeaCollectionService.removeIdea('1', key, 'idea1')
-      .then((result) => {
-        expect(result).to.be.an('undefined');
-        done();
-      });
+    it('Should destroy an idea collection when it is empty', () => {
+      expect(IdeaCollectionService.removeIdea('1', collectionWith1Idea, 'idea1'))
+        .to.eventually.not.have.key(collectionWith1Idea);
     });
   });
 
