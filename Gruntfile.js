@@ -1,3 +1,5 @@
+require('babel-core/register');
+
 module.exports = function (grunt) {
   'use strict';
 
@@ -12,21 +14,21 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
 
     eslint: {
-      target: jsFiles.concat(['!**/*.tmp.js'])
+      target: jsFiles.concat(['!**/*.tmp.js']),
     },
 
     mochaTest: {
       test: {
-        src: testFiles
-      }
+        src: testFiles,
+      },
     },
 
     watch: {
       js: {
         options: { spawn: false, },
         files: jsFiles,
-        tasks: ['default']
-      }
+        tasks: ['default'],
+      },
     },
   });
 
