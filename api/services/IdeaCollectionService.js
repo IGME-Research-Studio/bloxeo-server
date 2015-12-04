@@ -2,6 +2,8 @@ import _ from 'lodash';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import { model as Idea } from '../models/Idea';
 import { toClient, errorHandler } from '../services/utils';
+import EXT_EVENTS from '../constants/EXT_EVENT_API';
+import stream from '../event-stream';
 
 const ideaCollectionService = {};
 
@@ -27,11 +29,20 @@ ideaCollectionService.create = function(boardId, content) {
  * @todo Potentially want to add a userId to parameters track who destroyed the
  * idea collection model
  */
-ideaCollectionService.destroy = function(boardId, key) {
+ideaCollectionService.destroyByKey = function(boardId, key) {
 
   return IdeaCollection.findOne({boardId: boardId, key: key})
-  .then((collection) => collection.remove())
-  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .then((collection) => ideaCollectionService.destroy(collection))
+  .catch(errorHandler);
+};
+
+/**
+*/
+ideaCollectionService.destroy = function(collection) {
+
+  return collection.remove()
+  .then(() => ideaCollectionService.getIdeaCollections(collection.boardId))
+  .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, collection.boardId))
   .catch(errorHandler);
 };
 
@@ -54,10 +65,15 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
     Idea.findOne({boardId: boardId, content: content}),
   ])
   .then(([collection, idea]) => {
-    collection.ideas[method](idea.id);
-    return collection.save();
+    if (operation.toLowerCase() === 'remove' && collection.ideas.length === 1) {
+      return ideaCollectionService.destroy(collection);
+    }
+    else {
+      collection.ideas[method](idea.id);
+      return collection.save()
+      .then(() => ideaCollectionService.getAllIdeas(boardId, key));
+    }
   })
-  .then(() => ideaCollectionService.getAllIdeas(boardId, key))
   .catch(errorHandler);
 };
 
