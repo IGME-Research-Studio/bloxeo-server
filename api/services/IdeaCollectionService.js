@@ -2,8 +2,6 @@ import _ from 'lodash';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import { model as Idea } from '../models/Idea';
 import { toClient, errorHandler } from '../services/utils';
-import EXT_EVENTS from '../constants/EXT_EVENT_API';
-import stream from '../event-stream';
 
 const ideaCollectionService = {};
 
@@ -37,12 +35,13 @@ ideaCollectionService.destroyByKey = function(boardId, key) {
 };
 
 /**
+ * @param {IdeaCollection} collection - an already found mongoose collection
+ * @returns {Promis} - resolves to all the collections on the board
 */
 ideaCollectionService.destroy = function(collection) {
 
   return collection.remove()
   .then(() => ideaCollectionService.getIdeaCollections(collection.boardId))
-  .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, collection.boardId))
   .catch(errorHandler);
 };
 
@@ -71,7 +70,7 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
     else {
       collection.ideas[method](idea.id);
       return collection.save()
-      .then(() => ideaCollectionService.getAllIdeas(boardId, key));
+      .then(() => ideaCollectionService.getIdeaCollections(collection.boardId));
     }
   })
   .catch(errorHandler);

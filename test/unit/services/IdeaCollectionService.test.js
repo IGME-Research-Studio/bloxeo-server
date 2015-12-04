@@ -216,12 +216,9 @@ describe('IdeaCollectionService', function() {
         .to.eventually.not.have.key(collectionWith1Idea);
     });
 
-    it('Should destroy an idea collection when it is empty', (done) => {
-      IdeaCollectionService.removeIdea('1', key, 'idea1')
-      .then((result) => {
-        expect(result).to.be.an('undefined');
-        done();
-      });
+    it('Should destroy an idea collection when it is empty', () => {
+      expect(IdeaCollectionService.removeIdea('1', collectionWith1Idea, 'idea1'))
+        .to.eventually.not.have.key(collectionWith1Idea);
     });
   });
 
