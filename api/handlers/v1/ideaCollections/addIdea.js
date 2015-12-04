@@ -23,14 +23,14 @@ export default function addIdea(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(content) || isNull(key)) {
-    stream.badRequest(EXT_EVENTS.MODIFIED_COLLECTION, {}, socket,
+    stream.badRequest(EXT_EVENTS.UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
     addIdeaToCollection(boardId, key, content)
-      .then((contents) => stream.ok(EXT_EVENTS.MODIFIED_COLLECTION,
+      .then((contents) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                   {key: key, content: contents}, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.MODIFIED_COLLECTION,
+      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));
   }
 }
