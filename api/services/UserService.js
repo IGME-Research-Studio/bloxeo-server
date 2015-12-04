@@ -9,13 +9,12 @@ const userService = {};
 // partial stub to test JWT
 userService.create = function() {
 
-  console.log("hit user");
-  
   const tokenData = {
     'name': 'vader',
   };
-  tokenService.generateNewToken(tokenData);
-  return true;
+  const token = tokenService.generateNewToken(tokenData);
+
+  return token;
 };
 
 // Remove a user from the database
