@@ -153,6 +153,54 @@ describe('IdeaCollectionService', function() {
     });
   });
 
+  describe('#updateIdeaCollection(boardId, key, content, isVoting)', () => {
+
+    beforeEach((done) => {
+      // create 2 boards and 2 collections
+      const updateObj = {votes: 1};
+
+      Promise.all([
+        monky.create('Board', {boardId: '5'}),
+        Promise.all([
+          monky.create('Idea', {boardId: '5', content: 'idea 1'}),
+          monky.create('Idea', {boardId: '5', content: 'idea 1'}),
+          monky.create('Idea', {boardId: '5', content: 'idea 1'}),
+        ])
+        .then((allIdeas) => monky.create('IdeaCollection',
+              { boardId: '5', ideas: allIdeas, key: 'collection1'})),
+      ])
+      .then(() => {
+        IdeaCollectionService.updateIdeaCollection('5', 'collection1', updateObj, true);
+        done();
+      });
+    });
+
+    afterEach((done) => clearDB(done));
+
+    it('should update votes to 1', (done) => {
+      IdeaCollectionService.getIdeaCollections('5')
+        .then((collections) => {
+          console.log(collections.collection1);
+          try {
+            expect(collections).to.be.an('object');
+            expect(collections).to.have.property('collection1')
+              .and.be.an('object');
+            expect(collections.collection1).to.have.property('key')
+              .and.equal('collection1');
+            expect(collections.collection1).to.have.property('ideas')
+              .and.be.an('array')
+              .and.have.length(3);
+            expect(collections.collection1).to.have.property('votes')
+              .and.equal(1);
+            done();
+          }
+          catch (e) {
+            done(e);
+          }
+        });
+    });
+  });
+
   describe('#addIdea()', () => {
     let key;
 

@@ -85,6 +85,24 @@ ideaCollectionService.removeIdea = function(boardId, key, content) {
   return ideaCollectionService.changeIdeas('remove', boardId, key, content);
 };
 
+ideaCollectionService.updateIdeaCollection = function(boardId, key, content, isVoting) {
+  return IdeaCollection.findOne({boardId: boardId, key: key})
+  .then((collection) => {
+    if (isVoting) {
+      content.votes = collection.votes + 1;
+    }
+    // the below works by itself, but doesn't allow to increment the existing value
+    // but for some reason this isn't saving to the database when wrapped in a findOne
+    return IdeaCollection.findOneAndUpdate({boardId: boardId, key: key}, content, {'new': true}, function(err, updated) {
+      if (err) {
+        errorHander(err);
+      }
+      console.log(updated);
+      return updated;
+    });
+  });
+};
+
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
