@@ -14,10 +14,14 @@ const utils = {
     return JSON.parse(JSON.stringify(mongooseResult));
   },
 
+  toClientArrayOfObjects: (mongooseResult) => {
+    return JSON.parse(JSON.stringify(mongooseResult));
+  },
+
   errorHandler: (err) => {
-    log.error(err.message);
-    log.error(err.stack);
-    throw new Error(err);
+    // log.error(err.message);
+    // log.error(err.stack);
+    throw err;
   },
 };
 
