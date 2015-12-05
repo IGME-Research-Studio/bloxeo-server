@@ -64,7 +64,7 @@ ideaCollectionService.destroyByKey = function(boardId, key) {
 
 /**
  * @param {IdeaCollection} collection - an already found mongoose collection
- * @returns {Promis} - resolves to all the collections on the board
+ * @returns {Promise} - resolves to all the collections on the board
 */
 ideaCollectionService.destroy = function(collection) {
 
