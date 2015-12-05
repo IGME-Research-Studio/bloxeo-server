@@ -9,6 +9,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { destroy } from '../../../services/IdeaService';
+import { toClientArrOfObjs as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -26,7 +27,8 @@ export default function remove(req) {
   }
   else {
     destroy(boardId, content)
-      .then((ideas) => stream.ok(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
+      .then((allIdeas) => stream.ok(EXT_EVENTS.UPDATED_IDEAS,
+                                    strip(allIdeas), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
                                          err.message, socket));
   }

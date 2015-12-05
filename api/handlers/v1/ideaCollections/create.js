@@ -11,6 +11,7 @@
 import _ from 'lodash';
 import { isNull } from '../../../services/ValidatorService';
 import { create as createCollection } from '../../../services/IdeaCollectionService';
+import { toClientObjOfObjs as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -31,8 +32,12 @@ export default function create(req) {
   else {
     // @TODO pass user along
     createCollection(null, boardId, content)
-      .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
-                               _.merge({top: top, left: left}, res), boardId))
+      .then(([created, allCollections) => {
+        stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
+                  _.merge({key: created.key, top: top, left: left},
+                          strip(allCollections)),
+                  boardId)
+      })
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));
   }

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import ideaService from './IdeaService';
-import { toClient, errorHandler } from './utils';
+import { errorHandler } from './utils';
 import { isNull } from './ValidatorService';
 
 const ideaCollectionService = {};
@@ -38,7 +38,7 @@ ideaCollectionService.create = function(userId, boardId, content) {
   return ideaService.findByContent(boardId, content)
   .then((idea) => new IdeaCollection({lastUpdatedId: userId, boardId: boardId,
                                      ideas: [idea.id]}).save())
-  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .then((created) => [created, ideaCollectionService.getIdeaCollections(boardId)])
   .catch(errorHandler);
 };
 
@@ -124,7 +124,6 @@ ideaCollectionService.removeIdea = function(boardId, key, content) {
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
-  .then(toClient)
   .then((collections) => _.indexBy(collections, 'key'))
   .catch(errorHandler);
 };
@@ -136,7 +135,7 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 ideaCollectionService.getAllIdeas = function(boardId, key) {
 
   return ideaCollectionService.findByKey(boardId, key)
-  .then((collections) => toClient(collections.ideas))
+  .then((collections) => collections.ideas)
   .catch(errorHandler);
 };
 

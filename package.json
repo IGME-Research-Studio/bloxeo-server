@@ -64,6 +64,8 @@
     "mocha-mongoose": "^1.1.1",
     "mongodb": "^2.0.49",
     "monky": "^0.6.8",
+    "sinon": "^1.17.2",
+    "sinon-chai": "^2.8.0",
     "socket.io-client": "^1.3.7",
     "supertest": "^1.1.0"
   }
