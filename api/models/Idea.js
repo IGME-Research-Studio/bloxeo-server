@@ -51,9 +51,28 @@ schema.pre('save', function(next) {
   });
 });
 
+// statics
+/**
+ * Find a single idea identified by its content string and boardId
+ * @param {String} boardId
+ * @param {String} content
+ * @returns {Promise} - resolves to a single mongoose idea
+ */
+schema.statics.findByContent = function(boardId, content) {
+  return this.findOne({boardId: boardId, content: content})
+  .select('content userId -_id')
+  .exec();
+};
+
+/**
+ * Find all ideas associated with a given board
+ * @param {String} boardId
+ * @returns {Promise} - resolves to an array of idea mongoose objects with just
+ * the content and userId properties
+ */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('content -_id')
+  .select('content userId -_id')
   .exec();
 };
 
