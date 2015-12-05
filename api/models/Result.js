@@ -5,7 +5,6 @@
 
 import mongoose from 'mongoose';
 import shortid from 'shortid';
-import _ from 'lodash';
 
 const schema = new mongoose.Schema({
   key: {
