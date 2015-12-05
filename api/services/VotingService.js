@@ -22,7 +22,7 @@ const keyPrefix = 'boardId-voting-';
 */
 service.startVoting = function(boardId) {
   // increment the voting round on the board model
-  Board.findOne({boardId: boardId})
+  return Board.findOne({boardId: boardId})
   .then((b) => {
     b.round++;
     return b.save();
@@ -40,12 +40,15 @@ service.finishVoting = function(boardId) {
   .then((board) => board.round)
   .then((round) => {
     // send all collections to results
-    IdeaCollection.find({boardId: boardId})
+    return IdeaCollection.find({boardId: boardId})
     .select('-_id -__v')
     .then((collections) => {
-      collections.map((collection) => {
-        collection.round = round;
-        const r = new Result(collection);
+      return collections.map((collection) => {
+        const r = new Result();
+        r.round = round;
+        r.ideas = collection.ideas;
+        r.votes = collection.votes;
+        r.boardId = boardId;
         return r.save();
       });
     });
