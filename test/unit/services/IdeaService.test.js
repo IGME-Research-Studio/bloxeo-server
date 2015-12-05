@@ -6,7 +6,7 @@ import Promise from 'bluebird';
 
 import CFG from '../../../config';
 import database from '../../../api/services/database';
-import IdeaService from '../../../api/services/IdeaService.js';
+import IdeaService from '../../../api/services/IdeaService';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;

@@ -1,4 +1,7 @@
 import log from 'winston';
+import _ from 'lodash';
+
+const clientOmit = (obj) => _.omit(obj, '_id');
 
 const utils = {
   /**
@@ -14,8 +17,31 @@ const utils = {
     return JSON.parse(JSON.stringify(mongooseResult));
   },
 
-  toClientArrayOfObjects: (mongooseResult) => {
-    return JSON.parse(JSON.stringify(mongooseResult));
+  /**
+   * {_id: 1} => {}
+   * @param {MongooseObject} mongooseResult
+   * @return {Object}
+   */
+  toClientObj: (mongooseResult) => {
+    return clientOmit(utils.toClient(mongooseResult));
+  },
+
+  /**
+   * [{_id: 1}, {_id: 2}] => [{}, {}]
+   * @param {MongooseObject} mongooseResult
+   * @return {Object}
+   */
+  toClientArrOfObjs: (mongooseResult) => {
+    return _.map(utils.toClient(mongooseResult), clientOmit);
+  },
+
+  /**
+   * {1: {_id: 1}, 2: {_id: 2}} => {1: {}, 2: {}}
+   * @param {MongooseObject} mongooseResult
+   * @return {Object}
+   */
+  toClientObjOfObjs: (mongooseResult) => {
+    return _.mapValues(utils.toClient(mongooseResult), clientOmit);
   },
 
   errorHandler: (err) => {
