@@ -10,6 +10,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
+import { toClientObjOfObjs as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -29,7 +30,7 @@ export default function addIdea(req) {
   else {
     addIdeaToCollection(boardId, key, content)
       .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
-                                          allCollections, boardId))
+                                          strip(allCollections), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));
   }

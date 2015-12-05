@@ -6,7 +6,7 @@
  */
 
 import { model as Idea } from '../models/Idea.js';
-import { toClient, errorHandler } from './utils';
+import { errorHandler } from './utils';
 import { isNull } from './ValidatorService';
 
 const ideaService = {};
@@ -69,7 +69,6 @@ ideaService.findByContent = function(boardId, ideaContent) {
 
 ideaService.getIdeas = function(boardId) {
   return Idea.findOnBoard(boardId)
-  .then(toClient)
   .catch(errorHandler);
 };
 

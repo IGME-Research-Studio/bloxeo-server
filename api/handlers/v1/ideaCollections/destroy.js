@@ -9,6 +9,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { destroy as removeCollection } from '../../../services/IdeaCollectionService';
+import { toClientObjOfObjs as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -26,7 +27,8 @@ export default function destroy(req) {
   }
   else {
     removeCollection(boardId, key)
-      .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, boardId))
+      .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
+                                          strip(allCollections), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));
   }

@@ -9,6 +9,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { create as createIdea } from '../../../services/IdeaService';
+import { toClientArrOfObjs as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -27,7 +28,8 @@ export default function create(req) {
   else {
     // @TODO pass user along
     createIdea(null, boardId, content)
-      .then((ideas) => stream.created(EXT_EVENTS.UPDATED_IDEAS, ideas, boardId))
+      .then((allIdeas) => stream.created(EXT_EVENTS.UPDATED_IDEAS,
+                                         strip(allIdeas), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
                                          err.message, socket));
   }

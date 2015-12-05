@@ -8,6 +8,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { getIdeaCollections } from '../../../services/IdeaCollectionService';
+import { toClientObjOfObjs as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -24,8 +25,8 @@ export default function index(req) {
   }
   else {
     getIdeaCollections(boardId)
-      .then((collections) => stream.ok(EXT_EVENTS.RECEIVED_COLLECTIONS,
-                                       collections, boardId))
+      .then((allCollections) => stream.ok(EXT_EVENTS.RECEIVED_COLLECTIONS,
+                                          strip(allCollections), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_COLLECTIONS,
                                         err.message, socket));
   }
