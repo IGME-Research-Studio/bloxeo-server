@@ -26,7 +26,7 @@ export default function destroy(req) {
       'Not all required parameters were supplied');
   }
   else {
-    removeCollection(boardId, key)
+    return removeCollection(boardId, key)
       .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                                           strip(allCollections), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,

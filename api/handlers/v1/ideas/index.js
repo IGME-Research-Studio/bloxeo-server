@@ -24,7 +24,7 @@ export default function index(req) {
       'Not all required parameters were supplied');
   }
   else {
-    getIdeas(boardId)
+    return getIdeas(boardId)
       .then((allIdeas) => stream.ok(EXT_EVENTS.RECEIVED_IDEAS,
                                     strip(allIdeas), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_IDEAS,

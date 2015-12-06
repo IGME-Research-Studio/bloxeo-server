@@ -38,7 +38,11 @@ ideaCollectionService.create = function(userId, boardId, content) {
   return ideaService.findByContent(boardId, content)
   .then((idea) => new IdeaCollection({lastUpdatedId: userId, boardId: boardId,
                                      ideas: [idea.id]}).save())
-  .then((created) => [created, ideaCollectionService.getIdeaCollections(boardId)])
+  .then((created) => new Promise((fulfill, reject) => {
+    ideaCollectionService.getIdeaCollections(boardId)
+      .then((allCollections) => fulfill([created, allCollections]))
+      .catch((err) => reject(err));
+  }))
   .catch(errorHandler);
 };
 
@@ -101,7 +105,6 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
  */
 ideaCollectionService.addIdea = function(boardId, key, content) {
 
-  console.log('Hey add me', boardId, key, content);
   return ideaCollectionService.changeIdeas('add', boardId, key, content);
 };
 
@@ -126,22 +129,6 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
   return IdeaCollection.findOnBoard(boardId)
   .then((collections) => _.indexBy(collections, 'key'))
   .catch(errorHandler);
-};
-
-/**
- * Returns the content of each idea in an IdeaCollection
- * @deprecated
- */
-ideaCollectionService.getAllIdeas = function(boardId, key) {
-
-  return ideaCollectionService.findByKey(boardId, key)
-  .then((collections) => collections.ideas)
-  .catch(errorHandler);
-};
-
-// destroy duplicate collections
-ideaCollectionService.removeDuplicates = function(boardId) {
-  // return remaining collections after removing duplicates
 };
 
 module.exports = ideaCollectionService;
