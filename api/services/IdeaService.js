@@ -13,10 +13,13 @@ const ideaService = {};
 
 // Private
 const maybeThrowNotFound = (obj, boardId, content) => {
-  if (isNull(obj))
+  console.log('in maybe throw', content, obj)
+  if (isNull(obj)) {
     throw new Error(`Idea with content ${content} not found on board ${boardId}`);
-  else
+  }
+  else {
     return obj;
+  }
 };
 
 /**
@@ -64,6 +67,7 @@ ideaService.destroy = function(boardId, ideaContent) {
  */
 ideaService.findByContent = function(boardId, ideaContent) {
   return Idea.findByContent(boardId, ideaContent)
+  .tap((idea) => console.log(idea))
   .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent));
 };
 

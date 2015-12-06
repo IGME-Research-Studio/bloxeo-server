@@ -1,9 +1,13 @@
-import log from 'winston';
 import _ from 'lodash';
-
-const clientOmit = (obj) => _.omit(obj, '_id');
+// import log from 'winston';
 
 const utils = {
+  /**
+   * @param {String|Array} omitBy - keys to omit
+   * @param {Object} obj - object to omit from
+   */
+  cbOmit: (omitBy) => _.partialRight(_.omit, this, omitBy),
+
   /**
    * The results of Mongoose queries are objects which have a number of methods
    * that aren't relevant when we send them to client. The easiest way to get rid
@@ -22,8 +26,8 @@ const utils = {
    * @param {MongooseObject} mongooseResult
    * @return {Object}
    */
-  toClientObj: (mongooseResult) => {
-    return clientOmit(utils.toClient(mongooseResult));
+  strip: (mongooseResult, omitBy='_id') => {
+    return _.omit(utils.toClient(mongooseResult), omitBy);
   },
 
   /**
@@ -31,8 +35,8 @@ const utils = {
    * @param {MongooseObject} mongooseResult
    * @return {Object}
    */
-  toClientArrOfObjs: (mongooseResult) => {
-    return _.map(utils.toClient(mongooseResult), clientOmit);
+  stripArr: (mongooseResult, omitBy='_id') => {
+    return _.map(utils.toClient(mongooseResult), utils.cbOmit(omitBy));
   },
 
   /**
@@ -40,8 +44,24 @@ const utils = {
    * @param {MongooseObject} mongooseResult
    * @return {Object}
    */
-  toClientObjOfObjs: (mongooseResult) => {
-    return _.mapValues(utils.toClient(mongooseResult), clientOmit);
+  stripObjs: (mongooseResult, omitBy='_id') => {
+    return _.mapValues(utils.toClient(mongooseResult), utils.cbOmit(omitBy));
+  },
+
+  /**
+   * {1: {_id: 1, arrKey: [{_id: 2}]}} => {1: {arrKey: [{}]}}
+   */
+  stripObjsAndNestedArr: (mongooseResult, omitBy='_id', arrKey='ideas') => {
+    const strippedObjs = utils.stripObjs(mongooseResult, omitBy)
+    // console.log('STRIPPED OBJS:\n', JSON.stringify(strippedObjs, null, 2));
+    const stripped = _.mapValues(strippedObjs,
+                       (obj) => {
+                         obj[arrKey] = _.map(obj[arrKey], utils.cbOmit(omitBy))
+                         return obj;
+                       });
+    // console.log('FINAL:\n: ', JSON.stringify(stripped, null, 2));
+
+    return utils.toClient(stripped);
   },
 
   errorHandler: (err) => {

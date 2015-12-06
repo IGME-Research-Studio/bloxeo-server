@@ -27,7 +27,7 @@ export default function create(req) {
   }
   else {
     // @TODO pass user along
-    createIdea(null, boardId, content)
+    return createIdea(null, boardId, content)
       .then((allIdeas) => stream.created(EXT_EVENTS.UPDATED_IDEAS,
                                          strip(allIdeas), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,

@@ -31,12 +31,12 @@ export default function create(req) {
   }
   else {
     // @TODO pass user along
-    createCollection(null, boardId, content)
-      .then(([created, allCollections) => {
+    return createCollection(null, boardId, content)
+      .then(([created, allCollections]) => {
         stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                   _.merge({key: created.key, top: top, left: left},
                           strip(allCollections)),
-                  boardId)
+                  boardId);
       })
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));

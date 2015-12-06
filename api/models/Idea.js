@@ -60,7 +60,7 @@ schema.pre('save', function(next) {
  */
 schema.statics.findByContent = function(boardId, content) {
   return this.findOne({boardId: boardId, content: content})
-  .select('content userId -_id')
+  .select('content userId')
   .exec();
 };
 
@@ -72,7 +72,7 @@ schema.statics.findByContent = function(boardId, content) {
  */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('content userId -_id')
+  .select('content userId')
   .exec();
 };
 

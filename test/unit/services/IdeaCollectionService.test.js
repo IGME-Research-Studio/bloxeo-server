@@ -40,43 +40,6 @@ describe('IdeaCollectionService', function() {
     database(done);
   });
 
-  describe('#getAllIdeas(boardId, key)', () => {
-    let createdCollectionKey;
-
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board'),
-        Promise.all([
-          monky.create('Idea'),
-          monky.create('Idea'),
-          monky.create('Idea'),
-        ])
-        .then((allIdeas) => monky.create('IdeaCollection', { ideas: allIdeas })),
-        monky.create('Idea'),
-      ])
-      .then((res) => {
-        createdCollectionKey = res[1].key;
-        done();
-      });
-    });
-
-    afterEach((done) => clearDB(done));
-
-    it('should return all the ideas in a collection', (done) => {
-      expect(IdeaCollectionService.getAllIdeas(DEF_BOARDID, createdCollectionKey))
-        .to.be.fulfilled
-        .then((ideas) => {
-          expect(ideas).to.have.length(3);
-          expect(ideas).to.be.an('array');
-          expect(ideas[0]).to.be.an('object');
-          expect(ideas[0]).to.have.property('content')
-            .and.be.a('string');
-          expect(ideas[0]).to.have.keys(['content']);
-        })
-        .should.notify(done);
-    });
-  });
-
   describe('#getIdeaCollections(boardId)', () => {
 
     beforeEach((done) => {
@@ -166,12 +129,29 @@ describe('IdeaCollectionService', function() {
 
     afterEach((done) => clearDB(done));
 
-    it('Should create an IdeaCollection with a single existing Idea', (done) => {
+    it('Should create an IdeaCollection with a single existing Idea', () => {
       return expect(IdeaCollectionService.create(USER_ID, '4', 'idea 1'))
-      .to.be.fulfilled.then((collections) => {
-        expect(collections).to.be.an('object');
-        expect(_.keys(collections)).to.have.length(1);
-      }).should.notify(done);
+        .to.be.fulfilled
+        .then((collections) => {
+          const COLLECTION_KEY = _.keys(collections[1])[0]
+
+          expect(collections)
+            .to.be.an('array')
+            .and.have.length(2);
+
+          expect(collections[0])
+            .to.be.an('object');
+
+          expect(collections[1])
+            .to.be.an('object');
+
+          expect(collections[1][COLLECTION_KEY].ideas)
+            .to.have.length(1);
+
+          expect(collections[1][COLLECTION_KEY].ideas[0])
+            .to.be.an('object')
+            .and.have.property('content');
+        })
     });
 
     it('should not allow creating a collection with a non-existant idea', () => {

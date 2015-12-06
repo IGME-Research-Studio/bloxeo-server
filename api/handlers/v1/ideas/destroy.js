@@ -26,7 +26,7 @@ export default function remove(req) {
       'Not all required parameters were supplied');
   }
   else {
-    destroy(boardId, content)
+    return destroy(boardId, content)
       .then((allIdeas) => stream.ok(EXT_EVENTS.UPDATED_IDEAS,
                                     strip(allIdeas), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,

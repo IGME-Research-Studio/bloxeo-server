@@ -28,7 +28,7 @@ export default function removeIdea(req) {
       'Not all required parameters were supplied');
   }
   else {
-    removeIdeaFromCollection(boardId, key, content)
+    return removeIdeaFromCollection(boardId, key, content)
       .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                                           strip(allCollections), boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATE_COLLECTIONS,
