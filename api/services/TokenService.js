@@ -4,21 +4,16 @@
  * @file Contains logic for Token related actions
  * @module TokenService api/services/TokenService
  */
-const JWT = require('jsonwebtoken');
-const config = require('../../config').default.jwt;
+import jwt from 'jsonwebtoken';
+import CFG from '../../config';
 const tokenService = {};
 
-tokenService.generateNewToken = function(authData) {
-
-  return JWT.sign(
-    authData,
-    config.secret,
-    {'expiresIn': config.timeout});
+tokenService.encode = function(authData) {
+  return jwt.sign(authData, CFG.jwt.secret, {'expiresIn': CFG.jwt.timeout});
 };
 
-tokenService.authenticateToken = function(token) {
-
-  return JWT.verify(token, config.secret);
+tokenService.decode = function(token) {
+  return jwt.verify(token, CFG.jwt.secret);
 };
 
 module.exports = tokenService;

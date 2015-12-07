@@ -42,7 +42,7 @@ describe('UtilsService', () => {
 
       expect(utils.stripObjsAndNestedArr(TEST_NESTED_OBJ)[0])
       .to.not.contain.key('_id');
-      .and.to.have.property(
+
       console.log(JSON.stringify(utils.stripObjsAndNestedArr(TEST_NESTED_OBJ)[0], null, 2));
 
       expect(utils.stripObjsAndNestedArr(TEST_NESTED_OBJ)[0].content[0])

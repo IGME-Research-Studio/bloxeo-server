@@ -9,7 +9,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { create as createIdea } from '../../../services/IdeaService';
-import { toClientArrOfObjs as strip } from '../../../services/utils';
+import { stripArr as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -17,6 +17,7 @@ export default function create(req) {
   const socket = req.socket;
   const boardId = req.boardId;
   const content = req.content;
+  const userToken = req.userToken;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

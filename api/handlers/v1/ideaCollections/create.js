@@ -11,7 +11,7 @@
 import _ from 'lodash';
 import { isNull } from '../../../services/ValidatorService';
 import { create as createCollection } from '../../../services/IdeaCollectionService';
-import { toClientObjOfObjs as strip } from '../../../services/utils';
+import { stripObjsAndNestedArr as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -21,6 +21,7 @@ export default function create(req) {
   const content = req.content;
   const top = req.top;
   const left = req.left;
+  const userToken = req.userToken;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

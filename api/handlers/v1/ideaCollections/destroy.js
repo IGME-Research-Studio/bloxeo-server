@@ -9,7 +9,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { destroy as removeCollection } from '../../../services/IdeaCollectionService';
-import { toClientObjOfObjs as strip } from '../../../services/utils';
+import { stripObjsAndNestedArr as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -17,6 +17,7 @@ export default function destroy(req) {
   const socket = req.socket;
   const boardId = req.boardId;
   const key = req.key;
+  const userToken = req.userToken;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

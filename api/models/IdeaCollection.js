@@ -42,7 +42,7 @@ const schema = new mongoose.Schema({
   // Last user to have modified the collection
   lastUpdatedId: {
     type: mongoose.Schema.ObjectId,
-    required: true,
+    // required: true,
     ref: 'User',
   },
 });
@@ -79,8 +79,8 @@ schema.pre('save', function(next) {
  */
 schema.statics.findByKey = function(boardId, key) {
   return this.findOne({boardId: boardId, key: key})
-  .select('ideas key -_id')
-  .populate('ideas', 'content -_id')
+  .select('ideas key')
+  .populate('ideas', 'content')
   .exec();
 };
 
@@ -92,8 +92,8 @@ schema.statics.findByKey = function(boardId, key) {
  */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('ideas key -_id')
-  .populate('ideas', 'content -_id')
+  .select('ideas key')
+  .populate('ideas', 'content')
   .exec();
 };
 

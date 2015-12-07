@@ -13,7 +13,6 @@ const ideaService = {};
 
 // Private
 const maybeThrowNotFound = (obj, boardId, content) => {
-  console.log('in maybe throw', content, obj)
   if (isNull(obj)) {
     throw new Error(`Idea with content ${content} not found on board ${boardId}`);
   }
