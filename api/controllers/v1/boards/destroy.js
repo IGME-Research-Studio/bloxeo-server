@@ -6,12 +6,12 @@
  */
 
 import boardService from '../../../services/BoardService';
-import valid from '../../../services/ValidatorService';
+import { isNull } from '../../../services/ValidatorService';
 
 export default function destroy(req, res) {
   const boardId = req.param('boardId');
 
-  if (valid.isNull(boardId)) {
+  if (isNull(boardId)) {
     return res.badRequest(
       {message: 'Not all required parameters were supplied'});
   }

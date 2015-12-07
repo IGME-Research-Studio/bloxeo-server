@@ -1,5 +1,5 @@
 import _ from 'lodash';
-// import log from 'winston';
+import log from 'winston';
 
 const utils = {
   /**
@@ -65,8 +65,8 @@ const utils = {
   },
 
   errorHandler: (err) => {
-    // log.error(err.message);
-    // log.error(err.stack);
+    log.error(err.message);
+    log.error(err.stack);
     throw err;
   },
 };

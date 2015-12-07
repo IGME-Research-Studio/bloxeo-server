@@ -8,7 +8,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { getIdeas } from '../../../services/IdeaService';
-import { toClientArrOfObjs as strip } from '../../../services/utils';
+import { stripArr as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 

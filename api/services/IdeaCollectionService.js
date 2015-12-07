@@ -70,7 +70,7 @@ ideaCollectionService.destroy = function(boardId, key) {
  * @param {String} content - The content of an Idea to add or remove
  * @returns {Promise} - resolves to all the collections on the board
  */
-ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
+ideaCollectionService.changeIdeas = function(operation, userId, boardId, key, content) {
   let method;
   if (operation.toLowerCase() === 'add') method = 'push';
   else if (operation.toLowerCase() === 'remove') method = 'pull';
@@ -87,7 +87,7 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
     else {
       collection.ideas[method](idea.id);
       return collection.save()
-      .then(() => ideaCollectionService.getIdeaCollections(collection.boardId));
+      .then(() => ideaCollectionService.getIdeaCollections(boardId));
     }
   })
   .catch(errorHandler);
@@ -100,9 +100,9 @@ ideaCollectionService.changeIdeas = function(operation, boardId, key, content) {
  * @param {String} content - The content of an Idea to add
  * @returns {Promise} - resolves to all the collections on the board
  */
-ideaCollectionService.addIdea = function(boardId, key, content) {
+ideaCollectionService.addIdea = function(userId, boardId, key, content) {
 
-  return ideaCollectionService.changeIdeas('add', boardId, key, content);
+  return ideaCollectionService.changeIdeas('add', userId, boardId, key, content);
 };
 
 /**
@@ -124,7 +124,9 @@ ideaCollectionService.removeIdea = function(boardId, key, content) {
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
+  // .tap((collections) => console.log(collections))
   .then((collections) => _.indexBy(collections, 'key'))
+  .tap((collections) => console.log(collections))
   .catch(errorHandler);
 };
 

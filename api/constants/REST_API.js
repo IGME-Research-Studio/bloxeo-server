@@ -36,6 +36,8 @@ const REST_API = {
   createBoard: ['POST', '/v1/boards'],
   updateBoard: ['PATCH', '/v1/boards/<%= boardId %>'],
   deleteBoard: ['DELETE', '/v1/boards'],
+
+  createUser: ['POST', '/v1/users'],
 };
 
 module.exports = REST_API;
