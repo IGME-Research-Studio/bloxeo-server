@@ -6,6 +6,7 @@ import Promise from 'bluebird';
 import database from '../../../api/services/database';
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import VotingService from '../../../api/services/VotingService';
+import RedisService from '../../../api/services/RedisService';
 
 const expect = chai.expect;
 const mongoose = database();
@@ -24,6 +25,9 @@ mongoose.model('Result', require('../../../api/models/Result').schema);
 monky.factory('Board', {boardId: '1'});
 monky.factory('Idea', {boardId: '1', content: 'idea1'});
 monky.factory('IdeaCollection', {boardId: '1'});
+
+// TODO: TAKE OUT TESTS INVOLVING ONLY REDIS COMMANDS
+// TODO: USE STUBS ON MORE COMPLICATED FUNCTIONS WITH REDIS COMMANDS
 
 describe('VotingService', function() {
 
@@ -58,20 +62,16 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
-    it('Should increment round and remove duplicate collections', (done) => {
+    it('Should increment round', (done) => {
       VotingService.startVoting('1')
       .then(() => {
         return Board.findOne({boardId: '1'})
         .then((board) => {
           expect(board.round).to.equal(round + 1);
-          return IdeaCollectionService.getIdeaCollections('1');
-        })
-        .then((collections) => {
-          // Should be uncommented after IdeaCollectionServer.removeDuplicates is implemented
-          // expect(collections.length).to.equal(1);
           done();
         });
       });
@@ -100,6 +100,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
@@ -120,37 +121,30 @@ describe('VotingService', function() {
   });
 
   describe('#setUserReady(boardId, userId)', () => {
-    let round;
 
     beforeEach((done) => {
-      Promise.all([
-        monky.create('Board', {boardId: '1'})
-        .then((result) => {
-          round = result.round;
-        }),
-
-        Promise.all([
-          monky.create('Idea', {boardId: '1', content: 'idea1'}),
-          monky.create('Idea', {boardId: '1', content: 'idea2'}),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'def456'}),
-          ]);
-        }),
-      ])
+      monky.create('Board', {boardId: '1'})
       .then(() => {
         done();
       });
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
-    xit('Should push the user into the ready list in Redis', (done) => {
+    it('Should push the user into the ready list on Redis', (done) => {
+      let userId = 'abc123';
 
+      VotingService.setUserReady('1', userId)
+      .then(() => {
+        RedisService.sadd('1-voting-ready', userId)
+        .then((numKeysAdded) => {
+          expect(numKeysAdded).to.equal(1);
+          done();
+        });
+      });
     });
   });
 
@@ -186,35 +180,19 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
     xit('Should check if all connected users are ready to move forward', (done) => {
-
+      // Can't be implemented until Board.getConnectedUsers is implemented in Board model
     });
   });
 
   describe('#isUserReady(boardId, userId)', () => {
-    let round;
 
     beforeEach((done) => {
-      Promise.all([
-        monky.create('Board', {boardId: '1'})
-        .then((result) => {
-          round = result.round;
-        }),
-
-        Promise.all([
-          monky.create('Idea', {boardId: '1', content: 'idea1'}),
-          monky.create('Idea', {boardId: '1', content: 'idea2'}),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'def456'}),
-          ]);
-        }),
-      ])
+      monky.create('Board', {boardId: '1'})
       .then(() => {
         done();
       });
@@ -224,8 +202,17 @@ describe('VotingService', function() {
       clearDB(done);
     });
 
-    xit('Should check to see if connected user is ready to move forward', (done) => {
+    it('Should check to see if connected user is ready to move forward', (done) => {
+      let userId = 'def456';
 
+      VotingService.isUserReady('1', userId)
+      .then((isUserReady) => {
+        RedisService.sadd('1-voting-ready', userId)
+        .then(() => {
+          expect(isUserReady).to.be.true;
+          done();
+        });
+      });
     });
   });
 
@@ -256,6 +243,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
@@ -291,6 +279,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
@@ -326,6 +315,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
+      RedisService.flushAll();
       clearDB(done);
     });
 
