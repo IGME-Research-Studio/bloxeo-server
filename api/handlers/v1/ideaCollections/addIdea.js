@@ -28,8 +28,8 @@ export default function addIdea(req) {
   }
   else {
     addIdeaToCollection(boardId, key, content)
-      .then((contents) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
-                  {key: key, content: contents}, boardId))
+      .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
+                                          allCollections, boardId))
       .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));
   }
