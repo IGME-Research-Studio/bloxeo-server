@@ -1,13 +1,8 @@
 import _ from 'lodash';
+import R from 'ramda';
 import log from 'winston';
 
 const utils = {
-  /**
-   * @param {String|Array} omitBy - keys to omit
-   * @param {Object} obj - object to omit from
-   */
-  cbOmit: (omitBy) => _.partialRight(_.omit, this, omitBy),
-
   /**
    * The results of Mongoose queries are objects which have a number of methods
    * that aren't relevant when we send them to client. The easiest way to get rid
@@ -24,46 +19,46 @@ const utils = {
   /**
    * {_id: 1} => {}
    * @param {MongooseObject} mongooseResult
+   * @param {Array<String>} omitBy
    * @return {Object}
    */
-  strip: (mongooseResult, omitBy='_id') => {
-    return _.omit(utils.toClient(mongooseResult), omitBy);
+  strip: (mongooseResult, omitBy=['_id']) => {
+    return R.compose(R.omit(omitBy), utils.toClient)(mongooseResult);
   },
 
   /**
    * [{_id: 1}, {_id: 2}] => [{}, {}]
-   * @param {MongooseObject} mongooseResult
-   * @return {Object}
-   */
-  stripArr: (mongooseResult, omitBy='_id') => {
-    return _.map(utils.toClient(mongooseResult), utils.cbOmit(omitBy));
-  },
-
-  /**
+   * or
    * {1: {_id: 1}, 2: {_id: 2}} => {1: {}, 2: {}}
    * @param {MongooseObject} mongooseResult
+   * @param {Array<String>} omitBy
    * @return {Object}
    */
-  stripObjs: (mongooseResult, omitBy='_id') => {
-    return _.mapValues(utils.toClient(mongooseResult), utils.cbOmit(omitBy));
+  stripMap: (mongooseResult, omitBy=['_id']) => {
+    return R.compose(R.map(R.omit(omitBy)), utils.toClient)(mongooseResult);
   },
 
   /**
    * {1: {_id: 1, arrKey: [{_id: 2}]}} => {1: {arrKey: [{}]}}
+   * @param {MongooseObject} mongooseResult
+   * @param {Array<String>} omitBy
+   * @param {String} arrKey
+   * @return {Object}
    */
-  stripObjsAndNestedArr: (mongooseResult, omitBy='_id', arrKey='ideas') => {
-    const strippedObjs = utils.stripObjs(mongooseResult, omitBy)
-    // console.log('STRIPPED OBJS:\n', JSON.stringify(strippedObjs, null, 2));
-    const stripped = _.mapValues(strippedObjs,
-                       (obj) => {
-                         obj[arrKey] = _.map(obj[arrKey], utils.cbOmit(omitBy))
-                         return obj;
-                       });
-    // console.log('FINAL:\n: ', JSON.stringify(stripped, null, 2));
-
-    return utils.toClient(stripped);
+  stripNestedMap: (mongooseResult, omitBy=['_id'], arrKey='ideas') => {
+    const stripNested = (obj) => {
+      obj[arrKey] = R.map(R.omit(omitBy))(obj[arrKey])
+      return obj;
+    };
+    return R.compose(R.map(R.omit(omitBy)),
+                     R.map(stripNested),
+                     utils.toClient)(mongooseResult);
   },
 
+  /**
+   * Generic error handler/propagator, primarily for promise flow
+   * @param {Error} err - existing error object that will be thrown
+   */
   errorHandler: (err) => {
     log.error(err.message);
     log.error(err.stack);
