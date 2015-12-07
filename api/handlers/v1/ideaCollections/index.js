@@ -8,8 +8,8 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { getIdeaCollections } from '../../../services/IdeaCollectionService';
-import { stripObjsAndNestedArr as strip } from '../../../services/utils';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { stripNestedMap as strip } from '../../../services/utils';
+import { RECEIVED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function index(req) {
@@ -25,10 +25,11 @@ export default function index(req) {
   }
   else {
     return getIdeaCollections(boardId)
-      .then((allCollections) => stream.ok(EXT_EVENTS.RECEIVED_COLLECTIONS,
-                                          strip(allCollections), boardId))
+      .then((allCollections) => {
+        stream.ok(RECEIVED_COLLECTIONS, strip(allCollections), boardId);
+      })
       .catch((err) => {
-        stream.serverError(EXT_EVENTS.RECEIVED_COLLECTIONS, err.message, socket)
+        stream.serverError(RECEIVED_COLLECTIONS, err.message, socket);
       });
   }
 }

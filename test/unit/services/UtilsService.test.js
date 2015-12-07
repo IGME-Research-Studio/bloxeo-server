@@ -43,7 +43,7 @@ describe('UtilsService', () => {
     it('should return what is passed in without the "_id" prop', () => {
 
       expect(utils.stripNestedMap(TEST_NESTED_OBJ))
-        .to.deep.equal(RES_NESTED_OBJ)
+        .to.deep.equal(RES_NESTED_OBJ);
     });
   });
 });

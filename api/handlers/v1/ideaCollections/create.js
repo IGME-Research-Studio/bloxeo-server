@@ -11,7 +11,7 @@
 import _ from 'lodash';
 import { isNull } from '../../../services/ValidatorService';
 import { create as createCollection } from '../../../services/IdeaCollectionService';
-import { stripObjsAndNestedArr as strip } from '../../../services/utils';
+import { stripNestedMap as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
