@@ -65,8 +65,8 @@ service.finishVoting = function(boardId) {
 */
 service.setUserReady = function(boardId, userId) {
   // in redis push UserId into ready list
-  return Redis.sadd(keyPrefix + 'ready', userId)
-  .then(() => service.isRoomReady(boardId));
+  return Redis.sadd(keyPrefix + 'ready', userId);
+  // .then(() => service.isRoomReady(boardId));
 };
 
 /**
