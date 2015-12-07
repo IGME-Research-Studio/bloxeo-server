@@ -153,24 +153,23 @@ describe('IdeaCollectionService', function() {
     });
   });
 
-  describe('#updateIdeaCollection(boardId, key, content, isVoting)', () => {
+  describe('#voteOnIdeaCollection(boardId, key)', () => {
 
     beforeEach((done) => {
       // create 2 boards and 2 collections
-      const updateObj = {votes: 1};
 
       Promise.all([
         monky.create('Board', {boardId: '5'}),
         Promise.all([
-          monky.create('Idea', {boardId: '5', content: 'idea 1'}),
-          monky.create('Idea', {boardId: '5', content: 'idea 1'}),
-          monky.create('Idea', {boardId: '5', content: 'idea 1'}),
+          monky.create('Idea', {boardId: '5', content: 'idqwreg'}),
+          monky.create('Idea', {boardId: '5', content: 'ideg55'}),
+          monky.create('Idea', {boardId: '5', content: 'idesdf'}),
         ])
         .then((allIdeas) => monky.create('IdeaCollection',
               { boardId: '5', ideas: allIdeas, key: 'collection1'})),
       ])
       .then(() => {
-        IdeaCollectionService.updateIdeaCollection('5', 'collection1', updateObj, true);
+        IdeaCollectionService.voteOnIdeaCollection('5', 'collection1');
         done();
       });
     });
@@ -180,8 +179,8 @@ describe('IdeaCollectionService', function() {
     it('should update votes to 1', (done) => {
       IdeaCollectionService.getIdeaCollections('5')
         .then((collections) => {
-          console.log(collections.collection1);
           try {
+            console.log(collections.collection1);
             expect(collections).to.be.an('object');
             expect(collections).to.have.property('collection1')
               .and.be.an('object');
