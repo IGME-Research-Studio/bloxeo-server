@@ -1,6 +1,4 @@
-import _ from 'lodash';
 import R from 'ramda';
-import log from 'winston';
 
 const utils = {
   /**
@@ -22,8 +20,8 @@ const utils = {
    * @param {Array<String>} omitBy
    * @return {Object}
    */
-  strip: (mongooseResult, omitBy=['_id']) => {
-    return R.compose(R.omit(omitBy), utils.toClient)(mongooseResult);
+  strip: (mongooseResult, omitBy = ['_id']) => {
+    return R.pipe(R.omit(omitBy), utils.toClient)(mongooseResult);
   },
 
   /**
@@ -34,8 +32,8 @@ const utils = {
    * @param {Array<String>} omitBy
    * @return {Object}
    */
-  stripMap: (mongooseResult, omitBy=['_id']) => {
-    return R.compose(R.map(R.omit(omitBy)), utils.toClient)(mongooseResult);
+  stripMap: (mongooseResult, omitBy = ['_id']) => {
+    return R.pipe(R.map(R.omit(omitBy)), utils.toClient)(mongooseResult);
   },
 
   /**
@@ -45,12 +43,12 @@ const utils = {
    * @param {String} arrKey
    * @return {Object}
    */
-  stripNestedMap: (mongooseResult, omitBy=['_id'], arrKey='ideas') => {
+  stripNestedMap: (mongooseResult, omitBy = ['_id'], arrKey = 'ideas') => {
     const stripNested = (obj) => {
-      obj[arrKey] = R.map(R.omit(omitBy))(obj[arrKey])
+      obj[arrKey] = R.map(R.omit(omitBy))(obj[arrKey]);
       return obj;
     };
-    return R.compose(R.map(R.omit(omitBy)),
+    return R.pipe(R.map(R.omit(omitBy)),
                      R.map(stripNested),
                      utils.toClient)(mongooseResult);
   },
@@ -60,8 +58,6 @@ const utils = {
    * @param {Error} err - existing error object that will be thrown
    */
   errorHandler: (err) => {
-    log.error(err.message);
-    log.error(err.stack);
     throw err;
   },
 };

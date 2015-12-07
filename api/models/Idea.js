@@ -43,7 +43,7 @@ schema.pre('save', function(next) {
   .then( (results) => {
     if (results.length > 0 && results[0].id !== this.id) {
       self.invalidate('content', 'content must be unique to a Board');
-      next(new Error('content must be unique'));
+      next(new Error('Idea content must be unique to a Board'));
     }
     else {
       next();

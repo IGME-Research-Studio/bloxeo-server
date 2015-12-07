@@ -9,7 +9,7 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { destroy as removeCollection } from '../../../services/IdeaCollectionService';
-import { stripObjsAndNestedArr as strip } from '../../../services/utils';
+import { stripNestedMap as strip } from '../../../services/utils';
 import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 

@@ -127,9 +127,7 @@ ideaCollectionService.removeIdea = function(boardId, key, content) {
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
-  // .tap((collections) => console.log(collections))
   .then((collections) => _.indexBy(collections, 'key'))
-  .tap((collections) => console.log(collections))
   .catch(errorHandler);
 };
 

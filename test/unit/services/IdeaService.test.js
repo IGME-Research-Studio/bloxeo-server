@@ -3,16 +3,18 @@ import chaiAsPromised from 'chai-as-promised';
 import mochaMongoose from 'mocha-mongoose';
 import Monky from 'monky';
 import Promise from 'bluebird';
+import sinomocha from 'sinomocha';
 
 import CFG from '../../../config';
 import database from '../../../api/services/database';
 import IdeaService from '../../../api/services/IdeaService';
 
 chai.use(chaiAsPromised);
+sinomocha();
 const expect = chai.expect;
 
+mochaMongoose(CFG.mongoURL);
 const mongoose = database();
-const clearDB = mochaMongoose(CFG.mongoURL, {noClear: true});
 const monky = new Monky(mongoose);
 
 mongoose.model('Board', require('../../../api/models/Board.js').schema);
@@ -41,8 +43,6 @@ describe('IdeaService', function() {
       ])
       .then(() => done());
     });
-
-    afterEach((done) => clearDB(done));
 
     it('should return the only the ideas on the specified board', (done) => {
       IdeaService.getIdeas('1')
@@ -89,8 +89,6 @@ describe('IdeaService', function() {
       });
     });
 
-    afterEach((done) => clearDB(done));
-
     it('should not create duplicates on a board and throw correct validation error', (done) => {
       expect(IdeaService.create(USER_ID, '1', '1'))
         .to.be.rejectedWith(/content must be unique/).notify(done);
@@ -129,8 +127,6 @@ describe('IdeaService', function() {
         done();
       });
     });
-
-    afterEach((done) => clearDB(done));
 
     it('should destroy the correct idea from the board', (done) => {
       IdeaService.destroy('1', '2')
