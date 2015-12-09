@@ -20,7 +20,8 @@ import destroyCollection from './handlers/v1/ideaCollections/destroy';
 import addIdea from './handlers/v1/ideaCollections/addIdea';
 import removeIdea from './handlers/v1/ideaCollections/removeIdea';
 import getCollections from './handlers/v1/ideaCollections/index';
-import startTimerCountdown from './handlers/v1/timer/startTimer';
+import startTimerCountdown from './handlers/v1/timer/start';
+import disableTimer from './handlers/v1/timer/stop';
 
 import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
@@ -113,7 +114,11 @@ const dispatcher = function(server) {
     socket.on(EXT_EVENTS.START_TIMER, (req) => {
       log.verbose(EXT_EVENTS.START_TIMER, req);
       startTimerCountdown(_.merge({socket: socket}, req));
-    })
+    });
+    socket.on(EXT_EVENTS.DISABLE_TIMER, (req) => {
+      log.verbose(EXT_EVENTS.DISABLE_TIMER, req);
+      disableTimer(_.merge({socket: socket}, req));
+    });
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
@@ -137,7 +142,6 @@ const dispatcher = function(server) {
     log.info(INT_EVENTS.LEAVE, req.boardId);
     req.socket.leave(req.boardId);
   });
-
   // put custom event logic here for timer and state service
 };
 

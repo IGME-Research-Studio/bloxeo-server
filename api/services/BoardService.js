@@ -163,4 +163,10 @@ boardService.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
 };
 
+boardService.isAdmin = function() {
+  return new Promise((res) => {
+    res(true);
+  });
+};
+
 module.exports = boardService;
