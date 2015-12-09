@@ -3,6 +3,7 @@
 */
 const Board = require('../models/Board');
 import Redis from './RedisService';
+const Promise = require('bluebird');
 const boardService = {};
 const suffix = '-current-users';
 
@@ -59,6 +60,11 @@ boardService.leave = function(boardId, user) {
 // get all currently connected users
 boardService.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
+
+boardService.isAdmin = function() {
+  return new Promise((res) => {
+    res(true);
+  });
 };
 
 module.exports = boardService;
