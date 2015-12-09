@@ -17,7 +17,7 @@ describe('TimerService', function() {
   });
 
   describe('#startTimer(boardId, timerLengthInSeconds, (optional) value)', () => {
-    it('Should start the server timer on Redis', (done) => {
+    xit('Should start the server timer on Redis', (done) => {
       TimerService.startTimer('1', 10, undefined)
       .then((result) => {
         expect(result).to.be.true;
@@ -37,7 +37,7 @@ describe('TimerService', function() {
   });
 
   describe('#getTimeLeft(boardId)', () => {
-    it('Should get the time left on the sever timer from Redis', (done) => {
+    xit('Should get the time left on the sever timer from Redis', (done) => {
       TimerService.getTimeLeft('1')
       .then((result) => {
         expect(result).to.be.a('number');
