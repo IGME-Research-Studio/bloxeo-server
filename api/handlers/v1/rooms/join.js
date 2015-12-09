@@ -18,22 +18,24 @@ export default function join(req) {
   if (isNull(socket)) {
     return false;
   }
-  else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket,
+  // if do things that will ask Will 
+  // user stuff
+  if (isNull(boardId)) {
+    return stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    BoardService.exists(boardId)
-    .then((exists) => {
-      if (exists) {
-        stream.join(socket, boardId);
-        stream.ok(EXT_EVENTS.JOINED_ROOM, {}, boardId,
-           `User with socket id ${socket.id} joined board ${boardId}`);
-      }
-      else {
-        stream.notFound(EXT_EVENTS.JOINED_ROOM, {}, socket,
-          'Board not found');
-      }
-    });
-  }
+
+  BoardService.exists(boardId)
+  .then((exists) => {
+    if (exists) {
+      stream.join(socket, boardId);
+      // Boardservice.join with boardId and userId
+      stream.ok(EXT_EVENTS.JOINED_ROOM, {}, boardId,
+         `User with socket id ${socket.id} joined board ${boardId}`);
+    }
+    else {
+      stream.notFound(EXT_EVENTS.JOINED_ROOM, {}, socket,
+        'Board not found');
+    }
+  });
 }
