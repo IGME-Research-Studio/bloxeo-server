@@ -8,8 +8,10 @@ import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
+import Redis from './RedisService';
 
 const boardService = {};
+const suffix = '-current-users';
 
 /**
  * Create a board in the database
@@ -144,6 +146,21 @@ boardService.isUser = function(board, userId) {
  */
 boardService.isAdmin = function(board, userId) {
   return R.contains(toPlainObject(userId), toPlainObject(board.admins));
+};
+
+// add user to currentUsers redis
+boardService.join = function(boardId, user) {
+  return Redis.sadd(boardId + suffix, user);
+};
+
+// remove user from currentUsers redis
+boardService.leave = function(boardId, user) {
+  return Redis.srem(boardId + suffix, user);
+};
+
+// get all currently connected users
+boardService.getConnectedUsers = function(boardId) {
+  return Redis.smembers(boardId + suffix);
 };
 
 module.exports = boardService;

@@ -243,3 +243,41 @@ describe('IdeaCollectionService', function() {
     });
   });
 });
+
+describe('#removeDuplicates()', () => {
+  const collection1 = '1';
+  const duplicate = '2';
+  const diffCollection = '3';
+
+  beforeEach((done) => {
+    Promise.all([
+      monky.create('Board', {boardId:'7'}),
+      Promise.all([
+        monky.create('Idea', {boardId:'7', content: 'idea1'}),
+        monky.create('Idea', {boardId:'7', content: 'idea2'}),
+      ])
+      .then((allIdeas) => {
+        monky.create('IdeaCollection',
+            { boardId: '7', ideas: allIdeas[0], key: collection1 });
+        monky.create('IdeaCollection',
+            { boardId: '7', ideas: allIdeas[0], key: duplicate });
+        monky.create('IdeaCollection',
+            { boardId: '7', ideas: allIdeas[1], key: diffCollection });
+      }),
+    ])
+    .then(() => {
+      done();
+    });
+  });
+
+  afterEach((done) => clearDB(done));
+
+  it('Should only remove duplicate ideaCollections', () => {
+    return IdeaCollectionService.removeDuplicates('7')
+    .then((collections) => {
+      expect(Object.keys(collections)).to.have.length(2);
+      expect(collections).to.contains.key(duplicate);
+      expect(collections).to.contains.key(diffCollection);
+    });
+  });
+});
