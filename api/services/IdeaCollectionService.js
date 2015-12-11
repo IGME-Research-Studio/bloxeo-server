@@ -130,7 +130,6 @@ ideaCollectionService.getAllIdeas = function(boardId, key) {
 ideaCollectionService.removeDuplicates = function(boardId) {
   // return remaining collections after removing duplicates
   return IdeaCollection.find({boardId: boardId})
-  .then(toClient)
   .then((collections) => {
     const dupCollections = [];
 
@@ -150,13 +149,9 @@ ideaCollectionService.removeDuplicates = function(boardId) {
     return dupCollections;
   })
   .then((dupCollections) => {
-    for (let i = 0; i < dupCollections.length; i++) {
-      ideaCollectionService.destroy(dupCollections[i]);
-    }
-    // return remaining collections?
-    return ideaCollectionService.getIdeaCollections(boardId);
-  });
+    return _.map(dupCollections, (collection) => collection.remove());
+  })
+  .all();
 };
-
 
 module.exports = ideaCollectionService;
