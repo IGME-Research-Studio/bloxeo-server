@@ -10,7 +10,7 @@
 import { isNull } from '../../../services/ValidatorService';
 import { create as createIdea } from '../../../services/IdeaService';
 import { stripMap as strip } from '../../../services/utils';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { UPDATED_IDEAS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function create(req) {
@@ -23,15 +23,17 @@ export default function create(req) {
     throw new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(content)) {
-    stream.badRequest(EXT_EVENTS.UPDATED_IDEAS, {}, socket,
+    stream.badRequest(UPDATED_IDEAS, {}, socket,
       'Not all required parameters were supplied');
   }
   else {
     // @TODO pass user along
     return createIdea(null, boardId, content)
-      .then((allIdeas) => stream.created(EXT_EVENTS.UPDATED_IDEAS,
-                                         strip(allIdeas), boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_IDEAS,
-                                         err.message, socket));
+      .then((allIdeas) => {
+        stream.created(UPDATED_IDEAS, strip(allIdeas), boardId)
+      })
+      .catch((err) => {
+        stream.serverError(UPDATED_IDEAS, err.message, socket)
+      });
   }
 }
