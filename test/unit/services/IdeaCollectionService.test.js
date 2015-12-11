@@ -173,12 +173,14 @@ describe('IdeaCollectionService', function() {
 
     afterEach((done) => clearDB(done));
 
-    it('Should add an idea to an idea collection', (done) => {
-      IdeaCollectionService.addIdea('1', key, 'idea2').then(done());
+    it('Should add an idea to an idea collection', () => {
+      return expect(IdeaCollectionService.addIdea('1', key, 'idea2'))
+        .to.eventually.have.key(key);
     });
 
-    it('Should reject adding a duplicate idea to an exiting idea collection', (done) => {
-      expect(IdeaCollectionService.addIdea('1', key, 'idea1')).to.be.rejected.notify(done);
+    it('Should reject adding a duplicate idea to an exiting idea collection', () => {
+      return expect(IdeaCollectionService.addIdea('1', key, 'idea1'))
+        .to.be.rejectedWith(/must have unique ideas/);
     });
   });
 

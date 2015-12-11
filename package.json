@@ -6,7 +6,7 @@
     "start": "node index.js",
     "pretest": "grunt lint",
     "test": "grunt test",
-    "unit-test": "grunt test",
+    "unit-test": "grunt unit-test",
     "lint": "grunt lint",
     "watch": "grunt watch",
     "mocha": "NODE_ENV=test mocha --compilers=js:babel-core/register --recursive",
