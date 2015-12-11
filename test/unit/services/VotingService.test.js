@@ -62,8 +62,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
     it('Should increment round', (done) => {
@@ -100,8 +99,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
     it('Should remove current idea collections and create results', (done) => {
@@ -125,21 +123,23 @@ describe('VotingService', function() {
     beforeEach((done) => {
       monky.create('Board', {boardId: '1'})
       .then(() => {
-        done();
+        RedisService.del('1-ready')
+        .then(() => {
+          done();
+        });
       });
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
-    it('Should push the user into the ready list on Redis', (done) => {
+    xit('Should push the user into the ready list on Redis', (done) => {
       let userId = 'abc123';
 
       VotingService.setUserReady('1', userId)
       .then(() => {
-        RedisService.sadd('1-voting-ready', userId)
+        RedisService.sadd('1--ready', userId)
         .then((numKeysAdded) => {
           expect(numKeysAdded).to.equal(1);
           done();
@@ -180,8 +180,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
     xit('Should check if all connected users are ready to move forward', (done) => {
@@ -243,8 +242,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
     xit('Should get the remaining collections to vote on', (done) => {
@@ -279,8 +277,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
     xit('Should vote on a collection ', (done) => {
@@ -315,8 +312,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll()
-      .then(() => clearDB(done));
+      clearDB(done);
     });
 
     xit('Should get all of the results on a board ', (done) => {
