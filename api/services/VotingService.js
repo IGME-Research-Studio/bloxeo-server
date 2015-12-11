@@ -13,7 +13,6 @@ import _ from 'lodash';
 import IdeaCollectionService from './IdeaCollectionService';
 
 const service = {};
-const keyPrefix = 'boardId-voting-';
 
 /**
 * Increments the voting round and removes duplicate collections
@@ -65,8 +64,8 @@ service.finishVoting = function(boardId) {
 */
 service.setUserReady = function(boardId, userId) {
   // in redis push UserId into ready list
-  return Redis.sadd(keyPrefix + 'ready', userId);
-  // .then(() => service.isRoomReady(boardId));
+  return Redis.sadd(boardId + '-ready', userId);
+  .then(() => service.isRoomReady(boardId));
 };
 
 /**
@@ -75,7 +74,7 @@ service.setUserReady = function(boardId, userId) {
 * @return {Promise}
 */
 service.isRoomReady = function(boardId) {
-  return Board.getConnectedUsers()
+  return BoardService.getConnectedUsers()
   .then((users) => {
     return users.map((u) => {
       return service.isUserReady(boardId, u)
@@ -94,7 +93,7 @@ service.isRoomReady = function(boardId) {
 * @return {Promise}
 */
 service.isUserReady = function(boardId, userId) {
-  return Redis.sismember(keyPrefix + 'ready', userId)
+  return Redis.sismember(boardId + '-ready', userId)
   .then((ready) => ready === 1);
 };
 
@@ -106,7 +105,7 @@ service.isUserReady = function(boardId, userId) {
 * @return {Array} remaining collections to vote on for a user
 */
 service.getVoteList = function(boardId, userId) {
-  return Redis.exists(keyPrefix + 'userId')
+  return Redis.exists(boardId + '-voting-' + userId)
   .then((exists) => {
     if (exists === 0) {
       // check if the user is ready (done with voting)
@@ -118,14 +117,14 @@ service.getVoteList = function(boardId, userId) {
 
         return IdeaCollection.findOnBoard('boardId')
         .then((collections) => {
-          Redis.sadd(keyPrefix + 'userId', collections.map((c) => c.key));
+          Redis.sadd(boardId + '-voting-' + userId, collections.map((c) => c.key));
           return collections;
         });
       });
     }
     else {
       // pull from redis the users remaining collections to vote on
-      return Redis.smembers(keyPrefix + 'userId')
+      return Redis.smembers(boardId + '-voting-' + userId)
       .then((keys) => {
         return Promise.all(keys.map((k) => IdeaCollection.findByKey(k)));
       });
@@ -151,8 +150,8 @@ service.vote = function(boardId, userId, key, increment) {
       collection.save(); // save async, don't hold up client
     }
 
-    return Redis.srem(keyPrefix + userId, key)
-    .then(() => Redis.exists(keyPrefix + userId))
+    return Redis.srem(boardId + '-voting-' + userId, key)
+    .then(() => Redis.exists(boardId + '-voting-' +  userId))
     .then((exists) => {
       if (exists === 0) {
         return service.setUserReady(boardId, userId);
