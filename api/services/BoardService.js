@@ -2,6 +2,7 @@
 * BoardService: contains actions related to users and boards.
 */
 const Board = require('../models/Board');
+const Promise = require('bluebird');
 const boardService = {};
 
 // Create a board in the database
@@ -42,6 +43,12 @@ boardService.getPendingUsers = function(boardId) {
   return Board.model.findOne({boardId: boardId})
   .populate('pendingUsers', '-_id')
   .exec((board) => board.pendingUsers);
+};
+
+boardService.isAdmin = function() {
+  return new Promise((res) => {
+    res(true);
+  });
 };
 
 module.exports = boardService;
