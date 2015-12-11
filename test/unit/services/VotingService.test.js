@@ -62,8 +62,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     it('Should increment round', (done) => {
@@ -100,8 +100,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     it('Should remove current idea collections and create results', (done) => {
@@ -130,8 +130,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     it('Should push the user into the ready list on Redis', (done) => {
@@ -180,8 +180,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     xit('Should check if all connected users are ready to move forward', (done) => {
@@ -243,8 +243,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     xit('Should get the remaining collections to vote on', (done) => {
@@ -279,8 +279,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     xit('Should vote on a collection ', (done) => {
@@ -315,8 +315,8 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
+      RedisService.flushAll()
+      .then(() => clearDB(done));
     });
 
     xit('Should get all of the results on a board ', (done) => {
