@@ -264,6 +264,7 @@ describe('VotingService', function() {
       .then(() => {
         VotingService.vote('1', user, 'abc123', false)
         .then((success) => {
+
           // Momentarily we send back true as a response to a successful vote
           // If there are no collections left to vote on it sets the user ready
           // Either way this is true so how do we differentiate? By Events?
