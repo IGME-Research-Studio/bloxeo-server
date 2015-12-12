@@ -22,6 +22,10 @@ import removeIdea from './handlers/v1/ideaCollections/removeIdea';
 import getCollections from './handlers/v1/ideaCollections/index';
 import startTimerCountdown from './handlers/v1/timer/start';
 import disableTimer from './handlers/v1/timer/stop';
+import readyUser from './handlers/v1/voting/ready';
+import getResults from './handlers/v1/voting/results';
+import vote from './handlers/v1/voting/vote';
+import getVoteItems from './handlers/v1/voting/voteList';
 
 import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
@@ -111,31 +115,21 @@ const dispatcher = function(server) {
       log.verbose(EXT_EVENTS.GET_COLLECTIONS, req);
       getCollections(_.merge({socket: socket}, req));
     });
-    socket.on(EXT_EVENTS.START_TIMER, (req) => {
-      log.verbose(EXT_EVENTS.START_TIMER, req);
-      startTimerCountdown(_.merge({socket: socket}, req));
+    socket.on(EXT_EVENTS.GET_VOTING_ITEMS, (req) => {
+      log.verbose(EXT_EVENTS.GET_VOTING_ITEMS, req);
+      getVoteItems(_.merge({socket: socket}, req));
     });
-    socket.on(EXT_EVENTS.DISABLE_TIMER, (req) => {
-      log.verbose(EXT_EVENTS.DISABLE_TIMER, req);
-      disableTimer(_.merge({socket: socket}, req));
+    socket.on(EXT_EVENTS.READY_USER, (req) => {
+      log.verbose(EXT_EVENTS.READY_USER, req);
+      readyUser(_.merge({socket: socket}, req));
     });
-    socket.on(EXT_EVENTS.ENABLED_IDEAS, (req) => {
-
+    socket.on(EXT_EVENTS.GET_RESULTS, (req) => {
+      log.verbose(EXT_EVENTS.GET_RESULTS, req);
+      getResults(_.merge({socket: socket}, req));
     });
-    socket.on(EXT_EVENTS.DISABLED_IDEAS, (req) => {
-
-    });
-    socket.on(EXT_EVENTS.FORCED_VOTE, (req) => {
-
-    });
-    socket.on(EXT_EVENTS.FORCED_RESULTS, (req) => {
-
-    });
-    socket.on(EXT_EVENTS.TIMER_EXPIRED, (req) => {
-
-    });
-    socket.on(EXT_EVENTS.FINISHED_VOTING, (req) => {
-
+    socket.on(EXT_EVENTS.VOTE, (req) => {
+      log.verbose(EXT_EVENTS.VOTE, req);
+      vote(_.merge({socket: socket}, req));
     });
   });
 
@@ -160,7 +154,6 @@ const dispatcher = function(server) {
     log.info(INT_EVENTS.LEAVE, req.boardId);
     req.socket.leave(req.boardId);
   });
-  // put custom event logic here for timer and state service
 };
 
 export default dispatcher;
