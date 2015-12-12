@@ -20,6 +20,10 @@ import destroyCollection from './handlers/v1/ideaCollections/destroy';
 import addIdea from './handlers/v1/ideaCollections/addIdea';
 import removeIdea from './handlers/v1/ideaCollections/removeIdea';
 import getCollections from './handlers/v1/ideaCollections/index';
+import readyUser from './handlers/v1/voting/ready';
+import getResults from './handlers/v1/voting/results';
+import vote from './handlers/v1/voting/vote';
+import getVoteItems from './handlers/v1/voting/voteList';
 
 import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
@@ -109,6 +113,22 @@ const dispatcher = function(server) {
       log.verbose(EXT_EVENTS.GET_COLLECTIONS, req);
       getCollections(_.merge({socket: socket}, req));
     });
+    socket.on(EXT_EVENTS.GET_VOTING_ITEMS, (req) => {
+      log.verbose(EXT_EVENTS.GET_VOTING_ITEMS, req);
+      getVoteItems(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.READY_USER, (req) => {
+      log.verbose(EXT_EVENTS.READY_USER, req);
+      readyUser(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.GET_RESULTS, (req) => {
+      log.verbose(EXT_EVENTS.GET_RESULTS, req);
+      getResults(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.VOTE, (req) => {
+      log.verbose(EXT_EVENTS.VOTE, req);
+      vote(_.merge({socket: socket}, req));
+    });
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
@@ -132,6 +152,7 @@ const dispatcher = function(server) {
     log.info(INT_EVENTS.LEAVE, req.boardId);
     req.socket.leave(req.boardId);
   });
+
 };
 
 export default dispatcher;
