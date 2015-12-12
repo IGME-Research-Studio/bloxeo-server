@@ -20,10 +20,15 @@ import destroyCollection from './handlers/v1/ideaCollections/destroy';
 import addIdea from './handlers/v1/ideaCollections/addIdea';
 import removeIdea from './handlers/v1/ideaCollections/removeIdea';
 import getCollections from './handlers/v1/ideaCollections/index';
+<<<<<<< HEAD
 import readyUser from './handlers/v1/voting/ready';
 import getResults from './handlers/v1/voting/results';
 import vote from './handlers/v1/voting/vote';
 import getVoteItems from './handlers/v1/voting/voteList';
+=======
+import startTimerCountdown from './handlers/v1/timer/start';
+import disableTimer from './handlers/v1/timer/stop';
+>>>>>>> 3b2cdd3482a44ce4699c352217ae505ec70d74ff
 
 import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
@@ -128,6 +133,13 @@ const dispatcher = function(server) {
     socket.on(EXT_EVENTS.VOTE, (req) => {
       log.verbose(EXT_EVENTS.VOTE, req);
       vote(_.merge({socket: socket}, req));
+    socket.on(EXT_EVENTS.START_TIMER, (req) => {
+      log.verbose(EXT_EVENTS.START_TIMER, req);
+      startTimerCountdown(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.DISABLE_TIMER, (req) => {
+      log.verbose(EXT_EVENTS.DISABLE_TIMER, req);
+      disableTimer(_.merge({socket: socket}, req));
     });
   });
 
@@ -152,7 +164,6 @@ const dispatcher = function(server) {
     log.info(INT_EVENTS.LEAVE, req.boardId);
     req.socket.leave(req.boardId);
   });
-
 };
 
 export default dispatcher;
