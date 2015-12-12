@@ -69,7 +69,7 @@ ideaCollectionService.destroyByKey = function(boardId, key) {
 ideaCollectionService.destroy = function(collection) {
 
   return collection.remove()
-  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .then(() => ideaCollectionService.getIdeaCollections(boardId));
 };
 
 /**
@@ -138,21 +138,26 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 
 // destroy duplicate collections
 ideaCollectionService.removeDuplicates = function(boardId) {
-  // return remaining collections after removing duplicates
   return IdeaCollection.find({boardId: boardId})
-  .then(toClient)
+  .then((collections) => {
+    return collections.map((c) => {
+      c.ideas = c.ideas.map((i) => i.toString());
+      return c;
+    });
+  })
   .then((collections) => {
     const dupCollections = [];
+    console.log('collections');
+    console.log(collections);
 
-    for (let i = 0; i < collections.length; i++) {
+    for (let i = 0; i < collections.length - 1; i++) {
       for (let c = i + 1; c < collections.length; c++) {
-        const first = collections[i].ideas.length;
-        const second = collections[c].ideas.length;
-
-        if (first === second) {
-          const intersect = _.intersection(collections[i].ideas, collections[c].ideas).length;
-          if (intersect === first && intersect === second) {
-            dupCollections.push(collections[i]);
+        if (collections[i].ideas.length === collections[c].ideas) {
+          const deduped = _.uniq(collections[i].ideas.concat(collections[c].ideas));
+          console.log(deduped);
+          if (deduped.length === collections[i].ideas) {
+            dupCollections.push(collections[i].ideas);
+            break;
           }
         }
       }
@@ -160,12 +165,13 @@ ideaCollectionService.removeDuplicates = function(boardId) {
     return dupCollections;
   })
   .then((dupCollections) => {
-    for (let i = 0; i < dupCollections.length; i++) {
-      ideaCollectionService.destroy(dupCollections[i]);
-    }
-    // return remaining collections?
-    return ideaCollectionService.getIdeaCollections(boardId);
-  });
+    console.log('dupcollections');
+    console.log(dupCollections);
+    return _.map(dupCollections, (collection) => {
+      IdeaCollection.remove({key: collection.key, boardId: collection.boardId});
+    });
+  })
+  .all();
 };
 
 module.exports = ideaCollectionService;

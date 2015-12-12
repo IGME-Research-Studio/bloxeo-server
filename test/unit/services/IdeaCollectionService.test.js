@@ -232,52 +232,50 @@ describe('IdeaCollectionService', function() {
       });
     });
 
-    afterEach((done) => clearDB(done));
-
     it('destroy an idea collection', () => {
       return expect(IdeaCollectionService.destroy('1', DEF_COLLECTION_KEY))
       .to.be.eventually.become({});
+    });
 
     it('destroy an idea collection by key', (done) => {
       IdeaCollectionService.destroyByKey('1', key).then(done());
     });
   });
-});
 
-describe('#removeDuplicates()', () => {
-  const collection1 = '1';
-  const duplicate = '2';
-  const diffCollection = '3';
+  describe('#removeDuplicates()', () => {
+    const collection1 = '1';
+    const duplicate = '2';
+    const diffCollection = '3';
 
-  beforeEach((done) => {
-    Promise.all([
-      monky.create('Board', {boardId: '7'}),
+    beforeEach((done) => {
       Promise.all([
-        monky.create('Idea', {boardId: '7', content: 'idea1'}),
-        monky.create('Idea', {boardId: '7', content: 'idea2'}),
+        monky.create('Board', {boardId: '7'}),
+        Promise.all([
+          monky.create('Idea', {boardId: '7', content: 'idea1'}),
+          monky.create('Idea', {boardId: '7', content: 'idea2'}),
+        ])
+        .then((allIdeas) => {
+          monky.create('IdeaCollection',
+              { boardId: '7', ideas: allIdeas[0], key: collection1 });
+          monky.create('IdeaCollection',
+              { boardId: '7', ideas: allIdeas[0], key: duplicate });
+          monky.create('IdeaCollection',
+              { boardId: '7', ideas: allIdeas[1], key: diffCollection });
+        }),
       ])
-      .then((allIdeas) => {
-        monky.create('IdeaCollection',
-            { boardId: '7', ideas: allIdeas[0], key: collection1 });
-        monky.create('IdeaCollection',
-            { boardId: '7', ideas: allIdeas[0], key: duplicate });
-        monky.create('IdeaCollection',
-            { boardId: '7', ideas: allIdeas[1], key: diffCollection });
-      }),
-    ])
-    .then(() => {
-      done();
+      .then(() => {
+        done();
+      });
     });
-  });
 
-  afterEach((done) => clearDB(done));
-
-  xit('Should only remove duplicate ideaCollections', () => {
-    return IdeaCollectionService.removeDuplicates('7')
-    .then((collections) => {
-      expect(Object.keys(collections)).to.have.length(2);
-      expect(collections).to.contains.key(duplicate);
-      expect(collections).to.contains.key(diffCollection);
+    it('Should only remove duplicate ideaCollections', () => {
+      return IdeaCollectionService.removeDuplicates('7')
+      .then(() => IdeaCollectionService.getIdeaCollections('7'))
+      .then((collections) => {
+        expect(Object.keys(collections)).to.have.length(2);
+        expect(collections).to.contains.key(duplicate);
+        expect(collections).to.contains.key(diffCollection);
+      });
     });
   });
 });
