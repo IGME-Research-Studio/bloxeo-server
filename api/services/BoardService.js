@@ -60,6 +60,7 @@ boardService.leave = function(boardId, user) {
 // get all currently connected users
 boardService.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
+};
 
 boardService.isAdmin = function() {
   return new Promise((res) => {
