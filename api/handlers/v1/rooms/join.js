@@ -18,7 +18,7 @@ export default function join(req) {
   if (isNull(socket)) {
     return false;
   }
-  // if do things that will ask Will 
+  // if do things that will ask Will
   // user stuff
   if (isNull(boardId)) {
     return stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket,
