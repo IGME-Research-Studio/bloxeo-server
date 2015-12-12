@@ -11,6 +11,7 @@ import Redis from './RedisService';
 import Promise from 'bluebird';
 import _ from 'lodash';
 import IdeaCollectionService from './IdeaCollectionService';
+import BoardService from './BoardService';
 
 const service = {};
 
@@ -64,7 +65,7 @@ service.finishVoting = function(boardId) {
 */
 service.setUserReady = function(boardId, userId) {
   // in redis push UserId into ready list
-  return Redis.sadd(boardId + '-ready', userId);
+  return Redis.sadd(boardId + '-ready', userId)
   .then(() => service.isRoomReady(boardId));
 };
 
@@ -74,16 +75,29 @@ service.setUserReady = function(boardId, userId) {
 * @return {Promise}
 */
 service.isRoomReady = function(boardId) {
-  return BoardService.getConnectedUsers()
+  return BoardService.getConnectedUsers(boardId)
   .then((users) => {
-    return users.map((u) => {
-      return service.isUserReady(boardId, u)
-      .then((isReady) => {
-        return {ready: isReady};
+    if (users.length === 0) {
+      throw new Error('No users in the room');
+    }
+    else {
+      return users.map((u) => {
+        return service.isUserReady(boardId, u)
+        .then((isReady) => {
+          return {ready: isReady};
+        });
       });
-    });
+    }
   })
-  .then((states) => _.every(states, 'ready', true));
+  .then((promises) => {
+    return Promise.all(promises);
+  })
+  .then((states) => {
+    return _.every(states, 'ready', true)
+  })
+  .catch((err) => {
+    throw err;
+  });
 };
 
 /**
@@ -111,15 +125,18 @@ service.getVoteList = function(boardId, userId) {
       // check if the user is ready (done with voting)
       return service.isUserReady(boardId, userId)
       .then((ready) => {
+        console.log('user done voting: ' + ready);
         if (ready) {
           return [];
         }
-
-        return IdeaCollection.findOnBoard('boardId')
-        .then((collections) => {
-          Redis.sadd(boardId + '-voting-' + userId, collections.map((c) => c.key));
-          return collections;
-        });
+        else {
+          return IdeaCollection.findOnBoard(boardId)
+          .then((collections) => {
+            console.log(collections);
+            Redis.sadd(boardId + '-voting-' + userId, collections.map((c) => c.key));
+            return collections;
+          });
+        }
       });
     }
     else {
