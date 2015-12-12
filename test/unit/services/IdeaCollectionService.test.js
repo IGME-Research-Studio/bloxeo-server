@@ -270,8 +270,9 @@ describe('#removeDuplicates()', () => {
 
   afterEach((done) => clearDB(done));
 
-  xit('Should only remove duplicate ideaCollections', () => {
+  it('Should only remove duplicate ideaCollections', () => {
     return IdeaCollectionService.removeDuplicates('7')
+    .then(() => IdeaCollectionService.getIdeaCollections('7'))
     .then((collections) => {
       expect(Object.keys(collections)).to.have.length(2);
       expect(collections).to.contains.key(duplicate);
