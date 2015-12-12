@@ -151,7 +151,7 @@ ideaCollectionService.removeDuplicates = function(boardId) {
 
         if (first === second) {
           const intersect = _.intersection(collections[i].ideas, collections[c].ideas).length;
-          if (intersect === first && intersect === second){
+          if (intersect === first && intersect === second) {
             dupCollections.push(collections[i]);
           }
         }

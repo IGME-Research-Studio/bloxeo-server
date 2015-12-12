@@ -93,7 +93,7 @@ service.isRoomReady = function(boardId) {
     return Promise.all(promises);
   })
   .then((states) => {
-    return _.every(states, 'ready', true)
+    return _.every(states, 'ready', true);
   })
   .catch((err) => {
     throw err;
@@ -125,14 +125,12 @@ service.getVoteList = function(boardId, userId) {
       // check if the user is ready (done with voting)
       return service.isUserReady(boardId, userId)
       .then((ready) => {
-        console.log('user done voting: ' + ready);
         if (ready) {
           return [];
         }
         else {
           return IdeaCollection.findOnBoard(boardId)
           .then((collections) => {
-            console.log(collections);
             Redis.sadd(boardId + '-voting-' + userId, collections.map((c) => c.key));
             return collections;
           });
@@ -163,7 +161,7 @@ service.vote = function(boardId, userId, key, increment) {
   .then((collection) => {
     // increment the vote if needed
     if (increment === true) {
-      collection.vote++;
+      collection.votes++;
       collection.save(); // save async, don't hold up client
     }
 
@@ -173,8 +171,7 @@ service.vote = function(boardId, userId, key, increment) {
       if (exists === 0) {
         return service.setUserReady(boardId, userId);
       }
-
-      return true; // @NOTE what to return here? vote was successful
+      return true;
     });
   });
 };
@@ -190,7 +187,7 @@ service.getResults = function(boardId) {
   .then((results) => {
     // map each round into an array
     const rounds = [];
-    results.map((r) => rounds[r.round].push(r));
+    results.map((r) => rounds[r.round] = r);
 
     return rounds;
   });
