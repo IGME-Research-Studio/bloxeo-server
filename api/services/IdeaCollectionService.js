@@ -140,23 +140,20 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 ideaCollectionService.removeDuplicates = function(boardId) {
   return IdeaCollection.find({boardId: boardId})
   .then((collections) => {
-    return collections.map((c) => {
-      c.ideas = c.ideas.map((i) => i.toString());
-      return c;
-    });
-  })
-  .then((collections) => {
     const dupCollections = [];
-    console.log('collections');
-    console.log(collections);
+
+    const toString = function(id) {
+      return String(id);
+    };
 
     for (let i = 0; i < collections.length - 1; i++) {
       for (let c = i + 1; c < collections.length; c++) {
-        if (collections[i].ideas.length === collections[c].ideas) {
-          const deduped = _.uniq(collections[i].ideas.concat(collections[c].ideas));
-          console.log(deduped);
-          if (deduped.length === collections[i].ideas) {
-            dupCollections.push(collections[i].ideas);
+        if (collections[i].ideas.length === collections[c].ideas.length) {
+          const concatArray = (collections[i].ideas.concat(collections[c].ideas));
+          const deduped = _.unique(concatArray, toString);
+
+          if (deduped.length === collections[i].ideas.length) {
+            dupCollections.push(collections[i]);
             break;
           }
         }
@@ -165,10 +162,8 @@ ideaCollectionService.removeDuplicates = function(boardId) {
     return dupCollections;
   })
   .then((dupCollections) => {
-    console.log('dupcollections');
-    console.log(dupCollections);
     return _.map(dupCollections, (collection) => {
-      IdeaCollection.remove({key: collection.key, boardId: collection.boardId});
+      return IdeaCollection.remove({key: collection.key, boardId: collection.boardId});
     });
   })
   .all();
