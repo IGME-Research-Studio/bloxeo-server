@@ -119,6 +119,24 @@ const dispatcher = function(server) {
       log.verbose(EXT_EVENTS.DISABLE_TIMER, req);
       disableTimer(_.merge({socket: socket}, req));
     });
+    socket.on(EXT_EVENTS.ENABLED_IDEAS, (req) => {
+
+    });
+    socket.on(EXT_EVENTS.DISABLED_IDEAS, (req) => {
+
+    });
+    socket.on(EXT_EVENTS.FORCED_VOTE, (req) => {
+
+    });
+    socket.on(EXT_EVENTS.FORCED_RESULTS, (req) => {
+
+    });
+    socket.on(EXT_EVENTS.TIMER_EXPIRED, (req) => {
+
+    });
+    socket.on(EXT_EVENTS.FINISHED_VOTING, (req) => {
+
+    });
   });
 
   stream.on(INT_EVENTS.BROADCAST, (req) => {
