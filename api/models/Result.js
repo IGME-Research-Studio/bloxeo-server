@@ -71,13 +71,11 @@ schema.statics.findByKey = function(boardId, key) {
  */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('ideas key -_id')
-  .populate('ideas', 'content -_id')
-  .exec();
+  .populate('ideas', 'content')
+  .then((collections) => collections[index]);
 };
 
 const model = mongoose.model('Result', schema);
-
 
 module.exports.schema = schema;
 module.exports.model = model;

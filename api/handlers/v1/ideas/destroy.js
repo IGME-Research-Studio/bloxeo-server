@@ -29,10 +29,10 @@ export default function remove(req) {
   else {
     return destroy(boardId, content)
       .then((allIdeas) => {
-        stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId)
+        stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId);
       })
       .catch((err) => {
-        stream.serverError(UPDATED_IDEAS, err.message, socket)
+        stream.serverError(UPDATED_IDEAS, err.message, socket);
       });
   }
 }

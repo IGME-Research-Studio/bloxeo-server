@@ -2,11 +2,11 @@
 * Board.js
 */
 
-const shortid = require('shortid');
-const mongoose = require('mongoose');
-const IdeaCollection = require('./IdeaCollection.js');
-const Result = require('./Result.js');
-const Idea = require('./Idea.js');
+import mongoose from 'mongoose';
+import shortid from 'shortid';
+import IdeaCollection from './IdeaCollection';
+import Idea from './Idea';
+import Result from './Result';
 
 const schema = new mongoose.Schema({
   isPublic: {
@@ -65,5 +65,5 @@ schema.post('remove', function(next) {
   next();
 });
 
-module.exports.schema = schema;
-module.exports.model = mongoose.model('Board', schema);
+export { schema };
+export const model = mongoose.model('Board', schema);

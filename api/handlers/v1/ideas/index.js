@@ -26,10 +26,10 @@ export default function index(req) {
   else {
     return getIdeas(boardId)
       .then((allIdeas) => {
-        stream.ok(RECEIVED_IDEAS, strip(allIdeas), boardId)
+        stream.ok(RECEIVED_IDEAS, strip(allIdeas), boardId);
       })
       .catch((err) => {
-        stream.serverError(RECEIVED_IDEAS, err.message, socket)
+        stream.serverError(RECEIVED_IDEAS, err.message, socket);
       });
   }
 }

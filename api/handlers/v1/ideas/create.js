@@ -30,10 +30,10 @@ export default function create(req) {
     // @TODO pass user along
     return createIdea(null, boardId, content)
       .then((allIdeas) => {
-        stream.created(UPDATED_IDEAS, strip(allIdeas), boardId)
+        stream.created(UPDATED_IDEAS, strip(allIdeas), boardId);
       })
       .catch((err) => {
-        stream.serverError(UPDATED_IDEAS, err.message, socket)
+        stream.serverError(UPDATED_IDEAS, err.message, socket);
       });
   }
 }
