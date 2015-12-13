@@ -112,9 +112,9 @@ ideaCollectionService.addIdea = function(userId, boardId, key, content) {
  * @param {String} content - The content of an Idea to remove
  * @returns {Promise} - resolves to all the collections on the board
  */
-ideaCollectionService.removeIdea = function(boardId, key, content) {
+ideaCollectionService.removeIdea = function(userId, boardId, key, content) {
 
-  return ideaCollectionService.changeIdeas('remove', boardId, key, content);
+  return ideaCollectionService.changeIdeas('remove', userId, boardId, key, content);
 };
 
 /**

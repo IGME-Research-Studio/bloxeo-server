@@ -31,10 +31,10 @@ export default function removeIdea(req) {
   else {
     return removeIdeaFromCollection(boardId, key, content)
       .then((allCollections) => {
-        stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId)
+        stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
       })
       .catch((err) => {
-        stream.serverError(UPDATED_COLLECTIONS, err.message, socket)
+        stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
       });
   }
 }

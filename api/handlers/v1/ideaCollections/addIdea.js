@@ -22,19 +22,19 @@ export default function addIdea(req) {
   const userToken = req.userToken;
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(content) || isNull(key)) {
-    stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
+
+  if (isNull(boardId) || isNull(content) || isNull(key) || isNull(userToken)) {
+    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    return addIdeaToCollection(boardId, key, content)
-      .then((allCollections) => {
-        stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
-      })
-      .catch((err) => {
-        stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
-      });
-  }
+
+  return addIdeaToCollection(user._id, boardId, key, content)
+    .then((allCollections) => {
+      stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
+    })
+    .catch((err) => {
+      stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
+    });
 }

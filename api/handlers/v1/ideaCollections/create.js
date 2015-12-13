@@ -40,7 +40,7 @@ export default function create(req) {
                   boardId);
       })
       .catch((err) => {
-        stream.serverError(UPDATED_COLLECTIONS, err.message, socket)
+        stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
       });
   }
 }

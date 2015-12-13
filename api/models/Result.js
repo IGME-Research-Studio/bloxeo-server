@@ -35,12 +35,11 @@ const schema = new mongoose.Schema({
 // statics
 schema.statics.findByIndex = function(boardId, index) {
   return this.find({boardId: boardId})
-  .populate('ideas', 'content -_id')
+  .populate('ideas', 'content')
   .then((collections) => collections[index]);
 };
 
 const model = mongoose.model('Result', schema);
-
 
 module.exports.schema = schema;
 module.exports.model = model;
