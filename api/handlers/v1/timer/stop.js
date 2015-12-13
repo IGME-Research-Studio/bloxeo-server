@@ -16,11 +16,12 @@ export default function disableTimer(req) {
   const socket = req.socket;
   const boardId = req.boardId;
   const eventId = req.eventId;
+  const token = req.userToken;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(eventId)) {
+  else if (isNull(boardId) || isNull(eventId) || isNull(token)) {
     stream.badRequest(EXT_EVENTS.DISABLED_TIMER, {}, socket,
       'Not all required parameters were supplied');
   }

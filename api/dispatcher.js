@@ -20,12 +20,16 @@ import destroyCollection from './handlers/v1/ideaCollections/destroy';
 import addIdea from './handlers/v1/ideaCollections/addIdea';
 import removeIdea from './handlers/v1/ideaCollections/removeIdea';
 import getCollections from './handlers/v1/ideaCollections/index';
-import startTimerCountdown from './handlers/v1/timer/start';
-import disableTimer from './handlers/v1/timer/stop';
 import readyUser from './handlers/v1/voting/ready';
 import getResults from './handlers/v1/voting/results';
 import vote from './handlers/v1/voting/vote';
 import getVoteItems from './handlers/v1/voting/voteList';
+import startTimerCountdown from './handlers/v1/timer/start';
+import disableTimer from './handlers/v1/timer/stop';
+import enableIdeas from './handlers/v1/state/enableIdeaCreation';
+import disableIdeas from './handlers/v1/state/disableIdeaCreation';
+import forceVote from './handlers/v1/state/forceVote';
+import forceResults from './handlers/v1/state/forceResults';
 
 import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
@@ -130,6 +134,30 @@ const dispatcher = function(server) {
     socket.on(EXT_EVENTS.VOTE, (req) => {
       log.verbose(EXT_EVENTS.VOTE, req);
       vote(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.START_TIMER, (req) => {
+      log.verbose(EXT_EVENTS.START_TIMER, req);
+      startTimerCountdown(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.DISABLE_TIMER, (req) => {
+      log.verbose(EXT_EVENTS.DISABLE_TIMER, req);
+      disableTimer(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.ENABLE_IDEAS, (req) => {
+      log.verbose(EXT_EVENTS.ENABLE_IDEAS, req);
+      enableIdeas(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.DISABLE_IDEAS, (req) => {
+      log.verbose(EXT_EVENTS.DISABLE_IDEAS, req);
+      disableIdeas(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.FORCE_VOTE, (req) => {
+      log.verbose(EXT_EVENTS.FORCE_VOTE, req);
+      forceVote(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.FORCE_RESULTS, (req) => {
+      log.verbose(EXT_EVENTS.FORCE_RESULTS, req);
+      forceResults(_.merge({socket: socket, req}));
     });
   });
 

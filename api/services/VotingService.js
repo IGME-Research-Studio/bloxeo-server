@@ -12,6 +12,9 @@ import Promise from 'bluebird';
 import _ from 'lodash';
 import IdeaCollectionService from './IdeaCollectionService';
 import BoardService from './BoardService';
+import StateService from './StateService';
+import stream from '../event-stream';
+import EXT_EVENTS from '../constants/EXT_EVENT_API';
 
 const service = {};
 
@@ -93,7 +96,32 @@ service.isRoomReady = function(boardId) {
     return Promise.all(promises);
   })
   .then((states) => {
-    return _.every(states, 'ready', true);
+    const roomReady = _.every(states, 'ready', true);
+    if (roomReady) {
+      return StateService.getState(boardId)
+      .then((currentState) => {
+        if (_.isEqual(currentState, StateService.StateEnum.createIdeaCollections)) {
+          return StateService.voteOnIdeaCollections(boardId, false, null)
+          .then((state) => {
+            stream.ok(EXT_EVENTS.READY_TO_VOTE, {boardId: boardId, state: state}, boardId);
+            return true;
+          });
+        }
+        else if (_.isEqual(currentState, StateService.StateEnum.voteOnIdeaCollections)) {
+          return StateService.createIdeaCollections(boardId, false, null)
+          .then((state) => {
+            stream.ok(EXT_EVENTS.FINISHED_VOTING, {boardId: boardId, state: state}, boardId);
+            return true;
+          });
+        }
+        else {
+          throw new Error('Current state does not account for readying');
+        }
+      });
+    }
+    else {
+      return false;
+    }
   })
   .catch((err) => {
     throw err;
