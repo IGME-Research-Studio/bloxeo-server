@@ -17,7 +17,7 @@ export default function addIdea(req) {
   const boardId = req.boardId;
   const userId = req.userId;
   const key = req.key;
-  const incremennt = req.incremennt;
+  const increment = req.increment;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

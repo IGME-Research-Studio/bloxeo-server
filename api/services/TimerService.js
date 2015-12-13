@@ -11,10 +11,14 @@ const DTimer = require('dtimer').DTimer;
 const dt = new DTimer('timer', pub, sub);
 const EXT_EVENTS = require('../constants/EXT_EVENT_API');
 const stream = require('../event-stream').default;
+const stateService = require('./StateService');
 const timerService = {};
 
 dt.on('event', function(eventData) {
-  stream.ok(EXT_EVENTS.TIMER_EXPIRED, eventData, boardId);
+  stateService.createIdeaCollections(eventData.boardId, false, null)
+  .then((state) => {
+    stream.ok(EXT_EVENTS.TIMER_EXPIRED, {boardId: eventData.boardId, state: state}, boardId);
+  });
 });
 
 dt.join(function(err) {

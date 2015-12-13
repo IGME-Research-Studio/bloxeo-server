@@ -144,6 +144,7 @@ describe('VotingService', function() {
       Promise.all([
         RedisService.del('1-current-users'),
         RedisService.del('1-ready'),
+        RedisService.del('1-state'),
       ])
       .then(() => {
         clearDB(done);

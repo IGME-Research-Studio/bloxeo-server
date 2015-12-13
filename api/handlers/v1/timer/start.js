@@ -16,11 +16,12 @@ export default function startTimerCountdown(req) {
   const socket = req.socket;
   const boardId = req.boardId;
   const timerLengthInMS = req.timerLengthInMS;
+  const token = req.userToken;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(timerLengthInMS)) {
+  else if (isNull(boardId) || isNull(timerLengthInMS) || isNull(token)) {
     stream.badRequest(EXT_EVENTS.STARTED_TIMER, {}, socket,
       'Not all required parameters were supplied');
   }
