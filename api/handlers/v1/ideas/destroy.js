@@ -7,7 +7,10 @@
 * @param {string} req.content the content of the idea to remove
 */
 
+import R from 'ramda';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { destroy } from '../../../services/IdeaService';
 import { stripMap as strip } from '../../../services/utils';
 import { UPDATED_IDEAS } from '../../../constants/EXT_EVENT_API';
@@ -15,21 +18,26 @@ import stream from '../../../event-stream';
 
 export default function remove(req) {
   const { socket, boardId, content, userToken } = req;
+  const destroyThisIdeaBy = R.partialRight(destroy, [boardId, content]);
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId)) {
-    stream.badRequest(UPDATED_IDEAS, {}, socket,
+
+  if (isNull(boardId)) {
+    return stream.badRequest(UPDATED_IDEAS, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    return destroy(boardId, content)
-      .then((allIdeas) => {
-        stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId);
-      })
-      .catch((err) => {
-        stream.serverError(UPDATED_IDEAS, err.message, socket);
-      });
-  }
+
+  return verifyAndGetId(userToken)
+    .then(destroyThisIdeaBy)
+    .then((allIdeas) => {
+      return stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(UPDATED_IDEAS, err.message, socket);
+    })
+    .catch((err) => {
+      return stream.serverError(UPDATED_IDEAS, err.message, socket);
+    });
 }

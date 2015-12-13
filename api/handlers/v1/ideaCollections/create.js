@@ -8,7 +8,8 @@
 * collection with.
 */
 
-import _ from 'lodash';
+import R from 'ramda';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { create as createCollection } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../services/utils';
@@ -17,25 +18,25 @@ import stream from '../../../event-stream';
 
 export default function create(req) {
   const { socket, boardId, content, top, left, userToken } = req;
+  const createThisCollectionBy = R.partialRight(createCollection, [boardId, content]);
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(content)) {
-    stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
+
+  if (isNull(boardId) || isNull(content) || isNull(userToken)) {
+    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    // @TODO pass user along
-    return createCollection(null, boardId, content)
-      .then(([created, allCollections]) => {
-        stream.ok(UPDATED_COLLECTIONS,
-                  _.merge({key: created.key, top: top, left: left},
-                          strip(allCollections)),
-                  boardId);
-      })
-      .catch((err) => {
-        stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
-      });
-  }
+
+  return verifyAndGetId(userToken)
+    .then(createThisCollectionBy)
+    .then(([created, allCollections]) => {
+      return stream.ok(UPDATED_COLLECTIONS,
+                R.merge({key: created.key, top: top, left: left},
+                        strip(allCollections)), boardId);
+    })
+    .catch((err) => {
+      return stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
+    });
 }

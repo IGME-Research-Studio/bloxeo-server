@@ -39,4 +39,8 @@ tokenService.verify = function(token) {
   }
 };
 
+tokenService.verifyAndGetId = function(token) {
+  return tokenService.verify(token).get('_id');
+};
+
 module.exports = tokenService;

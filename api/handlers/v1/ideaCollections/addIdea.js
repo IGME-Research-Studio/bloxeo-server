@@ -8,7 +8,10 @@
 * @param {string} req.key key of the collection
 */
 
+import R from 'ramda';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../services/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
@@ -16,6 +19,7 @@ import stream from '../../../event-stream';
 
 export default function addIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
+  const addThisIdeaBy = R.partialRight(addIdeaToCollection, [boardId, key, content]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
@@ -26,11 +30,15 @@ export default function addIdea(req) {
       'Not all required parameters were supplied');
   }
 
-  return addIdeaToCollection(user._id, boardId, key, content)
+  return verifyAndGetId(userToken)
+    .then(addThisIdeaBy)
     .then((allCollections) => {
-      stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
+      return stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
     })
     .catch((err) => {
-      stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
+      return stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
     });
 }
