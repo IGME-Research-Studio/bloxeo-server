@@ -5,8 +5,6 @@
 */
 const RedisService = require('./RedisService');
 const Promise = require('bluebird');
-// const EXT_EVENTS = require('../constants/EXT_EVENT_API');
-// const stream = require('../event-stream');
 const stateService = {};
 
 stateService.StateEnum = {
@@ -51,15 +49,15 @@ function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
 * @param {StateEnum} state: The state object to be set on Redis
 */
 stateService.setState = function(boardId, state, requiresAdmin, userToken) {
-  checkRequiresAdmin(requiresAdmin, userToken)
+  return checkRequiresAdmin(requiresAdmin, boardId, userToken)
   .then(() => {
     return RedisService.set(boardId + '-state', JSON.stringify(state))
     .then((result) => {
       if (result.toLowerCase() === 'ok') {
-        return true;
+        return state;
       }
       else {
-        return false;
+        throw new Error('Failed to set state in Redis');
       }
     });
   })
@@ -74,26 +72,26 @@ stateService.setState = function(boardId, state, requiresAdmin, userToken) {
 */
 stateService.getState = function(boardId) {
   return RedisService.get(boardId + '-state').then(function(result) {
-    if (result !== undefined) {
+    if (result !== null) {
       return JSON.parse(result);
     }
     else {
-      this.setState(boardId, this.StateEnum.createIdeasAndIdeaCollections);
-      return this.StateEnum.createIdeasAndIdeaCollections;
+      stateService.setState(boardId, stateService.StateEnum.createIdeasAndIdeaCollections);
+      return stateService.StateEnum.createIdeaCollections;
     }
   });
 };
 
 stateService.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  this.setState(boardId, this.StateEnum.createIdeasAndIdeaCollections, requiresAdmin, userToken);
+  return stateService.setState(boardId, stateService.StateEnum.createIdeasAndIdeaCollections, requiresAdmin, userToken);
 };
 
 stateService.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  this.setState(boardId, this.StateEnum.createIdeaCollections, requiresAdmin, userToken);
+  return stateService.setState(boardId, stateService.StateEnum.createIdeaCollections, requiresAdmin, userToken);
 };
 
 stateService.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  this.setState(boardId, this.StateEnum.voteOnIdeaCollections, requiresAdmin, userToken);
+  return stateService.setState(boardId, stateService.StateEnum.voteOnIdeaCollections, requiresAdmin, userToken);
 };
 
 module.exports = stateService;

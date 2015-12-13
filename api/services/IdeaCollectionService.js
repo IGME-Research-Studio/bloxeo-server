@@ -117,7 +117,9 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 
 /**
  * Returns the content of each idea in an IdeaCollection
+ * @NOTE depricated
  */
+
 ideaCollectionService.getAllIdeas = function(boardId, key) {
 
   return IdeaCollection.findByKey(boardId, key)
