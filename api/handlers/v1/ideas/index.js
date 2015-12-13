@@ -13,8 +13,7 @@ import { RECEIVED_IDEAS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function index(req) {
-  const boardId = req.boardId;
-  const socket = req.socket;
+  const { socket, boardId } = req;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

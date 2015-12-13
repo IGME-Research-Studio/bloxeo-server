@@ -15,11 +15,7 @@ import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function removeIdea(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const content = req.content;
-  const key = req.key;
-  const userToken = req.userToken;
+  const { socket, boardId, content, key, userToken } = req;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

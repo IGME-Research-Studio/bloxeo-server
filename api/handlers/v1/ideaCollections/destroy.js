@@ -14,10 +14,7 @@ import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function destroy(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const key = req.key;
-  const userToken = req.userToken;
+  const { socket, boardId, key, userToken } = req;
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');

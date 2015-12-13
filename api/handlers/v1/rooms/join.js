@@ -12,8 +12,7 @@ import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function join(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
+  const { socket, boardId } = req;
 
   if (isNull(socket)) {
     return false;
