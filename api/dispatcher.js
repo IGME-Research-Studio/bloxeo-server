@@ -30,6 +30,7 @@ import enableIdeas from './handlers/v1/state/enableIdeaCreation';
 import disableIdeas from './handlers/v1/state/disableIdeaCreation';
 import forceVote from './handlers/v1/state/forceVote';
 import forceResults from './handlers/v1/state/forceResults';
+import getCurrentState from './handlers/v1/state/get';
 
 import EXT_EVENTS from './constants/EXT_EVENT_API';
 import INT_EVENTS from './constants/INT_EVENT_API';
@@ -157,7 +158,11 @@ const dispatcher = function(server) {
     });
     socket.on(EXT_EVENTS.FORCE_RESULTS, (req) => {
       log.verbose(EXT_EVENTS.FORCE_RESULTS, req);
-      forceResults(_.merge({socket: socket, req}));
+      forceResults(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.GET_STATE, (req) => {
+      log.verbose(EXT_EVENTS.GET_STATE, req);
+      getCurrentState(_.merge({socket: socket}, req));
     });
   });
 
