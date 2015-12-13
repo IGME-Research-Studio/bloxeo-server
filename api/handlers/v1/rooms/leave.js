@@ -17,13 +17,16 @@ export default function leave(req) {
   if (isNull(socket)) {
     return false;
   }
-  else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.LEFT_ROOM, {}, socket,
+  // if do things that will ask Will
+  // user stuff
+  if (isNull(boardId)) {
+    return stream.badRequest(EXT_EVENTS.LEFT_ROOM, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    stream.leave(socket, boardId);
-    stream.ok(EXT_EVENTS.LEFT_ROOM, {}, boardId,
-       `User with socket id ${socket.id} left board ${boardId}`);
-  }
+
+  // BoardService.leave with boardId and userId
+  stream.leave(socket, boardId);
+  stream.ok(EXT_EVENTS.LEFT_ROOM, {}, boardId,
+     `User with socket id ${socket.id} left board ${boardId}`);
+
 }

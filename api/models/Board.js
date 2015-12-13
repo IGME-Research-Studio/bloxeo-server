@@ -5,6 +5,7 @@
 const shortid = require('shortid');
 const mongoose = require('mongoose');
 const IdeaCollection = require('./IdeaCollection.js');
+const Result = require('./Result.js');
 const Idea = require('./Idea.js');
 
 const schema = new mongoose.Schema({
@@ -22,6 +23,12 @@ const schema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
+  },
+
+  round: {
+    type: Number,
+    default: 0,
+    min: 0,
   },
 
   users: [
@@ -52,6 +59,7 @@ schema.post('remove', function(next) {
   // Remove all models that depend on the removed Board
   IdeaCollection.model.remove({boardId: this.boardId})
   .then(() => Idea.model.remove({boardId: this.boardId}))
+  .then(() => Result.model.remove({boardId: this.boardId}))
   .then(() => next());
 
   next();

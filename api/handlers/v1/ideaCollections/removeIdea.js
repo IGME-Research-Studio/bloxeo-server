@@ -30,7 +30,7 @@ export default function removeIdea(req) {
     removeIdeaFromCollection(boardId, key, content)
       .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
                                           allCollections, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.UPDATE_COLLECTIONS,
+      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
                                          err.message, socket));
   }
 }

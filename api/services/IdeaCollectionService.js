@@ -19,6 +19,9 @@ ideaCollectionService.create = function(boardId, content) {
   .catch(errorHandler);
 };
 
+// add a collection back to the workspace
+// ideaCollectionService.createFromResult = function(result) {};
+
 /**
  * Remove an IdeaCollection from a board then delete the model
  * @param {String} boardId
@@ -27,11 +30,21 @@ ideaCollectionService.create = function(boardId, content) {
  * @todo Potentially want to add a userId to parameters track who destroyed the
  * idea collection model
  */
-ideaCollectionService.destroy = function(boardId, key) {
+ideaCollectionService.destroyByKey = function(boardId, key) {
 
   return IdeaCollection.findOne({boardId: boardId, key: key})
-  .then((collection) => collection.remove())
-  .then(() => ideaCollectionService.getIdeaCollections(boardId))
+  .then((collection) => ideaCollectionService.destroy(collection))
+  .catch(errorHandler);
+};
+
+/**
+ * @param {IdeaCollection} collection - an already found mongoose collection
+ * @returns {Promise} - resolves to all the collections on the board
+*/
+ideaCollectionService.destroy = function(collection) {
+
+  return IdeaCollection.remove({key: collection.key})
+  .then(() => ideaCollectionService.getIdeaCollections(collection.boardId))
   .catch(errorHandler);
 };
 
@@ -104,13 +117,47 @@ ideaCollectionService.getIdeaCollections = function(boardId) {
 
 /**
  * Returns the content of each idea in an IdeaCollection
- * @deprecated
+ * @NOTE depricated
  */
+
 ideaCollectionService.getAllIdeas = function(boardId, key) {
 
   return IdeaCollection.findByKey(boardId, key)
   .then((collections) => toClient(collections.ideas))
   .catch(errorHandler);
+};
+
+// destroy duplicate collections
+ideaCollectionService.removeDuplicates = function(boardId) {
+  return IdeaCollection.find({boardId: boardId})
+  .then((collections) => {
+    const dupCollections = [];
+
+    const toString = function(id) {
+      return String(id);
+    };
+
+    for (let i = 0; i < collections.length - 1; i++) {
+      for (let c = i + 1; c < collections.length; c++) {
+        if (collections[i].ideas.length === collections[c].ideas.length) {
+          const concatArray = (collections[i].ideas.concat(collections[c].ideas));
+          const deduped = _.unique(concatArray, toString);
+
+          if (deduped.length === collections[i].ideas.length) {
+            dupCollections.push(collections[i]);
+            break;
+          }
+        }
+      }
+    }
+    return dupCollections;
+  })
+  .then((dupCollections) => {
+    return _.map(dupCollections, (collection) => {
+      return IdeaCollection.remove({key: collection.key, boardId: collection.boardId});
+    });
+  })
+  .all();
 };
 
 module.exports = ideaCollectionService;
