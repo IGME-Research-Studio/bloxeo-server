@@ -78,12 +78,12 @@ class EventStream extends EventEmitter {
   }
 
   /**
+  * Sends a broadcast to the room identified by the boardId
   * 2xx codes use the following interface
   * @param {String} event socket event to send to client
   * @param {Object} data arbitrary data to send to client
   * @param {String} boardId user facing boardId to broadcast the message to
   * @param {String=} message optional HTTP-like message
-  * Sends a broadcast to the room identified by the boardId
   */
   ok(event, data, boardId, message) {
     const msg = message || 'Operation succesful';
@@ -98,6 +98,19 @@ class EventStream extends EventEmitter {
   accepted(event, data, boardId, message) {
     const msg = message || 'Accepted for processing, may be rejected later.';
     this.broadcast(success(202, event, data, boardId, msg));
+  }
+
+  /**
+  * Sends emit to a particular user identified by their socket id
+  * 2xx codes use the following interface
+  * @param {String} event socket event to send to client
+  * @param {Object} data arbitrary data to send to client
+  * @param {String} socket user facing boardId to broadcast the message to
+  * @param {String=} message optional HTTP-like message
+  */
+  okTo(event, data, socket, message) {
+    const msg = message || 'Operation succesful';
+    this.emitTo(success(200, event, data, socket, msg));
   }
 
   /**

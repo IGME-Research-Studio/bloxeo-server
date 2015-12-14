@@ -31,7 +31,7 @@ export default function index(req) {
   return verifyAndGetId(userToken)
     .then(getTheseIdeas)
     .then((allIdeas) => {
-      return stream.ok(RECEIVED_IDEAS, strip(allIdeas), boardId);
+      return stream.okTo(RECEIVED_IDEAS, strip(allIdeas), socket);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(RECEIVED_IDEAS, err.message, socket);

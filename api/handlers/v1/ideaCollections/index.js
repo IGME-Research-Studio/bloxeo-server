@@ -30,7 +30,7 @@ export default function index(req) {
   return verifyAndGetId(userToken)
     .then(getCollections)
     .then((allCollections) => {
-      return stream.ok(RECEIVED_COLLECTIONS, strip(allCollections), boardId);
+      return stream.okTo(RECEIVED_COLLECTIONS, strip(allCollections), socket);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
