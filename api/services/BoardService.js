@@ -5,6 +5,7 @@ import Promise from 'bluebird';
 import { toPlainObject } from '../helpers/utils';
 import { model as Board } from '../models/Board';
 import { isNull } from './ValidatorService';
+import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
 
 const boardService = {};
@@ -69,6 +70,27 @@ boardService.getPendingUsers = function(boardId) {
   .exec((board) => board.pendingUsers);
 };
 
+boardService.addUser = function(boardId, userId) {
+  return Promise.join(Board.findOne({boardId: boardId}),
+                      User.findOne({userId: userId}))
+  .then(([board, user]) => {
+    if (isNull(board)) {
+      throw new NotFoundError(`Board (${boardId}) does not exist`);
+    }
+    else if (isNull(user)) {
+      throw new NotFoundError(`User (${userId}) does not exist`);
+    }
+    else if (isUser(board, userId)) {
+      throw new ValidationError(
+        `User (${userId}) already exists on the board (${boardId})`);
+    }
+    else {
+      board.users.push(userId);
+      return board.save();
+    }
+  });
+};
+
 /**
  * Add a user as an admin on a board
  * @param {String} boardId the boardId to add the admin to
@@ -91,11 +113,11 @@ boardService.addAdmin = function(boardId, userId) {
       return board.save();
     }
     else if (!isUser) {
-      throw new Promise.OperationalError(
+      throw new NotFoundError(
         `User (${userId}) does not exist on the board (${boardId})`);
     }
     else if (isAdmin) {
-      throw new Promise.OperationalError(
+      throw new ValidationError(
         `User (${userId}) is already an admin on the board (${boardId})`);
     }
   });

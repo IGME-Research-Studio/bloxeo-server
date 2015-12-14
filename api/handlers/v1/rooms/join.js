@@ -26,11 +26,12 @@ export default function join(req) {
     .then((exists) => {
       if (exists) {
         stream.join(socket, boardId);
-        stream.ok(JOINED_ROOM, {}, boardId,
-           `User with socket id ${socket.id} joined board ${boardId}`);
+        return stream.ok(JOINED_ROOM,
+                  `User with socket id ${socket.id} joined board ${boardId}`,
+                  boardId);
       }
       else {
-        stream.notFound(JOINED_ROOM, {}, socket, 'Board not found');
+        return stream.notFound(JOINED_ROOM, 'Board not found', socket);
       }
     });
 }
