@@ -19,8 +19,7 @@ export default function join(req) {
   }
 
   if (isNull(boardId) || isNull(userToken)) {
-    return stream.badRequest(JOINED_ROOM, {}, socket,
-      'Not all required parameters were supplied');
+    return stream.badRequest(JOINED_ROOM, {}, socket);
   }
 
   return BoardService.exists(boardId)

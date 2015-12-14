@@ -53,6 +53,7 @@ let verifyAndGetIdStub;
 let serverErrorStub;
 let unauthorizedStub;
 let okStub;
+let okToStub;
 let createStub;
 let createdStub;
 let badRequestStub;
@@ -67,7 +68,7 @@ describe('IdeaCollection handlers', function() {
       getIdeaCollectionsStub = this.stub(IdeaCollectionService, 'getIdeaCollections')
         .returns(Promise.resolve(REQ_COLLECTIONS));
 
-      okStub = this.stub(stream, 'ok');
+      okToStub = this.stub(stream, 'okTo');
       serverErrorStub = this.stub(stream, 'serverError');
       badRequestStub = this.stub(stream, 'badRequest');
       unauthorizedStub = this.stub(stream, 'unauthorized');
@@ -83,10 +84,10 @@ describe('IdeaCollection handlers', function() {
           expect(unauthorizedStub).to.not.have.been.called;
           expect(getIdeaCollectionsStub)
             .to.have.been.calledWith(REQ_OBJ.boardId);
-          expect(okStub)
+          expect(okToStub)
             .to.have.been.calledWith(EXT_EVENTS.RECEIVED_COLLECTIONS,
                                      RES_UPDATED_COLLECTIONS,
-                                     REQ_OBJ.boardId);
+                                     REQ_OBJ.socket);
         });
     });
   });

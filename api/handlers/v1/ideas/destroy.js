@@ -25,8 +25,7 @@ export default function remove(req) {
   }
 
   if (isNull(boardId)) {
-    return stream.badRequest(UPDATED_IDEAS, {}, socket,
-      'Not all required parameters were supplied');
+    return stream.badRequest(UPDATED_IDEAS, {}, socket);
   }
 
   return verifyAndGetId(userToken)

@@ -24,8 +24,7 @@ export default function index(req) {
   }
 
   if (isNull(boardId) || isNull(userToken)) {
-    return stream.badRequest(RECEIVED_IDEAS, {}, socket,
-      'Not all required parameters were supplied');
+    return stream.badRequest(RECEIVED_IDEAS, {}, socket);
   }
 
   return verifyAndGetId(userToken)

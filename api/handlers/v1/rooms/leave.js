@@ -18,8 +18,7 @@ export default function leave(req) {
   }
 
   if (isNull(boardId) || isNull(userToken)) {
-    return stream.badRequest(LEFT_ROOM, {}, socket,
-      'Not all required parameters were supplied');
+    return stream.badRequest(LEFT_ROOM, {}, socket);
   }
   else {
     stream.leave(socket, boardId);

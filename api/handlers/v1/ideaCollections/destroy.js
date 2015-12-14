@@ -25,8 +25,7 @@ export default function destroy(req) {
   }
 
   if (isNull(boardId) || isNull(key) || isNull(userToken)) {
-    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
-      'Not all required parameters were supplied');
+    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
   }
 
   return verifyAndGetId(userToken)

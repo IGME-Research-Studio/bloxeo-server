@@ -26,8 +26,7 @@ export default function create(req) {
   }
 
   if (isNull(boardId) || isNull(content) || isNull(userToken)) {
-    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
-      'Not all required parameters were supplied');
+    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
   }
 
   return verifyAndGetId(userToken)

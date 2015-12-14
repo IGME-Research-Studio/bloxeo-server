@@ -122,7 +122,7 @@ class EventStream extends EventEmitter {
   * Sends a emission to the socket identified by the socket
   */
   badRequest(event, data, socket, message) {
-    const msg = message || 'Accepted for processing, may be rejected later.';
+    const msg = message || 'Not all required parameters were supplied';
     this.emitTo(error(400, event, data, socket, msg));
   }
 
