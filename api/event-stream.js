@@ -33,6 +33,19 @@ function success(code, event, data, boardId, msg) {
   };
 }
 
+function successTo(code, event, data, socket, msg) {
+  return {
+    event: event,
+    socket: socket,
+    res: {
+      ts: new Date().getTime(),
+      code: code,
+      data: data,
+      message: msg,
+    },
+  };
+}
+
 function error(code, event, data, socket, msg) {
   return {
     event: event,
@@ -110,7 +123,7 @@ class EventStream extends EventEmitter {
   */
   okTo(event, data, socket, message) {
     const msg = message || 'Operation succesful';
-    this.emitTo(success(200, event, data, socket, msg));
+    this.emitTo(successTo(200, event, data, socket, msg));
   }
 
   /**
