@@ -11,6 +11,7 @@
 import R from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { create as createCollection } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../services/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
@@ -35,6 +36,9 @@ export default function create(req) {
       return stream.ok(UPDATED_COLLECTIONS,
                 R.merge({key: created.key, top: top, left: left},
                         strip(allCollections)), boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
     })
     .catch((err) => {
       return stream.serverError(UPDATED_COLLECTIONS, err.message, socket);

@@ -6,10 +6,7 @@
 * @param {string} req.boardId the id of the room to leave
 */
 
-import R from 'ramda';
-import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
-import { verifyAndGetId } from '../../../services/TokenService';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -20,7 +17,7 @@ export default function leave(req) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId)) {
+  if (isNull(boardId) || isNull(userToken)) {
     return stream.badRequest(LEFT_ROOM, {}, socket,
       'Not all required parameters were supplied');
   }

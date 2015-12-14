@@ -6,10 +6,7 @@
 * @param {string} req.boardId the id of the room to join
 */
 
-import R from 'ramda';
-import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
-import { verifyAndGetId } from '../../../services/TokenService';
 import BoardService from '../../../services/BoardService';
 import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
