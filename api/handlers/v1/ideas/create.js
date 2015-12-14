@@ -24,7 +24,7 @@ export default function create(req) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(content)) {
+  if (isNull(boardId) || isNull(content) || isNull(userToken)) {
     return stream.badRequest(UPDATED_IDEAS, {}, socket);
   }
 

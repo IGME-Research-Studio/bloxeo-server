@@ -24,7 +24,7 @@ export default function remove(req) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId)) {
+  if (isNull(boardId) || isNull(userToken)) {
     return stream.badRequest(UPDATED_IDEAS, {}, socket);
   }
 

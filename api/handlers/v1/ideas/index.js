@@ -16,7 +16,7 @@ import { RECEIVED_IDEAS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function index(req) {
-  const { socket, boardId } = req;
+  const { socket, boardId, userToken } = req;
   const getTheseIdeas = R.partialRight(getIdeas, [boardId]);
 
   if (isNull(socket)) {
