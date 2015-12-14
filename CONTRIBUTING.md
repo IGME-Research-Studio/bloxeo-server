@@ -7,8 +7,8 @@ We're borrowing [Airbnb's style guide](https://github.com/airbnb/javascript/tree
 
 ## Pull Requests
 
-* Before you push a change make sure that the tests and linter are passing (this can all be accomplished by running `$ grunt`).
-* Update and/or create new documentation using the [JSDoc format](http://usejsdoc.org/) (at a minimum declaring parameter types). We will use this to automatically generate documentation.
+* Before you push a change make sure that the tests and linter are passing (this can all be accomplished by running `$ npm test`).
+* Update and/or create new documentation using the [JSDoc format](http://usejsdoc.org/) (at a minimum declaring param/return types). We will use this to automatically generate documentation.
 * If your PR makes a code change make sure to bump the version number in package.json according to [SEMVER](http://semver.org/) guidelines:
 
 ```
@@ -19,8 +19,13 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 * Push your changes to a feature branch in your clone or fork of the repository. If you have a Github issue associated with your feature consider prefixing your branch with the issue (e.g. IS-2).
 * Submit a pull request to the relevant repository in IGME-research-studio.
-* Update your Github issue to mark that you have submitted code and are ready for it to be reviewed. Include a link to the pull request in the ticket.
+* Update your Github issue to mark that you have submitted code and are ready for it to be reviewed. Include a link to the pull request in the issue.
 * After two other contributors review the PR and give it a thumbs up, then it's ready to be merged.
+
+## Continuous Integration
+* When code is pushed to GitHub `npm test` is run against your patch on Circle CI, you will not be allowed to merge unless this passes.
+* When merged into `stage` code gets automatically deployed to `storm-server-stage.herokuapp.com`
+* When code get's to a point that we want to release a new version, make a commit to bump the version number in `package.json` and after it gets merged into stage, cut a new release on GitHub. This will automatically deploy to `storm-server-prod.herokuapp.com`.
 
 ## Commit Messages
 
