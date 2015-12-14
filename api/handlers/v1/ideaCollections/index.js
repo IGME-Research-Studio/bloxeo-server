@@ -10,7 +10,7 @@ import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getIdeaCollections } from '../../../services/IdeaCollectionService';
-import { stripNestedMap as strip } from '../../../services/utils';
+import { stripNestedMap as strip } from '../../../helpers/utils';
 import { RECEIVED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 

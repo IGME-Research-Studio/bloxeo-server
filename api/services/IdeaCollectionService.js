@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import ideaService from './IdeaService';
-import { errorHandler } from './utils';
 import { isNull } from './ValidatorService';
 
 const ideaCollectionService = {};
@@ -42,8 +41,7 @@ ideaCollectionService.create = function(userId, boardId, content) {
     ideaCollectionService.getIdeaCollections(boardId)
       .then((allCollections) => fulfill([created, allCollections]))
       .catch((err) => reject(err));
-  }))
-  .catch(errorHandler);
+  }));
 };
 
 /**
@@ -58,8 +56,7 @@ ideaCollectionService.destroy = function(boardId, key) {
 
   return ideaCollectionService.findByKey(boardId, key)
   .then((collection) => collection.remove())
-  .then(() => ideaCollectionService.getIdeaCollections(boardId))
-  .catch(errorHandler);
+  .then(() => ideaCollectionService.getIdeaCollections(boardId));
 };
 
 /**
@@ -89,8 +86,7 @@ ideaCollectionService.changeIdeas = function(operation, userId, boardId, key, co
       return collection.save()
       .then(() => ideaCollectionService.getIdeaCollections(boardId));
     }
-  })
-  .catch(errorHandler);
+  });
 };
 
 /**
@@ -124,8 +120,7 @@ ideaCollectionService.removeIdea = function(userId, boardId, key, content) {
 ideaCollectionService.getIdeaCollections = function(boardId) {
 
   return IdeaCollection.findOnBoard(boardId)
-  .then((collections) => _.indexBy(collections, 'key'))
-  .catch(errorHandler);
+  .then((collections) => _.indexBy(collections, 'key'));
 };
 
 module.exports = ideaCollectionService;

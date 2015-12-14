@@ -10,7 +10,7 @@ const utils = {
    * @param {MongooseObject} mongooseResult
    * @return {Object}
    */
-  toClient: (mongooseResult) => {
+  toPlainObject: (mongooseResult) => {
     return JSON.parse(JSON.stringify(mongooseResult));
   },
 
@@ -21,7 +21,7 @@ const utils = {
    * @return {Object}
    */
   strip: (mongooseResult, omitBy = ['_id']) => {
-    return R.pipe(R.omit(omitBy), utils.toClient)(mongooseResult);
+    return R.pipe(R.omit(omitBy), utils.toPlainObject)(mongooseResult);
   },
 
   /**
@@ -33,7 +33,7 @@ const utils = {
    * @return {Object}
    */
   stripMap: (mongooseResult, omitBy = ['_id']) => {
-    return R.pipe(R.map(R.omit(omitBy)), utils.toClient)(mongooseResult);
+    return R.pipe(R.map(R.omit(omitBy)), utils.toPlainObject)(mongooseResult);
   },
 
   /**
@@ -50,15 +50,7 @@ const utils = {
     };
     return R.pipe(R.map(R.omit(omitBy)),
                      R.map(stripNested),
-                     utils.toClient)(mongooseResult);
-  },
-
-  /**
-   * Generic error handler/propagator, primarily for promise flow
-   * @param {Error} err - existing error object that will be thrown
-   */
-  errorHandler: (err) => {
-    throw err;
+                     utils.toPlainObject)(mongooseResult);
   },
 };
 

@@ -2,8 +2,9 @@
 * BoardService: contains actions related to users and boards.
 */
 import Promise from 'bluebird';
-import { toClient } from './utils';
+import { toPlainObject } from '../helpers/utils';
 import { model as Board } from '../models/Board';
+import { isNull } from './ValidatorService';
 import R from 'ramda';
 
 const boardService = {};
@@ -108,7 +109,7 @@ boardService.addAdmin = function(boardId, userId) {
  * @returns {Boolean} whether the user was on the board
  */
 boardService.isUser = function(board, userId) {
-  return R.contains(toClient(userId), toClient(board.users));
+  return R.contains(toPlainObject(userId), toPlainObject(board.users));
 };
 
 /**
@@ -119,7 +120,7 @@ boardService.isUser = function(board, userId) {
  * @returns {Promise<Boolean|Error>} whether the user was an admin
  */
 boardService.isAdmin = function(board, userId) {
-  return R.contains(toClient(userId), toClient(board.admins));
+  return R.contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
 module.exports = boardService;

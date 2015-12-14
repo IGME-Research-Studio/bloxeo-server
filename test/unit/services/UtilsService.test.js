@@ -1,6 +1,6 @@
 import chai from 'chai';
 
-import utils from '../../../api/services/utils';
+import utils from '../../../api/helpers/utils';
 
 const expect = chai.expect;
 

@@ -7,7 +7,6 @@
 
 import tokenService from './TokenService';
 import { model as User } from '../models/User.js';
-import { toClient, errorHandler } from '../services/utils';
 
 const userService = {};
 
@@ -18,9 +17,7 @@ const userService = {};
  */
 userService.create = function(username) {
   return new User({username: username}).save()
-  .then((user) => tokenService.encode(user))
-  .then(toClient)
-  .catch(errorHandler);
+  .then((user) => tokenService.encode(user));
 };
 
 /**
@@ -29,7 +26,6 @@ userService.create = function(username) {
  * @returns {Promise}
  */
 userService.destroy = function(userId) {
-
   return User.model.remove({userId: userId}).save();
 };
 

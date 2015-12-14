@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import mochaMongoose from 'mocha-mongoose';
 import Monky from 'monky';
 import sinomocha from 'sinomocha';
-import {toClient} from '../../../api/services/utils';
+import {toPlainObject} from '../../../api/helpers/utils';
 
 import CFG from '../../../config';
 import database from '../../../api/services/database';
@@ -68,7 +68,7 @@ describe('BoardService', function() {
     it('should add the existing user as an admin on the board', function(done) {
       BoardService.addAdmin(DEF_BOARDID, DEF_USERID)
         .then((board) => {
-          expect(toClient(board.admins[0])).to.equal(DEF_USERID);
+          expect(toPlainObject(board.admins[0])).to.equal(DEF_USERID);
           done();
         });
     });

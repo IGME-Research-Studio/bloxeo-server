@@ -12,7 +12,7 @@ import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { destroy } from '../../../services/IdeaService';
-import { stripMap as strip } from '../../../services/utils';
+import { stripMap as strip } from '../../../helpers/utils';
 import { UPDATED_IDEAS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 

@@ -6,7 +6,6 @@
  */
 
 import { model as Idea } from '../models/Idea.js';
-import { errorHandler } from './utils';
 import { isNull } from './ValidatorService';
 
 const ideaService = {};
@@ -32,8 +31,7 @@ const maybeThrowNotFound = (obj, boardId, content) => {
 ideaService.create = function(userId, boardId, ideaContent) {
   return new Idea({boardId: boardId, userId: userId,
                   content: ideaContent}).save()
-  .then(() => ideaService.getIdeas(boardId))
-  .catch(errorHandler);
+  .then(() => ideaService.getIdeas(boardId));
 };
 
 /**
@@ -51,8 +49,7 @@ ideaService.destroy = function(boardId, ideaContent) {
   return Idea.findOne({boardId: boardId, content: ideaContent}).exec()
   .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent))
   .then((idea) => idea.remove())
-  .then(() => ideaService.getIdeas(boardId))
-  .catch(errorHandler);
+  .then(() => ideaService.getIdeas(boardId));
 };
 
 /**
@@ -70,8 +67,7 @@ ideaService.findByContent = function(boardId, ideaContent) {
 };
 
 ideaService.getIdeas = function(boardId) {
-  return Idea.findOnBoard(boardId)
-  .catch(errorHandler);
+  return Idea.findOnBoard(boardId);
 };
 
 module.exports = ideaService;
