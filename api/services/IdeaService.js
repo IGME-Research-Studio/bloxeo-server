@@ -66,7 +66,6 @@ ideaService.destroy = function(boardId, ideaContent) {
  */
 ideaService.findByContent = function(boardId, ideaContent) {
   return Idea.findByContent(boardId, ideaContent)
-  .tap((idea) => console.log(idea))
   .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent));
 };
 

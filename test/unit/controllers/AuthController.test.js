@@ -36,7 +36,6 @@ describe('#validate({userToken}, res)', function() {
       .then(() => {
         expect(verifyStub).to.have.been.called;
         expect(res.ok).to.have.been.called;
-        console.log('yolo swag');
         done();
       });
   });

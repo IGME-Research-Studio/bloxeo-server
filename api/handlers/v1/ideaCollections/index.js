@@ -15,15 +15,15 @@ import { RECEIVED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function index(req) {
-  const { socket, boardId } = req;
+  const { socket, boardId, userToken } = req;
   const getCollections = () => getIdeaCollections(boardId);
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.RECEIVED_COLLECTIONS, {}, socket,
+  if (isNull(boardId) || isNull(userToken)) {
+    stream.badRequest(RECEIVED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
 
@@ -33,7 +33,7 @@ export default function index(req) {
       return stream.okTo(RECEIVED_COLLECTIONS, strip(allCollections), socket);
     })
     .catch(JsonWebTokenError, (err) => {
-      return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
+      return stream.unauthorized(RECEIVED_COLLECTIONS, err.message, socket);
     })
     .catch((err) => {
       return stream.serverError(RECEIVED_COLLECTIONS, err.message, socket);

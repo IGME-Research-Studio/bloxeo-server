@@ -4,11 +4,17 @@
  * Validates a given token, returns the Mongo user object
  */
 
-import { verify } from '../../../services/tokenService';
+import { isNull } from '../../../services/ValidatorService';
+import { verify } from '../../../services/TokenService';
 import { JsonWebTokenError } from 'jsonwebtoken';
 
 export default function validate(req, res) {
   const userToken = req.body.userToken;
+
+  if (isNull(userToken)) {
+    return res.badRequest(
+      {message: 'Not all required parameters were supplied'});
+  }
 
   return verify(userToken)
     .then((user) => {
