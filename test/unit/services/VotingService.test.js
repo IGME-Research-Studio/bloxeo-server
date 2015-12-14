@@ -74,7 +74,7 @@ describe('VotingService', function() {
           expect(board.round).to.equal(round + 1);
           return IdeaCollectionService.getIdeaCollections('1');
         })
-        .then((collections) => {
+        .then(() => {
           // Should be uncommented after IdeaCollectionServer.removeDuplicates is implemented
           // expect(collections.length).to.equal(1);
           done();
@@ -140,7 +140,7 @@ describe('VotingService', function() {
     });
 
     it('Should push the user into the ready list on Redis', (done) => {
-      let userId = 'abc123';
+      const userId = 'abc123';
 
       VotingService.setUserReady('1', userId)
       .then(() => {
@@ -189,7 +189,7 @@ describe('VotingService', function() {
       clearDB(done);
     });
 
-    xit('Should check if all connected users are ready to move forward', (done) => {
+    xit('Should check if all connected users are ready to move forward', () => {
       // Can't be implemented until Board.getConnectedUsers is implemented in Board model
     });
   });
@@ -208,7 +208,7 @@ describe('VotingService', function() {
     });
 
     it('Should check to see if connected user is ready to move forward', (done) => {
-      let userId = 'def456';
+      const userId = 'def456';
 
       VotingService.isUserReady('1', userId)
       .then((isUserReady) => {
@@ -252,8 +252,7 @@ describe('VotingService', function() {
       clearDB(done);
     });
 
-    xit('Should get the remaining collections to vote on', (done) => {
-
+    xit('Should get the remaining collections to vote on', () => {
     });
   });
 
@@ -288,8 +287,7 @@ describe('VotingService', function() {
       clearDB(done);
     });
 
-    xit('Should vote on a collection ', (done) => {
-
+    xit('Should vote on a collection ', () => {
     });
   });
 
@@ -324,8 +322,7 @@ describe('VotingService', function() {
       clearDB(done);
     });
 
-    xit('Should get all of the results on a board ', (done) => {
-
+    xit('Should get all of the results on a board ', () => {
     });
   });
 });

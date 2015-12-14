@@ -126,7 +126,7 @@ describe('IdeaCollection handlers', function() {
     });
   });
 
-  describe('#destroy(req)', function() {
+  xdescribe('#destroy(req)', function() {
     let destroyStub;
 
     before(function() {

@@ -47,7 +47,7 @@ ideaCollectionService.create = function(userId, boardId, content) {
 };
 
 // add a collection back to the workspace
-ideaCollectionService.createFromResult = function(result) {};
+ideaCollectionService.createFromResult = function() {};
 
 /**
  * Remove an IdeaCollection from a board then delete the model
