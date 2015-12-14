@@ -17,7 +17,7 @@ import stream from '../../../event-stream';
 
 export default function index(req) {
   const { socket, boardId, userToken } = req;
-  const getTheseIdeas = R.partialRight(getIdeas, [boardId]);
+  const getTheseIdeas = R.partial(getIdeas, [boardId]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
