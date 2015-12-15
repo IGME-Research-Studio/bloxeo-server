@@ -18,7 +18,7 @@ import stream from '../../../event-stream';
 
 export default function destroy(req) {
   const { socket, boardId, key, userToken } = req;
-  const removeThisCollectionBy = R.partialRight(removeCollection, [boardId, key]);
+  const removeThisCollectionBy = () => removeCollection(boardId, key);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
