@@ -20,7 +20,7 @@ const schema = new mongoose.Schema({
   },
 
   // Who created the idea, used for color coding the ideas
-  user: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     // required: true,
     ref: 'User',
@@ -43,7 +43,7 @@ schema.pre('save', function(next) {
   .then( (results) => {
     if (results.length > 0 && results[0].id !== this.id) {
       self.invalidate('content', 'content must be unique to a Board');
-      next(new Error('content must be unique'));
+      next(new Error('Idea content must be unique to a Board'));
     }
     else {
       next();
@@ -51,9 +51,28 @@ schema.pre('save', function(next) {
   });
 });
 
+// statics
+/**
+ * Find a single idea identified by its content string and boardId
+ * @param {String} boardId
+ * @param {String} content
+ * @returns {Promise} - resolves to a single mongoose idea
+ */
+schema.statics.findByContent = function(boardId, content) {
+  return this.findOne({boardId: boardId, content: content})
+  .select('content userId')
+  .exec();
+};
+
+/**
+ * Find all ideas associated with a given board
+ * @param {String} boardId
+ * @returns {Promise} - resolves to an array of idea mongoose objects with just
+ * the content and userId properties
+ */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('content -_id')
+  .select('content userId')
   .exec();
 };
 

@@ -6,27 +6,36 @@
 * @param {string} req.boardId
 */
 
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { getIdeaCollections } from '../../../services/IdeaCollectionService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { stripNestedMap as strip } from '../../../services/utils';
+import { RECEIVED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function index(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
+  const { socket, boardId, userToken } = req;
+  const getCollections = () => getIdeaCollections(boardId);
 
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.RECEIVED_COLLECTIONS, {}, socket,
+
+  if (isNull(boardId) || isNull(userToken)) {
+    stream.badRequest(RECEIVED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    getIdeaCollections(boardId)
-      .then((collections) => stream.ok(EXT_EVENTS.RECEIVED_COLLECTIONS,
-                                       collections, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_COLLECTIONS,
-                                        err.message, socket));
-  }
+
+  return verifyAndGetId(userToken)
+    .then(getCollections)
+    .then((allCollections) => {
+      return stream.ok(RECEIVED_COLLECTIONS, strip(allCollections), boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(RECEIVED_COLLECTIONS, err.message, socket);
+    })
+    .catch((err) => {
+      return stream.serverError(RECEIVED_COLLECTIONS, err.message, socket);
+    });
 }

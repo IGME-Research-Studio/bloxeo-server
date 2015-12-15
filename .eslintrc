@@ -8,6 +8,7 @@
     "new-cap": 0,
     "func-names": 0,
     "no-else-return": 0,
-    "padded-blocks": 0
+    "padded-blocks": 0,
+    "no-unused-vars": 1
   }
 }

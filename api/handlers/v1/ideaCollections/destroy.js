@@ -7,27 +7,37 @@
 * @param {string} req.key key of the collection
 */
 
+import R from 'ramda';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { destroy as removeCollection } from '../../../services/IdeaCollectionService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { stripNestedMap as strip } from '../../../services/utils';
+import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function destroy(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const key = req.key;
+  const { socket, boardId, key, userToken } = req;
+  const removeThisCollectionBy = R.partialRight(removeCollection, [boardId, key]);
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(key)) {
-    stream.badRequest(EXT_EVENTS.UPDATED_COLLECTIONS, {}, socket,
+
+  if (isNull(boardId) || isNull(key) || isNull(userToken)) {
+    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    removeCollection(boardId, key)
-      .then((res) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS, res, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
-                                         err.message, socket));
-  }
+
+  return verifyAndGetId(userToken)
+    .then(removeThisCollectionBy)
+    .then((allCollections) => {
+      return stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
+    })
+    .catch((err) => {
+      return stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
+    });
 }

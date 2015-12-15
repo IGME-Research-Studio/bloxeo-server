@@ -25,7 +25,7 @@ const DEFAULT_CFG = {
   port: process.env.PORT || '1337',
   jwt: {
     secret: process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex'),
-    timeout: process.env.JWT_TIMEOUT || 15000,
+    timeout: process.env.JWT_TIMEOUT || '1s',
   },
 };
 

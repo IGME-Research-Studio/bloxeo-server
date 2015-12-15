@@ -8,32 +8,30 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import BoardService from '../../../services/BoardService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function join(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
+  const { socket, boardId, userToken } = req;
 
   if (isNull(socket)) {
-    return false;
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId)) {
-    stream.badRequest(EXT_EVENTS.JOINED_ROOM, {}, socket,
+
+  if (isNull(boardId) || isNull(userToken)) {
+    return stream.badRequest(JOINED_ROOM, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    BoardService.exists(boardId)
+
+  return BoardService.exists(boardId)
     .then((exists) => {
       if (exists) {
         stream.join(socket, boardId);
-        stream.ok(EXT_EVENTS.JOINED_ROOM, {}, boardId,
+        stream.ok(JOINED_ROOM, {}, boardId,
            `User with socket id ${socket.id} joined board ${boardId}`);
       }
       else {
-        stream.notFound(EXT_EVENTS.JOINED_ROOM, {}, socket,
-          'Board not found');
+        stream.notFound(JOINED_ROOM, {}, socket, 'Board not found');
       }
     });
-  }
 }

@@ -8,29 +8,37 @@
 * @param {string} req.key key of the collection
 */
 
+import R from 'ramda';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { stripNestedMap as strip } from '../../../services/utils';
+import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function addIdea(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const content = req.content;
-  const key = req.key;
+  const { socket, boardId, content, key, userToken } = req;
+  const addThisIdeaBy = R.partialRight(addIdeaToCollection, [boardId, key, content]);
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(content) || isNull(key)) {
-    stream.badRequest(EXT_EVENTS.UPDATED_COLLECTIONS, {}, socket,
+
+  if (isNull(boardId) || isNull(content) || isNull(key) || isNull(userToken)) {
+    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    addIdeaToCollection(boardId, key, content)
-      .then((allCollections) => stream.ok(EXT_EVENTS.UPDATED_COLLECTIONS,
-                                          allCollections, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.UPDATED_COLLECTIONS,
-                                         err.message, socket));
-  }
+
+  return verifyAndGetId(userToken)
+    .then(addThisIdeaBy)
+    .then((allCollections) => {
+      return stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
+    })
+    .catch((err) => {
+      return stream.serverError(UPDATED_COLLECTIONS, err.message, socket);
+    });
 }

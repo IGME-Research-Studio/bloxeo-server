@@ -2,10 +2,11 @@
 * Board.js
 */
 
-const shortid = require('shortid');
-const mongoose = require('mongoose');
-const IdeaCollection = require('./IdeaCollection.js');
-const Idea = require('./Idea.js');
+import mongoose from 'mongoose';
+import shortid from 'shortid';
+import IdeaCollection from './IdeaCollection';
+import Idea from './Idea';
+import Result from './Result';
 
 const schema = new mongoose.Schema({
   isPublic: {
@@ -22,6 +23,12 @@ const schema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
+  },
+
+  round: {
+    type: Number,
+    default: 0,
+    min: 0,
   },
 
   users: [
@@ -52,10 +59,11 @@ schema.post('remove', function(next) {
   // Remove all models that depend on the removed Board
   IdeaCollection.model.remove({boardId: this.boardId})
   .then(() => Idea.model.remove({boardId: this.boardId}))
+  .then(() => Result.model.remove({boardId: this.boardId}))
   .then(() => next());
 
   next();
 });
 
-module.exports.schema = schema;
-module.exports.model = mongoose.model('Board', schema);
+export { schema };
+export const model = mongoose.model('Board', schema);
