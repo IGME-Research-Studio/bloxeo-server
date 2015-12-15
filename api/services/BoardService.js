@@ -5,6 +5,8 @@ import Promise from 'bluebird';
 import { toClient } from './utils';
 import { model as Board } from '../models/Board';
 import R from 'ramda';
+import Redis from './RedisService';
+const suffix = '-current-users';
 
 const boardService = {};
 
@@ -120,6 +122,21 @@ boardService.isUser = function(board, userId) {
  */
 boardService.isAdmin = function(board, userId) {
   return R.contains(toClient(userId), toClient(board.admins));
+};
+
+// add user to currentUsers redis
+boardService.join = function(boardId, user) {
+  return Redis.sadd(boardId + suffix, user);
+};
+
+// remove user from currentUsers redis
+boardService.leave = function(boardId, user) {
+  return Redis.srem(boardId + suffix, user);
+};
+
+// get all currently connected users
+boardService.getConnectedUsers = function(boardId) {
+  return Redis.smembers(boardId + suffix);
 };
 
 module.exports = boardService;

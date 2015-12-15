@@ -71,8 +71,9 @@ schema.statics.findByKey = function(boardId, key) {
  */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .populate('ideas', 'content')
-  .then((collections) => collections[index]);
+  .select('ideas key round -_id')
+  .populate('ideas', 'content -_id')
+  .exec();
 };
 
 const model = mongoose.model('Result', schema);

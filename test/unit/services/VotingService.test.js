@@ -7,6 +7,7 @@ import database from '../../../api/services/database';
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/services/RedisService';
+import BoardService from '../../../api/services/BoardService';
 
 const expect = chai.expect;
 const mongoose = database();
@@ -66,17 +67,13 @@ describe('VotingService', function() {
       clearDB(done);
     });
 
-    it('Should increment round and remove duplicate collections', (done) => {
+
+    it('Should increment round', (done) => {
       VotingService.startVoting('1')
       .then(() => {
         return Board.findOne({boardId: '1'})
         .then((board) => {
           expect(board.round).to.equal(round + 1);
-          return IdeaCollectionService.getIdeaCollections('1');
-        })
-        .then(() => {
-          // Should be uncommented after IdeaCollectionServer.removeDuplicates is implemented
-          // expect(collections.length).to.equal(1);
           done();
         });
       });
@@ -84,7 +81,6 @@ describe('VotingService', function() {
   });
 
   describe('#finishVoting(boardId)', () => {
-
     beforeEach((done) => {
       Promise.all([
         monky.create('Board', {boardId: '1'}),
@@ -125,111 +121,192 @@ describe('VotingService', function() {
     });
   });
 
-  describe('#setUserReady(boardId, userId)', () => {
-
-    beforeEach((done) => {
-      monky.create('Board', {boardId: '1'})
-      .then(() => {
-        done();
-      });
-    });
-
-    afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
-    });
-
-    it('Should push the user into the ready list on Redis', (done) => {
-      const userId = 'abc123';
-
-      VotingService.setUserReady('1', userId)
-      .then(() => {
-        RedisService.sadd('1-voting-ready', userId)
-        .then((numKeysAdded) => {
-          expect(numKeysAdded).to.equal(1);
-          done();
-        });
-      });
-    });
-  });
-
   describe('#isRoomReady(boardId)', () => {
-    let round;
-    let key;
+    const user = 'user43243';
 
     beforeEach((done) => {
       Promise.all([
-        monky.create('Board', {boardId: '1'})
-        .then((result) => {
-          round = result.round;
-        }),
+        monky.create('Board', {boardId: '1'}),
 
         Promise.all([
           monky.create('Idea', {boardId: '1', content: 'idea1'}),
           monky.create('Idea', {boardId: '1', content: 'idea2'}),
         ])
         .then((allIdeas) => {
-          monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas});
+          Promise.all([
+            BoardService.join('1', user),
+            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
+          ]);
         }),
       ])
       .then(() => {
-        return IdeaCollectionService.create('1', 'idea1')
-        .then((result) => {
-          key = Object.keys(result)[0];
-          IdeaCollectionService.addIdea('1', key, 'idea2')
-          .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      Promise.all([
+        RedisService.del('1-current-users'),
+        RedisService.del('1-ready'),
+        RedisService.del('1-state'),
+      ])
+      .then(() => {
+        clearDB(done);
+      });
+    });
+
+    it('Should show that the room is not ready to vote/finish voting', (done) => {
+      VotingService.isRoomReady('1')
+      .then((isRoomReady) => {
+        expect(isRoomReady).to.be.false;
+        done();
+      });
+    });
+
+    it('Should check if all connected users are ready to vote/finish voting', (done) => {
+      VotingService.setUserReady('1', user)
+      .then((isRoomReady) => {
+        expect(isRoomReady).to.be.true;
+        done();
+      });
+    });
+  });
+
+  describe('#getVoteList(boardId, userId)', () => {
+    const user = 'user43243';
+
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board', {boardId: '1'}),
+
+        Promise.all([
+          monky.create('Idea', {boardId: '1', content: 'idea1'}),
+          monky.create('Idea', {boardId: '1', content: 'idea2'}),
+        ])
+        .then((allIdeas) => {
+          Promise.all([
+            BoardService.join('1', user),
+            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
+          ]);
+        }),
+      ])
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      Promise.all([
+        RedisService.del('1-current-users'),
+        RedisService.del('1-ready'),
+        RedisService.del('1-voting-' + user),
+      ])
+      .then(() => {
+        clearDB(done);
+      });
+    });
+
+    it('Should add the collections to vote on into Redis and return them', (done) => {
+      VotingService.getVoteList('1', user)
+      .then((collections) => {
+        expect(collections).to.have.length(1);
+        done();
+      });
+    });
+
+    it('Should return the remaining collections to vote on', (done) => {
+      // Set up the voting list in Redis
+      VotingService.getVoteList('1', user)
+      .then(() => {
+        VotingService.vote('1', user, 'abc123', false)
+        .then(() => {
+          VotingService.getVoteList('1', user)
+          .then((collections) => {
+            expect(collections).to.have.length(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  describe('#vote(boardId, userId, key, increment)', () => {
+    const user = 'user43243';
+
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board', {boardId: '1'}),
+
+        Promise.all([
+          monky.create('Idea', {boardId: '1', content: 'idea1'}),
+          monky.create('Idea', {boardId: '1', content: 'idea2'}),
+        ])
+        .then((allIdeas) => {
+          Promise.all([
+            BoardService.join('1', user),
+            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
+          ]);
+        }),
+      ])
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      Promise.all([
+        RedisService.del('1-current-users'),
+        RedisService.del('1-ready'),
+        RedisService.del('1-voting-' + user),
+      ])
+      .then(() => {
+        clearDB(done);
+      });
+    });
+
+    it('Should vote on a collection and not increment the vote', (done) => {
+      VotingService.getVoteList('1', user)
+      .then(() => {
+        VotingService.vote('1', user, 'abc123', false)
+        .then((success) => {
+
+          // Momentarily we send back true as a response to a successful vote
+          // If there are no collections left to vote on it sets the user ready
+          // Either way this is true so how do we differentiate? By Events?
+          expect(success).to.be.true;
+
+          // Have to query for the idea collection we voted on again since votes are stripped
+          IdeaCollection.findOne({boardId: '1', key: 'abc123'})
+          .then((collection) => {
+            expect(collection.votes).to.equal(0);
             done();
           });
         });
       });
     });
 
-    afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
-    });
-
-    xit('Should check if all connected users are ready to move forward', () => {
-      // Can't be implemented until Board.getConnectedUsers is implemented in Board model
-    });
-  });
-
-  describe('#isUserReady(boardId, userId)', () => {
-
-    beforeEach((done) => {
-      monky.create('Board', {boardId: '1'})
+    it('Should vote on a collection and increment the vote', (done) => {
+      VotingService.getVoteList('1', user)
       .then(() => {
-        done();
-      });
-    });
-
-    afterEach((done) => {
-      clearDB(done);
-    });
-
-    it('Should check to see if connected user is ready to move forward', (done) => {
-      const userId = 'def456';
-
-      VotingService.isUserReady('1', userId)
-      .then((isUserReady) => {
-        RedisService.sadd('1-voting-ready', userId)
-        .then(() => {
-          expect(isUserReady).to.be.true;
-          done();
+        VotingService.vote('1', user, 'abc123', true)
+        .then((success) => {
+          expect(success).to.be.true;
+          IdeaCollection.findOne({boardId: '1', key: 'abc123'})
+          .then((collection) => {
+            expect(collection.votes).to.equal(1);
+            done();
+          });
         });
       });
     });
   });
 
-  describe('#getVoteList(boardId, userId)', () => {
-    let round;
+  describe('#getResults(boardId)', () =>
+    const user = 'user43243';
 
     beforeEach((done) => {
       Promise.all([
-        monky.create('Board', {boardId: '1'})
-        .then((result) => {
-          round = result.round;
-        }),
+        monky.create('Board', {boardId: '1'}),
 
         Promise.all([
           monky.create('Idea', {boardId: '1', content: 'idea1'}),
@@ -237,8 +314,8 @@ describe('VotingService', function() {
         ])
         .then((allIdeas) => {
           Promise.all([
+            BoardService.join('1', user),
             monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'def456'}),
           ]);
         }),
       ])
@@ -248,81 +325,25 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
-    });
-
-    xit('Should get the remaining collections to vote on', () => {
-    });
-  });
-
-  describe('#vote(boardId, userId, key, increment)', () => {
-    let round;
-
-    beforeEach((done) => {
       Promise.all([
-        monky.create('Board', {boardId: '1'})
-        .then((result) => {
-          round = result.round;
-        }),
-
-        Promise.all([
-          monky.create('Idea', {boardId: '1', content: 'idea1'}),
-          monky.create('Idea', {boardId: '1', content: 'idea2'}),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'def456'}),
-          ]);
-        }),
+        RedisService.del('1-current-users'),
+        RedisService.del('1-ready'),
+        RedisService.del('1-voting-' + user),
       ])
       .then(() => {
-        done();
+        clearDB(done);
       });
     });
 
-    afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
-    });
-
-    xit('Should vote on a collection ', () => {
-    });
-  });
-
-  describe('#getResults(boardId)', () => {
-    let round;
-
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board', {boardId: '1'})
-        .then((result) => {
-          round = result.round;
-        }),
-
-        Promise.all([
-          monky.create('Idea', {boardId: '1', content: 'idea1'}),
-          monky.create('Idea', {boardId: '1', content: 'idea2'}),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
-            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'def456'}),
-          ]);
-        }),
-      ])
+    it('Should get all of the results on a board ', (done) => {
+      VotingService.finishVoting('1')
       .then(() => {
-        done();
+        VotingService.getResults('1')
+        .then((results) => {
+          expect(results).to.have.length(1);
+          done();
+        });
       });
-    });
-
-    afterEach((done) => {
-      RedisService.flushAll();
-      clearDB(done);
-    });
-
-    xit('Should get all of the results on a board ', () => {
     });
   });
 });
