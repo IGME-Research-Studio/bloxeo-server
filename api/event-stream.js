@@ -33,6 +33,19 @@ function success(code, event, data, boardId, msg) {
   };
 }
 
+function successTo(code, event, data, socket, msg) {
+  return {
+    event: event,
+    socket: socket,
+    res: {
+      ts: new Date().getTime(),
+      code: code,
+      data: data,
+      message: msg,
+    },
+  };
+}
+
 function error(code, event, data, socket, msg) {
   return {
     event: event,
@@ -78,12 +91,12 @@ class EventStream extends EventEmitter {
   }
 
   /**
+  * Sends a broadcast to the room identified by the boardId
   * 2xx codes use the following interface
   * @param {String} event socket event to send to client
   * @param {Object} data arbitrary data to send to client
   * @param {String} boardId user facing boardId to broadcast the message to
   * @param {String=} message optional HTTP-like message
-  * Sends a broadcast to the room identified by the boardId
   */
   ok(event, data, boardId, message) {
     const msg = message || 'Operation succesful';
@@ -101,6 +114,19 @@ class EventStream extends EventEmitter {
   }
 
   /**
+  * Sends emit to a particular user identified by their socket id
+  * 2xx codes use the following interface
+  * @param {String} event socket event to send to client
+  * @param {Object} data arbitrary data to send to client
+  * @param {String} socket user facing boardId to broadcast the message to
+  * @param {String=} message optional HTTP-like message
+  */
+  okTo(event, data, socket, message) {
+    const msg = message || 'Operation succesful';
+    this.emitTo(successTo(200, event, data, socket, msg));
+  }
+
+  /**
   * 4xx and 5xx codes use the following interface
   * @param {String} event socket event to send to client
   * @param {Object} data arbitrary data to send to client
@@ -109,7 +135,7 @@ class EventStream extends EventEmitter {
   * Sends a emission to the socket identified by the socket
   */
   badRequest(event, data, socket, message) {
-    const msg = message || 'Accepted for processing, may be rejected later.';
+    const msg = message || 'Not all required parameters were supplied';
     this.emitTo(error(400, event, data, socket, msg));
   }
 

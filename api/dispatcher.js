@@ -60,7 +60,7 @@ const dispatcher = function(server) {
    */
 
   io.on('connection', function(socket) {
-    log.info(socket.id);
+    log.info(`User with ${socket.id} has connected`);
 
     socket.on(EXT_EVENTS.GET_CONSTANTS, (req) => {
       log.verbose(EXT_EVENTS.GET_CONSTANTS, req);
