@@ -7,7 +7,6 @@
 * @param {string} req.key key of the collection
 */
 
-import R from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';

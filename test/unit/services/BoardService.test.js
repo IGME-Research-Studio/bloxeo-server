@@ -3,7 +3,8 @@ import chaiAsPromised from 'chai-as-promised';
 import mochaMongoose from 'mocha-mongoose';
 import Monky from 'monky';
 import sinomocha from 'sinomocha';
-import {toPlainObject} from '../../../api/helpers/utils';
+import { toPlainObject } from '../../../api/helpers/utils';
+import { NotFoundError } from '../../../api/helpers/extendable-error';
 
 import CFG from '../../../config';
 import database from '../../../api/services/database';
@@ -35,9 +36,18 @@ describe('BoardService', function() {
   });
 
   describe('#create()', () => {
+    let USER_ID;
+
+    beforeEach((done) => {
+      monky.create('User')
+      .then((user) => {
+        USER_ID = user._id;
+        done();
+      });
+    });
 
     it('should create a board and return the correct boardId', (done) => {
-      BoardService.create()
+      BoardService.create(USER_ID)
         .then((createdBoardId) => {
           try {
             expect(createdBoardId).to.be.a('string');
@@ -48,6 +58,47 @@ describe('BoardService', function() {
             done(e);
           }
         });
+    });
+
+    it('should add the creating user as the admin', () => {
+      return expect(BoardService.create(USER_ID))
+        .to.be.fulfilled
+        .then((boardId) => {
+          return BoardModel.findOne({boardId: boardId})
+            .then((board) => {
+              expect(toPlainObject(board.admins[0])).to.equal(toPlainObject(USER_ID));
+              expect(toPlainObject(board.users[0])).to.equal(toPlainObject(USER_ID));
+            });
+        });
+    });
+  });
+
+  describe('#addUser(boardId, userId)', function() {
+    let DEF_USERID;
+
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('Board'),
+        monky.create('User')
+          .then((user) => {
+            DEF_USERID = user.id;
+            done();
+          }),
+      ]);
+    });
+
+    it('should add the existing user as an admin on the board', function(done) {
+      BoardService.addUser(DEF_BOARDID, DEF_USERID)
+        .then((board) => {
+          expect(toPlainObject(board.users[0])).to.equal(DEF_USERID);
+          done();
+        });
+    });
+
+    it('should reject if the user does not exist on the board', function() {
+      const userThatDoesntExist = mongoose.Types.ObjectId();
+      return expect(BoardService.addUser(DEF_BOARDID, userThatDoesntExist))
+        .to.be.rejectedWith(NotFoundError, /does not exist/);
     });
   });
 
@@ -74,8 +125,8 @@ describe('BoardService', function() {
     });
 
     it('should reject if the user does not exist on the board', function() {
-      return expect(BoardService.addAdmin(DEF_BOARDID, 'a-user-not-on-the-board'))
-        .to.be.rejectedWith(Promise.OperationalError, /does not exist on the board/);
+      return expect(BoardService.addAdmin(DEF_BOARDID, 'user-not-on-the-board'))
+        .to.be.rejectedWith(NotFoundError, /does not exist/);
     });
 
     xit('should reject if the user is already an admin on the board', function() {

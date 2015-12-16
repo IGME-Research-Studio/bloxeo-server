@@ -4,6 +4,7 @@
 import Promise from 'bluebird';
 import { toPlainObject } from '../helpers/utils';
 import { model as Board } from '../models/Board';
+import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
@@ -72,7 +73,7 @@ boardService.getPendingUsers = function(boardId) {
 
 boardService.addUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
-                      User.findOne({userId: userId}))
+                      User.findById(userId))
   .then(([board, user]) => {
     if (isNull(board)) {
       throw new NotFoundError(`Board (${boardId}) does not exist`);
@@ -80,7 +81,7 @@ boardService.addUser = function(boardId, userId) {
     else if (isNull(user)) {
       throw new NotFoundError(`User (${userId}) does not exist`);
     }
-    else if (isUser(board, userId)) {
+    else if (boardService.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) already exists on the board (${boardId})`);
     }
