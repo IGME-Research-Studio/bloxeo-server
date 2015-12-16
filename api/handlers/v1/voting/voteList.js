@@ -22,7 +22,7 @@ export default function voteList(req) {
     return stream.badRequest(RECEIVED_VOTING_ITEMS, {}, socket);
   }
 
-  return getVoteList(boardId, userId)
+  return getVoteList(boardId, userToken)
     .then((collections) => {
       return stream.ok(RECEIVED_VOTING_ITEMS, collections, boardId);
     })
