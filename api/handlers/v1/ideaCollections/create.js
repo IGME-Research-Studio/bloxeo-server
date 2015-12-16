@@ -20,7 +20,8 @@ import stream from '../../../event-stream';
 
 export default function create(req) {
   const { socket, boardId, content, top, left, userToken } = req;
-  const createThisCollectionBy = R.partialRight(createCollection, [boardId, content]);
+  const createThisCollectionBy = R.partialRight(createCollection,
+                                                [boardId, content]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
