@@ -3,6 +3,7 @@ import mochaMongoose from 'mocha-mongoose';
 import CFG from '../../../config';
 import Monky from 'monky';
 import Promise from 'bluebird';
+import _ from 'lodash';
 import database from '../../../api/services/database';
 import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/services/RedisService';
@@ -197,7 +198,7 @@ describe('VotingService', function() {
     it('Should add the collections to vote on into Redis and return them', (done) => {
       VotingService.getVoteList('1', user)
       .then((collections) => {
-        expect(collections).to.have.length(1);
+        expect(_.keys(collections)).to.have.length(1);
         done();
       });
     });
@@ -304,6 +305,7 @@ describe('VotingService', function() {
           Promise.all([
             BoardService.join('1', user),
             monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas, key: 'abc123'}),
+            monky.create('IdeaCollection', {boardId: '1', ideas: allIdeas[0], key: 'def456'}),
           ]);
         }),
       ])
@@ -328,7 +330,8 @@ describe('VotingService', function() {
       .then(() => {
         VotingService.getResults('1')
         .then((results) => {
-          expect(results).to.have.length(1);
+          expect(_.keys(results)).to.have.length(1);
+          expect(_.keys(results[0])).to.have.length(2);
           done();
         });
       });

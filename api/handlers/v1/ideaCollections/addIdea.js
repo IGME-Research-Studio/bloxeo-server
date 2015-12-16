@@ -6,6 +6,7 @@
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to create
 * @param {string} req.key key of the collection
+* @param {string} req.userToken
 */
 
 import R from 'ramda';
@@ -19,12 +20,12 @@ import stream from '../../../event-stream';
 
 export default function addIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
-  const addThisIdeaBy = R.partialRight(addIdeaToCollection, [boardId, key, content]);
+  const addThisIdeaBy = R.partialRight(addIdeaToCollection,
+                                       [boardId, key, content]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
   if (isNull(boardId) || isNull(content) || isNull(key) || isNull(userToken)) {
     return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
   }
