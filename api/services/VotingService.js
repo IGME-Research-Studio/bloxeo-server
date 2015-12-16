@@ -10,6 +10,7 @@ import { model as IdeaCollection } from '../models/IdeaCollection';
 import Redis from './RedisService';
 import Promise from 'bluebird';
 import _ from 'lodash';
+import R from 'ramda';
 import IdeaCollectionService from './IdeaCollectionService';
 import BoardService from './BoardService';
 import StateService from './StateService';
@@ -157,9 +158,10 @@ service.getVoteList = function(boardId, userId) {
           return [];
         }
         else {
-          return IdeaCollection.findOnBoard(boardId)
+          return IdeaCollectionService.getIdeaCollections(boardId)
           .then((collections) => {
-            Redis.sadd(boardId + '-voting-' + userId, collections.map((c) => c.key));
+            Redis.sadd(`${boardId}-voting-${userId}`,
+                       _.map(collections, (v, k) => k));
             return collections;
           });
         }
@@ -212,13 +214,7 @@ service.vote = function(boardId, userId, key, increment) {
 service.getResults = function(boardId) {
   // fetch all results for the board
   return Result.findOnBoard(boardId)
-  .then((results) => {
-    // map each round into an array
-    const rounds = [];
-    results.map((r) => rounds[r.round] = r);
-
-    return rounds;
-  });
+    .then((results) => R.groupBy(R.prop('round'))(results));
 };
 
 module.exports = service;
