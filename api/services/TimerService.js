@@ -3,21 +3,25 @@
 
   @file Contains the logic for the server-side timer used for voting on client-side
 */
-const config = require('../../config');
 const Redis = require('redis');
+const config = require('../../config');
 const pub = Redis.createClient(config.default.redisURL);
 const sub = Redis.createClient(config.default.redisURL);
 const DTimer = require('dtimer').DTimer;
 const dt = new DTimer('timer', pub, sub);
+
 const EXT_EVENTS = require('../constants/EXT_EVENT_API');
 const stream = require('../event-stream').default;
-const stateService = require('./StateService');
+const StateService = require('./StateService');
+const RedisService = require('./RedisService');
 const timerService = {};
+const suffix = '-timer';
 
 dt.on('event', function(eventData) {
-  stateService.createIdeaCollections(eventData.boardId, false, null)
+  StateService.createIdeaCollections(eventData.boardId, false, null)
   .then((state) => {
-    stream.ok(EXT_EVENTS.TIMER_EXPIRED, {boardId: eventData.boardId, state: state}, boardId);
+    RedisService.del(eventData.boardId + suffix);
+    stream.ok(EXT_EVENTS.TIMER_EXPIRED, {boardId: eventData.boardId, state: state}, eventData.boardId);
   });
 });
 
@@ -33,7 +37,6 @@ dt.join(function(err) {
 * @param {number} timerLengthInSeconds: A number containing the amount of seconds the timer should last
 * @param (optional) {string} value: The value to store from setting the key in Redis
 */
-
 timerService.startTimer = function(boardId, timerLengthInMilliseconds) {
   return new Promise(function(resolve, reject) {
     try {
@@ -41,7 +44,11 @@ timerService.startTimer = function(boardId, timerLengthInMilliseconds) {
         if (err) {
           reject(new Error(err));
         }
-        resolve(eventId);
+        const timerObj = {timeStamp: new Date(), timerLength: timerLengthInMilliseconds};
+        return RedisService.set(boardId + suffix, JSON.stringify(timerObj))
+        .then(() => {
+          resolve(eventId);
+        });
       });
     }
     catch (e) {
@@ -66,6 +73,32 @@ timerService.stopTimer = function(boardId, eventId) {
     }
     catch (e) {
       reject(e);
+    }
+  });
+};
+
+/**
+* Returns a promise containing the time left
+* @param {string} boardId: The string id generated for the board (not the mongo id)
+* @return the time left in milliseconds. 0 indicates the timer has expired
+*/
+timerService.getTimeLeft = function(boardId) {
+  const currentDate = new Date();
+
+  return RedisService.get(boardId + suffix)
+  .then(function(result) {
+
+    const timerObj = JSON.parse(result);
+    const timeStamp = new Date(timerObj.timeStamp);
+    const timerLength = timerObj.timerLength;
+
+    const difference = currentDate.getTime() - timeStamp.getTime();
+
+    if (difference >= timerLength) {
+      return 0;
+    }
+    else {
+      return timerLength - difference;
     }
   });
 };
