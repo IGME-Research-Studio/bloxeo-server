@@ -21,6 +21,7 @@ export default function leave(req) {
     return stream.badRequest(LEFT_ROOM, {}, socket);
   }
   else {
+    // BoardService.leave with boardId and userId
     stream.leave(socket, boardId);
     return stream.ok(LEFT_ROOM, {}, boardId,
        `User with socket id ${socket.id} left board ${boardId}`);
