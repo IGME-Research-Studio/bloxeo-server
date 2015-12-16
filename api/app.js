@@ -32,11 +32,7 @@ const setupApp = function() {
 };
 
 database();
-
 const app = setupApp();
 dispatcher(app);
 
-database();
-
 export { app };
-
