@@ -68,6 +68,7 @@ timerService.stopTimer = function(boardId, eventId) {
         if (err) {
           reject(err);
         }
+        RedisService.del(boardId + suffix);
         resolve(true);
       });
     }
@@ -88,17 +89,22 @@ timerService.getTimeLeft = function(boardId) {
   return RedisService.get(boardId + suffix)
   .then(function(result) {
 
-    const timerObj = JSON.parse(result);
-    const timeStamp = new Date(timerObj.timeStamp);
-    const timerLength = timerObj.timerLength;
-
-    const difference = currentDate.getTime() - timeStamp.getTime();
-
-    if (difference >= timerLength) {
-      return 0;
+    if (result === null) {
+      return null;
     }
     else {
-      return timerLength - difference;
+      const timerObj = JSON.parse(result);
+      const timeStamp = new Date(timerObj.timeStamp);
+      const timerLength = timerObj.timerLength;
+
+      const difference = currentDate.getTime() - timeStamp.getTime();
+
+      if (difference >= timerLength) {
+        return 0;
+      }
+      else {
+        return timerLength - difference;
+      }
     }
   });
 };

@@ -29,8 +29,8 @@ export default function getTime(req) {
   return verifyAndGetId(userToken)
     .then(getThisTimeLeft)
     .then((timeLeft) => {
-      return stream.ok(RECEIVED_TIME, {boardId: boardId, timeLeft: timeLeft},
-                       boardId);
+      return stream.okTo(RECEIVED_TIME, {boardId: boardId, timeLeft: timeLeft},
+                         socket);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(RECEIVED_TIME, err.message, socket);
