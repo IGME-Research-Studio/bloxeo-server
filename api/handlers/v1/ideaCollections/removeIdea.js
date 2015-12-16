@@ -20,7 +20,8 @@ import stream from '../../../event-stream';
 
 export default function removeIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
-  const removeThisIdeaBy = R.partialRight(removeIdeaFromCollection, [boardId, key, content]);
+  const removeThisIdeaBy = R.partialRight(removeIdeaFromCollection,
+                                          [boardId, key, content]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');

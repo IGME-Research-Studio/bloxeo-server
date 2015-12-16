@@ -7,13 +7,17 @@
 * @param {string} req.userToken
 */
 
+import R from 'ramda';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { setUserReady } from '../../../services/VotingService';
 import { READIED_USER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function ready(req) {
   const { socket, boardId, userToken } = req;
+  const setUserReadyHere = R.partial(setUserReady, [boardId]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
@@ -22,9 +26,13 @@ export default function ready(req) {
     return stream.badRequest(READIED_USER, {}, socket);
   }
 
-  return setUserReady(boardId, userToken)
+  return verifyAndGetId(userToken)
+    .then(setUserReadyHere)
     .then(() => {
       return stream.ok(READIED_USER, {}, boardId);
+    })
+    .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(READIED_USER, err.message, socket);
     })
     .catch((err) => {
       return stream.serverError(READIED_USER, err.message, socket);
