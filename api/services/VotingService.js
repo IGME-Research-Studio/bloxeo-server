@@ -30,7 +30,8 @@ service.startVoting = function(boardId) {
     b.round++;
     return b.save();
   })  // remove duplicate collections
-  .then(() => IdeaCollectionService.removeDuplicates(boardId));
+  .then(() => IdeaCollectionService.removeDuplicates(boardId))
+  .then(() => Redis.del(boardId + '-ready'));
 };
 
 /**
@@ -138,7 +139,6 @@ service.isUserReady = function(boardId, userId) {
   return Redis.sismember(boardId + '-ready', userId)
   .then((ready) => ready === 1);
 };
-
 
 /**
 * Returns all remaming collections to vote on, if empty the user is done voting
