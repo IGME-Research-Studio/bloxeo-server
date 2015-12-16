@@ -44,8 +44,8 @@ boardService.exists = function(boardId) {
  * @returns {Promise<MongooseArray|Error>}
  */
 boardService.getUsers = function(boardId) {
-  return Board.findOne({boardId: boardId})
-  .populate('users')
+  return Board.model.findOne({boardId: boardId})
+  .populate('Users', '-_id')
   .exec((board) => board.users);
 };
 
