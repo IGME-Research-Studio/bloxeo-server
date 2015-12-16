@@ -13,7 +13,8 @@ import { READIED_USER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function ready(req) {
-  const { socket, boardId } = req;
+  const { socket, boardId, userToken } = req;
+  var userId = userToken;
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
