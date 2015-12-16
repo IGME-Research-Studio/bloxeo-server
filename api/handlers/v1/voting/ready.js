@@ -20,7 +20,7 @@ export default function addIdea(req) {
   if (isNull(socket)) {
     throw new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId), isNull(userId)) {
+  else if (isNull(boardId) || isNull(userId)) {
     stream.badRequest(EXT_EVENTS.READIED_USER, {}, socket,
       'Not all required parameters were supplied');
   }
