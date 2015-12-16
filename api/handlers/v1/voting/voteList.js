@@ -9,26 +9,24 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { getVoteList } from '../../../services/VotingService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { RECEIVED_VOTING_ITEMS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
-export default function addIdea(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const userId = req.userId;
+export default function voteList(req) {
+  const { socket, boardId, userToken } = req;
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(userId)) {
-    stream.badRequest(EXT_EVENTS.RECIEVED_VOTING_ITEMS, {}, socket,
-      'Not all required parameters were supplied');
+  if (isNull(boardId) || isNull(userToken)) {
+    return stream.badRequest(RECEIVED_VOTING_ITEMS, {}, socket);
   }
-  else {
-    getVoteList(boardId, userId)
-      .then((collections) => stream.ok(EXT_EVENTS.RECIEVED_VOTING_ITEMS,
-                                       collections, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.RECIEVED_VOTING_ITEMS,
-                                        err.message, socket));
-  }
+
+  return getVoteList(boardId, userId)
+    .then((collections) => {
+      return stream.ok(RECEIVED_VOTING_ITEMS, collections, boardId);
+    })
+    .catch((err) => {
+      return stream.serverError(RECEIVED_VOTING_ITEMS, err.message, socket);
+    });
 }
