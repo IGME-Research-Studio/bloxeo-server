@@ -5,6 +5,7 @@
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to create
+* @param {string} req.userToken
 */
 
 import R from 'ramda';

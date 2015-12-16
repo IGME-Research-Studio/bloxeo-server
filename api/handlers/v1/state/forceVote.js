@@ -4,7 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
-* @param {string} req.token to authenticate the user
+* @param {string} req.userToken
 */
 
 import { isNull } from '../../../services/ValidatorService';
