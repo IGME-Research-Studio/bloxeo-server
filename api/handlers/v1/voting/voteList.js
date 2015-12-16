@@ -12,6 +12,7 @@ import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getVoteList } from '../../../services/VotingService';
+import { stripNestedMap as strip } from '../../../helpers/utils';
 import { RECEIVED_VOTING_ITEMS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
@@ -29,7 +30,7 @@ export default function voteList(req) {
   return verifyAndGetId(userToken)
     .then(getThisVoteList)
     .then((collections) => {
-      return stream.ok(RECEIVED_VOTING_ITEMS, collections, boardId);
+      return stream.ok(RECEIVED_VOTING_ITEMS, strip(collections), boardId);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(RECEIVED_VOTING_ITEMS, err.message, socket);
