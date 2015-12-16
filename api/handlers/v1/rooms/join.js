@@ -26,6 +26,7 @@ export default function join(req) {
     .then((exists) => {
       if (exists) {
         stream.join(socket, boardId);
+        BoardService.join(boardId, userToken);
         return stream.ok(JOINED_ROOM,
                   `User with socket id ${socket.id} joined board ${boardId}`,
                   boardId);
