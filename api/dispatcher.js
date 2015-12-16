@@ -26,6 +26,7 @@ import vote from './handlers/v1/voting/vote';
 import getVoteItems from './handlers/v1/voting/voteList';
 import startTimerCountdown from './handlers/v1/timer/start';
 import disableTimer from './handlers/v1/timer/stop';
+import getTimeRemaining from './handlers/v1/timer/get';
 import enableIdeas from './handlers/v1/state/enableIdeaCreation';
 import disableIdeas from './handlers/v1/state/disableIdeaCreation';
 import forceVote from './handlers/v1/state/forceVote';
@@ -163,6 +164,10 @@ const dispatcher = function(server) {
     socket.on(EXT_EVENTS.GET_STATE, (req) => {
       log.verbose(EXT_EVENTS.GET_STATE, req);
       getCurrentState(_.merge({socket: socket}, req));
+    });
+    socket.on(EXT_EVENTS.GET_TIME, (req) => {
+      log.verbose(EXT_EVENTS.GET_TIME, req);
+      getTimeRemaining(_.merge({socket: socket}, req));
     });
   });
 
