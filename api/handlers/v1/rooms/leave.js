@@ -4,6 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId the id of the room to leave
+* @param {string} req.userToken
 */
 
 import { isNull } from '../../../services/ValidatorService';
