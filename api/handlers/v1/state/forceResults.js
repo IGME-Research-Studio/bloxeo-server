@@ -4,7 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
-* @param {string} req.token to authenticate the user
+* @param {string} req.userToken
 */
 
 import { isNull } from '../../../services/ValidatorService';
@@ -16,7 +16,7 @@ export default function forceResults(req) {
   const { socket, boardId, userToken } = req;
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
 
   if (isNull(boardId) || isNull(userToken)) {

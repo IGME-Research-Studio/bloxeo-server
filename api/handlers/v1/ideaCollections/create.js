@@ -6,6 +6,7 @@
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to initialize the
 * collection with.
+* @param {string} req.userToken
 */
 
 import R from 'ramda';

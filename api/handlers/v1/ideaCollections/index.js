@@ -4,6 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
+* @param {string} req.userToken
 */
 
 import { JsonWebTokenError } from 'jsonwebtoken';
