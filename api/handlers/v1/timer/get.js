@@ -27,7 +27,7 @@ export default function getTimeRemaining(req) {
   else {
     // @todo pass user along
     getTimeLeft(boardId)
-      .then((timeLeft) => stream.ok(EXT_EVENTS.RECEIVED_TIME, {boardId: boardId, timeLeft: timeLeft}, boardId))
+      .then((timeLeft) => stream.okTo(EXT_EVENTS.RECEIVED_TIME, {boardId: boardId, timeLeft: timeLeft}, socket))
       .catch((err) => stream.serverError(EXT_EVENTS.RECEIVED_TIME,
                                          err.message, socket));
   }
