@@ -9,26 +9,25 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { setUserReady } from '../../../services/VotingService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { READIED_USER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
-export default function addIdea(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const userId = req.userId;
+export default function ready(req) {
+  const { socket, boardId } = req;
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
   else if (isNull(boardId) || isNull(userId)) {
     stream.badRequest(EXT_EVENTS.READIED_USER, {}, socket,
       'Not all required parameters were supplied');
   }
-  else {
-    setUserReady(boardId, userId)
-      .then(() => stream.ok(EXT_EVENTS.READIED_USER,
-                                      {}, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.READIED_USER,
-                                        err.message, socket));
-  }
+
+  return setUserReady(boardId, userId)
+    .then(() => {
+      return stream.ok(READIED_USER, {}, boardId);
+    })
+    .catch((err) => {
+      return stream.serverError(READIED_USER, err.message, socket);
+    });
 }

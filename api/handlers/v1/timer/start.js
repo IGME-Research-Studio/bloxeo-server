@@ -9,27 +9,25 @@
 
 import { isNull } from '../../../services/ValidatorService';
 import { startTimer } from '../../../services/TimerService';
-import EXT_EVENTS from '../../../constants/EXT_EVENT_API';
+import { STARTED_TIMER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
-export default function startTimerCountdown(req) {
-  const socket = req.socket;
-  const boardId = req.boardId;
-  const timerLengthInMS = req.timerLengthInMS;
-  const token = req.userToken;
+export default function start(req) {
+  const { socket, boardId, timerLengthInMS, userToken } = req;
 
   if (isNull(socket)) {
-    throw new Error('Undefined request socket in handler');
+    return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(timerLengthInMS) || isNull(token)) {
-    stream.badRequest(EXT_EVENTS.STARTED_TIMER, {}, socket,
-      'Not all required parameters were supplied');
+  if (isNull(boardId) || isNull(timerLengthInMS) || isNull(userToken)) {
+    return stream.badRequest(STARTED_TIMER, {}, socket);
   }
-  else {
-    // @todo pass user along
-    startTimer(boardId, timerLengthInMS)
-      .then((eventId) => stream.ok(EXT_EVENTS.STARTED_TIMER, {boardId: boardId, eventId: eventId}, boardId))
-      .catch((err) => stream.serverError(EXT_EVENTS.STARTED_TIMER,
-                                         err.message, socket));
-  }
+
+  return startTimer(boardId, timerLengthInMS)
+    .then((eventId) => {
+      return stream.ok(STARTED_TIMER, {boardId: boardId, eventId: eventId},
+                       boardId);
+    })
+    .catch((err) => {
+      return stream.serverError(STARTED_TIMER, err.message, socket);
+    });
 }
