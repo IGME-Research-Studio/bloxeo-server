@@ -102,14 +102,16 @@ service.isRoomReady = function(boardId) {
       return StateService.getState(boardId)
       .then((currentState) => {
         if (_.isEqual(currentState, StateService.StateEnum.createIdeaCollections)) {
-          return StateService.voteOnIdeaCollections(boardId, false, null)
+          return service.startVoting(boardId)
+          .then(() => StateService.voteOnIdeaCollections(boardId, false, null))
           .then((state) => {
             stream.ok(EXT_EVENTS.READY_TO_VOTE, {boardId: boardId, state: state}, boardId);
             return true;
           });
         }
         else if (_.isEqual(currentState, StateService.StateEnum.voteOnIdeaCollections)) {
-          return StateService.createIdeaCollections(boardId, false, null)
+          return service.finishVoting(boardId)
+          .then(() => StateService.createIdeaCollections(boardId, false, null))
           .then((state) => {
             stream.ok(EXT_EVENTS.FINISHED_VOTING, {boardId: boardId, state: state}, boardId);
             return true;
