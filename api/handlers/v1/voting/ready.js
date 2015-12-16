@@ -18,9 +18,8 @@ export default function ready(req) {
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(userToken)) {
-    stream.badRequest(EXT_EVENTS.READIED_USER, {}, socket,
-      'Not all required parameters were supplied');
+  if (isNull(boardId) || isNull(userToken)) {
+    return stream.badRequest(READIED_USER, {}, socket);
   }
 
   return setUserReady(boardId, userToken)
