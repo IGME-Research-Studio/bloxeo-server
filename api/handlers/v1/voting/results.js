@@ -12,6 +12,7 @@ import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getResults } from '../../../services/VotingService';
 import { RECEIVED_RESULTS } from '../../../constants/EXT_EVENT_API';
+import { stripNestedMap as strip } from '../../../helpers/utils';
 import stream from '../../../event-stream';
 
 export default function results(req) {
@@ -27,8 +28,8 @@ export default function results(req) {
 
   return verifyAndGetId(userToken)
     .then(getTheseResults)
-    .then((res) => {
-      return stream.ok(RECEIVED_RESULTS, res, boardId);
+    .then((allResults) => {
+      return stream.ok(RECEIVED_RESULTS, strip(allResults), boardId);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(RECEIVED_RESULTS, err.message, socket);
