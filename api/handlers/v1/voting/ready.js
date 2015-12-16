@@ -13,17 +13,17 @@ import { READIED_USER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function ready(req) {
-  const { socket, boardId } = req;
+  const { socket, boardId, userToken } = req;
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(userId)) {
+  else if (isNull(boardId) || isNull(userToken)) {
     stream.badRequest(EXT_EVENTS.READIED_USER, {}, socket,
       'Not all required parameters were supplied');
   }
 
-  return setUserReady(boardId, userId)
+  return setUserReady(boardId, userToken)
     .then(() => {
       return stream.ok(READIED_USER, {}, boardId);
     })
