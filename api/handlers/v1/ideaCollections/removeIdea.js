@@ -6,6 +6,7 @@
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to create
 * @param {string} req.key key of the collection
+* @param {string} req.userToken
 */
 
 import R from 'ramda';
@@ -19,7 +20,8 @@ import stream from '../../../event-stream';
 
 export default function removeIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
-  const removeThisIdeaBy = R.partialRight(removeIdeaFromCollection, [boardId, key, content]);
+  const removeThisIdeaBy = R.partialRight(removeIdeaFromCollection,
+                                          [boardId, key, content]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');

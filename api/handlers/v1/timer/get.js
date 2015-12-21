@@ -1,41 +1,41 @@
 /**
-* Ideas#index
+* TimerService#getTimeLeft
 *
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
+* @param {string} req.content the content of the idea to create
 * @param {string} req.userToken
 */
 
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
-import { getIdeas } from '../../../services/IdeaService';
-import { stripMap as strip } from '../../../helpers/utils';
-import { RECEIVED_IDEAS } from '../../../constants/EXT_EVENT_API';
+import { getTimeLeft } from '../../../services/TimerService';
+import { RECEIVED_TIME } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
-export default function index(req) {
+export default function getTime(req) {
   const { socket, boardId, userToken } = req;
-  const getTheseIdeas = () => getIdeas(boardId);
+  const getThisTimeLeft = () => getTimeLeft(boardId);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
   if (isNull(boardId) || isNull(userToken)) {
-    return stream.badRequest(RECEIVED_IDEAS, {}, socket);
+    return stream.badRequest(RECEIVED_TIME, {}, socket);
   }
 
   return verifyAndGetId(userToken)
-    .then(getTheseIdeas)
-    .then((allIdeas) => {
-      return stream.okTo(RECEIVED_IDEAS, strip(allIdeas), socket);
+    .then(getThisTimeLeft)
+    .then((timeLeft) => {
+      return stream.okTo(RECEIVED_TIME, {boardId: boardId, timeLeft: timeLeft},
+                         socket);
     })
     .catch(JsonWebTokenError, (err) => {
-      return stream.unauthorized(RECEIVED_IDEAS, err.message, socket);
+      return stream.unauthorized(RECEIVED_TIME, err.message, socket);
     })
     .catch((err) => {
-      return stream.serverError(RECEIVED_IDEAS, err.message, socket);
+      return stream.serverError(RECEIVED_TIME, err.message, socket);
     });
 }
