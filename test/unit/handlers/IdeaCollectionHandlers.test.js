@@ -1,7 +1,4 @@
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-import sinomocha from 'sinomocha';
+import {expect} from 'chai';
 import _ from 'lodash';
 import Promise from 'bluebird';
 
@@ -15,11 +12,6 @@ import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import TokenService from '../../../api/services/TokenService';
 import stream from '../../../api/event-stream';
 import EXT_EVENTS from '../../../api/constants/EXT_EVENT_API';
-
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
-sinomocha();
-const expect = chai.expect;
 
 const [IDEA_1, IDEA_2, IDEA_3, IDEA_4] =
   [1, 2, 3, 4].map((n) => ({_id: n, content: n}));

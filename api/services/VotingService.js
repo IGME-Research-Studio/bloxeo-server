@@ -144,7 +144,7 @@ service.isUserReady = function(boardId, userId) {
 };
 
 /**
-* Returns all remaming collections to vote on, if empty the user is done voting
+* Returns all remaining collections to vote on, if empty the user is done voting
 * @param {String} boardId
 * @param {String} userId
 * @return {Array} remaining collections to vote on for a user
@@ -170,9 +170,10 @@ service.getVoteList = function(boardId, userId) {
       });
     }
     else {
-      // pull from redis the users remaining collections to vote on
+      // pull from redis the user's remaining collections to vote on
       return Redis.smembers(boardId + '-voting-' + userId)
       .then((keys) => {
+        // @XXX no tests never hit this and I'm pretty sure the following fails
         return Promise.all(keys.map((k) => IdeaCollection.findByKey(k)));
       });
     }

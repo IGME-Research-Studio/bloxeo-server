@@ -1,10 +1,8 @@
-import chai from 'chai';
+import {expect} from 'chai';
 import jwt from 'jsonwebtoken';
 
 import TokenService from '../../../api/services/TokenService';
 import CFG from '../../../config';
-
-const expect = chai.expect;
 
 describe('TokenService', function() {
   const userObj = {_id: '1', username: 'peter-is-stupid'};
