@@ -8,7 +8,7 @@ import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
-import Redis from './RedisService';
+import Redis from '../helpers/key-val-store';
 
 const self = {};
 const suffix = '-current-users';

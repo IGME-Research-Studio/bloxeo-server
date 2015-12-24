@@ -11,7 +11,7 @@ import {schema as ResultSchema} from '../api/models/Result';
 
 import {BOARDID, USERNAME, RESULT_KEY,
         COLLECTION_KEY, IDEA_CONTENT} from './constants';
-import database from '../api/services/database';
+import database from '../api/helpers/database';
 
 export const monky = new Monky(mongoose);
 
