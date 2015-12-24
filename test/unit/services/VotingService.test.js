@@ -7,7 +7,7 @@ import {BOARDID, COLLECTION_KEY,
   IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
 
 import VotingService from '../../../api/services/VotingService';
-import RedisService from '../../../api/services/RedisService';
+import RedisService from '../../../api/helpers/key-val-store';
 import BoardService from '../../../api/services/BoardService';
 
 import {model as Board} from '../../../api/models/Board';

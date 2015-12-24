@@ -7,7 +7,7 @@
 import { model as Board } from '../models/Board';
 import { model as Result } from '../models/Result';
 import { model as IdeaCollection } from '../models/IdeaCollection';
-import Redis from './RedisService';
+import Redis from '../helpers/key-val-store';
 import Promise from 'bluebird';
 import _ from 'lodash';
 import R from 'ramda';

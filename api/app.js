@@ -11,7 +11,7 @@ import log from 'winston';
 import CFG from '../config';
 import routes from './routes';
 import dispatcher from './dispatcher';
-import database from './services/database';
+import database from './helpers/database';
 
 // const redisClient = Redis(CFG.redisURL);
 const extendedExpress = addStatusCodes(express);
