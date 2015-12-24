@@ -3,7 +3,7 @@
 
   @file Contains logic for controlling the state of a board
 */
-const RedisService = require('./RedisService');
+const RedisService = require('../helpers/key-val-store');
 const Promise = require('bluebird');
 const self = {};
 

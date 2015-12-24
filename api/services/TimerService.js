@@ -13,7 +13,7 @@ const dt = new DTimer('timer', pub, sub);
 const EXT_EVENTS = require('../constants/EXT_EVENT_API');
 const stream = require('../event-stream').default;
 const StateService = require('./StateService');
-const RedisService = require('./RedisService');
+const RedisService = require('../helpers/key-val-store');
 const self = {};
 const suffix = '-timer';
 
