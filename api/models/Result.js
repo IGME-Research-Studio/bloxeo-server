@@ -42,7 +42,7 @@ const schema = new mongoose.Schema({
   ],
 
   // Last user to have modified the collection
-  lastUpdated: {
+  lastUpdatedId: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
   },
@@ -58,8 +58,8 @@ const schema = new mongoose.Schema({
  */
 schema.statics.findByKey = function(boardId, key) {
   return this.findOne({boardId: boardId, key: key})
-  .select('ideas key -_id')
-  .populate('ideas', 'content -_id')
+  .select('ideas key')
+  .populate('ideas', 'content')
   .exec();
 };
 
@@ -71,12 +71,10 @@ schema.statics.findByKey = function(boardId, key) {
  */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('ideas key round -_id')
-  .populate('ideas', 'content -_id')
+  .select('ideas key round')
+  .populate('ideas', 'content')
   .exec();
 };
 
-const model = mongoose.model('Result', schema);
-
-module.exports.schema = schema;
-module.exports.model = model;
+export { schema };
+export const model = mongoose.model('Result', schema);

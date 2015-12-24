@@ -1,20 +1,7 @@
-import Monky from 'monky';
-import chai from 'chai';
-import database from '../../../api/services/database';
+import {expect} from 'chai';
 import TimerService from '../../../api/services/TimerService';
 
-const expect = chai.expect;
-const mongoose = database();
-const monky = new Monky(mongoose);
-
-mongoose.model('Board', require('../../../api/models/Board.js').schema);
-monky.factory('Board', {boardId: '1'});
-
 describe('TimerService', function() {
-
-  before((done) => {
-    database(done);
-  });
 
   describe('#startTimer(boardId, timerLengthInSeconds, (optional) value)', () => {
     xit('Should start the server timer on Redis', (done) => {
