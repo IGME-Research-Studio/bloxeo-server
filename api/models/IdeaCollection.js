@@ -33,12 +33,6 @@ const schema = new mongoose.Schema({
     min: 0,
   },
 
-  // whether the idea collection is draggable
-  draggable: {
-    type: Boolean,
-    default: true,
-  },
-
   // Last user to have modified the collection
   lastUpdatedId: {
     type: mongoose.Schema.ObjectId,
@@ -79,7 +73,7 @@ schema.pre('save', function(next) {
  */
 schema.statics.findByKey = function(boardId, key) {
   return this.findOne({boardId: boardId, key: key})
-  .select('ideas key')
+  .select('ideas key votes')
   .populate('ideas', 'content')
   .exec();
 };
@@ -92,7 +86,7 @@ schema.statics.findByKey = function(boardId, key) {
  */
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
-  .select('ideas key')
+  .select('ideas key votes')
   .populate('ideas', 'content')
   .exec();
 };

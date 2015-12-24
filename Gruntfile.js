@@ -3,9 +3,9 @@ require('babel-core/register');
 module.exports = function (grunt) {
   'use strict';
 
-  var testFiles = ['test/unit/**/*.js'],
-      srcFiles = ['api/**/*.js'],
-      jsFiles = srcFiles.concat(testFiles);
+  var testFiles = ['test/unit/**/*.js'];
+  var srcFiles = ['api/**/*.js'];
+  var jsFiles = srcFiles.concat(testFiles);
 
   // Set test environment here for cross-platform
   process.env.NODE_ENV='test';

@@ -1,20 +1,8 @@
-import Monky from 'monky';
-import chai from 'chai';
-import database from '../../../api/services/database';
+import {expect} from 'chai';
+
 import StateService from '../../../api/services/StateService';
 
-const expect = chai.expect;
-const mongoose = database();
-const monky = new Monky(mongoose);
-
-mongoose.model('Board', require('../../../api/models/Board.js').schema);
-monky.factory('Board', {boardId: '1'});
-
 describe('StateService', function() {
-
-  before((done) => {
-    database(done);
-  });
 
   describe('#setState(boardId, state)', () => {
     xit('Should set the state of the board in Redis', (done) => {

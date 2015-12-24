@@ -45,12 +45,13 @@ const schema = new mongoose.Schema({
     },
   ],
 
-  pendingUsers: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-    },
-  ],
+  // @TODO implement along with private rooms
+  // pendingUsers: [
+  //   {
+  //     type: mongoose.Schema.ObjectId,
+  //     ref: 'User',
+  //   },
+  // ],
 });
 
 schema.post('remove', function(next) {
