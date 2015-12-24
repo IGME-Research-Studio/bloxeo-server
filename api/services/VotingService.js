@@ -17,14 +17,14 @@ import StateService from './StateService';
 import stream from '../event-stream';
 import EXT_EVENTS from '../constants/EXT_EVENT_API';
 
-const service = {};
+const self = {};
 
 /**
 * Increments the voting round and removes duplicate collections
 * @param {String} boardId of the board to setup voting for
 * @return {Promise}
 */
-service.startVoting = function(boardId) {
+self.startVoting = function(boardId) {
   // increment the voting round on the board model
   return Board.findOne({boardId: boardId})
   .then((b) => {
@@ -40,7 +40,7 @@ service.startVoting = function(boardId) {
 * @param {String} boardId of the baord to finish voting for
 * @return {Promise}
 */
-service.finishVoting = function(boardId) {
+self.finishVoting = function(boardId) {
   return Board.findOne({boardId: boardId})
   .then((board) => board.round)
   .then((round) => {
@@ -68,10 +68,10 @@ service.finishVoting = function(boardId) {
 * @param {String} userId
 * @return {Promise}
 */
-service.setUserReady = function(boardId, userId) {
+self.setUserReady = function(boardId, userId) {
   // in redis push UserId into ready list
   return Redis.sadd(boardId + '-ready', userId)
-  .then(() => service.isRoomReady(boardId));
+  .then(() => self.isRoomReady(boardId));
 };
 
 /**
@@ -79,7 +79,7 @@ service.setUserReady = function(boardId, userId) {
 * @param {String} boardId
 * @return {Promise}
 */
-service.isRoomReady = function(boardId) {
+self.isRoomReady = function(boardId) {
   return BoardService.getConnectedUsers(boardId)
   .then((users) => {
     if (users.length === 0) {
@@ -87,7 +87,7 @@ service.isRoomReady = function(boardId) {
     }
     else {
       return users.map((u) => {
-        return service.isUserReady(boardId, u)
+        return self.isUserReady(boardId, u)
         .then((isReady) => {
           return {ready: isReady};
         });
@@ -103,7 +103,7 @@ service.isRoomReady = function(boardId) {
       return StateService.getState(boardId)
       .then((currentState) => {
         if (_.isEqual(currentState, StateService.StateEnum.createIdeaCollections)) {
-          return service.startVoting(boardId)
+          return self.startVoting(boardId)
           .then(() => StateService.voteOnIdeaCollections(boardId, false, null))
           .then((state) => {
             stream.ok(EXT_EVENTS.READY_TO_VOTE, {boardId: boardId, state: state}, boardId);
@@ -111,7 +111,7 @@ service.isRoomReady = function(boardId) {
           });
         }
         else if (_.isEqual(currentState, StateService.StateEnum.voteOnIdeaCollections)) {
-          return service.finishVoting(boardId)
+          return self.finishVoting(boardId)
           .then(() => StateService.createIdeaCollections(boardId, false, null))
           .then((state) => {
             stream.ok(EXT_EVENTS.FINISHED_VOTING, {boardId: boardId, state: state}, boardId);
@@ -138,7 +138,7 @@ service.isRoomReady = function(boardId) {
 * @param {String} userId
 * @return {Promise}
 */
-service.isUserReady = function(boardId, userId) {
+self.isUserReady = function(boardId, userId) {
   return Redis.sismember(boardId + '-ready', userId)
   .then((ready) => ready === 1);
 };
@@ -149,12 +149,12 @@ service.isUserReady = function(boardId, userId) {
 * @param {String} userId
 * @return {Array} remaining collections to vote on for a user
 */
-service.getVoteList = function(boardId, userId) {
+self.getVoteList = function(boardId, userId) {
   return Redis.exists(boardId + '-voting-' + userId)
   .then((exists) => {
     if (exists === 0) {
       // check if the user is ready (done with voting)
-      return service.isUserReady(boardId, userId)
+      return self.isUserReady(boardId, userId)
       .then((ready) => {
         if (ready) {
           return [];
@@ -188,7 +188,7 @@ service.getVoteList = function(boardId, userId) {
 * @param {bool} wether to increment the vote for the collection
 * @return {bool} if the user is done voting to inform the client
 */
-service.vote = function(boardId, userId, key, increment) {
+self.vote = function(boardId, userId, key, increment) {
   // find collection
   return IdeaCollection.findOne({boardId: boardId, key: key})
   .then((collection) => {
@@ -202,7 +202,7 @@ service.vote = function(boardId, userId, key, increment) {
     .then(() => Redis.exists(boardId + '-voting-' +  userId))
     .then((exists) => {
       if (exists === 0) {
-        return service.setUserReady(boardId, userId);
+        return self.setUserReady(boardId, userId);
       }
       return true;
     });
@@ -214,10 +214,10 @@ service.vote = function(boardId, userId, key, increment) {
 * @param {String} boardId to fetch results for
 * @returns {Promise} nested array containing all rounds of voting
 */
-service.getResults = function(boardId) {
+self.getResults = function(boardId) {
   // fetch all results for the board
   return Result.findOnBoard(boardId)
     .then((results) => R.groupBy(R.prop('round'))(results));
 };
 
-module.exports = service;
+module.exports = self;
