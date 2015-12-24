@@ -5,6 +5,5 @@
 const Redis = require('ioredis');
 const config = require('../../config');
 const redisURL = config.default.redisURL;
-const redis = new Redis(redisURL);
 
-module.exports = redis;
+module.exports = new Redis(redisURL);

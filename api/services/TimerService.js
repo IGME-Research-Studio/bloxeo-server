@@ -14,7 +14,7 @@ const EXT_EVENTS = require('../constants/EXT_EVENT_API');
 const stream = require('../event-stream').default;
 const StateService = require('./StateService');
 const RedisService = require('./RedisService');
-const timerService = {};
+const self = {};
 const suffix = '-timer';
 
 dt.on('event', function(eventData) {
@@ -37,7 +37,7 @@ dt.join(function(err) {
 * @param {number} timerLengthInSeconds: A number containing the amount of seconds the timer should last
 * @param (optional) {string} value: The value to store from setting the key in Redis
 */
-timerService.startTimer = function(boardId, timerLengthInMilliseconds) {
+self.startTimer = function(boardId, timerLengthInMilliseconds) {
   return new Promise(function(resolve, reject) {
     try {
       dt.post({boardId: boardId}, timerLengthInMilliseconds, function(err, eventId) {
@@ -61,7 +61,7 @@ timerService.startTimer = function(boardId, timerLengthInMilliseconds) {
 * Returns a promise containing a boolean which indicates if the timer was stopped
 * @param {string} boardId: The string id generated for the board (not the mongo id)
 */
-timerService.stopTimer = function(boardId, eventId) {
+self.stopTimer = function(boardId, eventId) {
   return new Promise(function(resolve, reject) {
     try {
       dt.cancel(eventId, function(err) {
@@ -83,7 +83,7 @@ timerService.stopTimer = function(boardId, eventId) {
 * @param {string} boardId: The string id generated for the board (not the mongo id)
 * @return the time left in milliseconds. 0 indicates the timer has expired
 */
-timerService.getTimeLeft = function(boardId) {
+self.getTimeLeft = function(boardId) {
   const currentDate = new Date();
 
   return RedisService.get(boardId + suffix)
@@ -109,4 +109,4 @@ timerService.getTimeLeft = function(boardId) {
   });
 };
 
-module.exports = timerService;
+module.exports = self;

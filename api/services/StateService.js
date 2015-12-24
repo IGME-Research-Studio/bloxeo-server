@@ -5,9 +5,9 @@
 */
 const RedisService = require('./RedisService');
 const Promise = require('bluebird');
-const stateService = {};
+const self = {};
 
-stateService.StateEnum = {
+self.StateEnum = {
   createIdeasAndIdeaCollections: {
     createIdeas: true,
     createIdeaCollections: true,
@@ -48,7 +48,7 @@ function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
 * @param {string} boardId: The string id generated for the board (not the mongo id)
 * @param {StateEnum} state: The state object to be set on Redis
 */
-stateService.setState = function(boardId, state, requiresAdmin, userToken) {
+self.setState = function(boardId, state, requiresAdmin, userToken) {
   return checkRequiresAdmin(requiresAdmin, boardId, userToken)
   .then(() => {
     return RedisService.set(boardId + '-state', JSON.stringify(state))
@@ -70,28 +70,28 @@ stateService.setState = function(boardId, state, requiresAdmin, userToken) {
 * Get the current state of the board from Redis. Returns a promise containing the state.
 * @param {string} boardId: The string id generated for the board (not the mongo id)
 */
-stateService.getState = function(boardId) {
+self.getState = function(boardId) {
   return RedisService.get(boardId + '-state').then(function(result) {
     if (result !== null) {
       return JSON.parse(result);
     }
     else {
-      stateService.setState(boardId, stateService.StateEnum.createIdeasAndIdeaCollections);
-      return stateService.StateEnum.createIdeaCollections;
+      self.setState(boardId, self.StateEnum.createIdeasAndIdeaCollections);
+      return self.StateEnum.createIdeaCollections;
     }
   });
 };
 
-stateService.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return stateService.setState(boardId, stateService.StateEnum.createIdeasAndIdeaCollections, requiresAdmin, userToken);
+self.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
+  return self.setState(boardId, self.StateEnum.createIdeasAndIdeaCollections, requiresAdmin, userToken);
 };
 
-stateService.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return stateService.setState(boardId, stateService.StateEnum.createIdeaCollections, requiresAdmin, userToken);
+self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
+  return self.setState(boardId, self.StateEnum.createIdeaCollections, requiresAdmin, userToken);
 };
 
-stateService.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return stateService.setState(boardId, stateService.StateEnum.voteOnIdeaCollections, requiresAdmin, userToken);
+self.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
+  return self.setState(boardId, self.StateEnum.voteOnIdeaCollections, requiresAdmin, userToken);
 };
 
-module.exports = stateService;
+module.exports = self;
