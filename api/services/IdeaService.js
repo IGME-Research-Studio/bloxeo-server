@@ -8,7 +8,7 @@
 import { model as Idea } from '../models/Idea.js';
 import { isNull } from './ValidatorService';
 
-const ideaService = {};
+const self = {};
 
 // Private
 const maybeThrowNotFound = (obj, boardId, content) => {
@@ -28,10 +28,10 @@ const maybeThrowNotFound = (obj, boardId, content) => {
  * @returns {Promise} - resolves to a client friendly response of all ideas on
  * the given board
  */
-ideaService.create = function(userId, boardId, ideaContent) {
+self.create = function(userId, boardId, ideaContent) {
   return new Idea({boardId: boardId, userId: userId,
                   content: ideaContent}).save()
-  .then(() => ideaService.getIdeas(boardId));
+  .then(() => self.getIdeas(boardId));
 };
 
 /**
@@ -44,12 +44,12 @@ ideaService.create = function(userId, boardId, ideaContent) {
  * to include that in requests to client. How can we DRY that out so we don't
  * repeat logic everywhere?
  */
-ideaService.destroy = function(boardId, ideaContent) {
+self.destroy = function(boardId, ideaContent) {
 
   return Idea.findOne({boardId: boardId, content: ideaContent}).exec()
   .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent))
   .then((idea) => idea.remove())
-  .then(() => ideaService.getIdeas(boardId));
+  .then(() => self.getIdeas(boardId));
 };
 
 /**
@@ -61,13 +61,13 @@ ideaService.destroy = function(boardId, ideaContent) {
  * @returns {Promise} resolves to a single idea as a Mongoose result object or
  * rejects with a not found error
  */
-ideaService.findByContent = function(boardId, ideaContent) {
+self.findByContent = function(boardId, ideaContent) {
   return Idea.findByContent(boardId, ideaContent)
   .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent));
 };
 
-ideaService.getIdeas = function(boardId) {
+self.getIdeas = function(boardId) {
   return Idea.findOnBoard(boardId);
 };
 
-module.exports = ideaService;
+module.exports = self;
