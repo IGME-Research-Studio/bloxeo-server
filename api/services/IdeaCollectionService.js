@@ -66,8 +66,7 @@ ideaCollectionService.destroyByKey = function(boardId, key) {
  * @param {IdeaCollection} collection - an already found mongoose collection
  * @returns {Promise} - resolves to all the collections on the board
 */
-ideaCollectionService.destroy = function(collection) {
-
+ideaCollectionService.destroy = function(boardId, collection) {
   return collection.remove()
   .then(() => ideaCollectionService.getIdeaCollections(boardId));
 };
@@ -142,15 +141,11 @@ ideaCollectionService.removeDuplicates = function(boardId) {
   .then((collections) => {
     const dupCollections = [];
 
-    const toString = function(id) {
-      return String(id);
-    };
-
     for (let i = 0; i < collections.length - 1; i++) {
       for (let c = i + 1; c < collections.length; c++) {
         if (collections[i].ideas.length === collections[c].ideas.length) {
           const concatArray = (collections[i].ideas.concat(collections[c].ideas));
-          const deduped = _.unique(concatArray, toString);
+          const deduped = _.unique(concatArray, String);
 
           if (deduped.length === collections[i].ideas.length) {
             dupCollections.push(collections[i]);

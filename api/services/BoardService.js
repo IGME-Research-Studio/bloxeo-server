@@ -10,14 +10,14 @@ import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
 import Redis from './RedisService';
 
-const boardService = {};
+const self = {};
 const suffix = '-current-users';
 
 /**
  * Create a board in the database
  * @returns {Promise<String|Error>} the created boards boardId
  */
-boardService.create = function(userId) {
+self.create = function(userId) {
   return new Board({users: [userId], admins: [userId]}).save()
   .then((result) => result.boardId);
 };
@@ -26,7 +26,7 @@ boardService.create = function(userId) {
  * Remove a board from the database
  * @param {String} boardId the boardId of the board to remove
  */
-boardService.destroy = function(boardId) {
+self.destroy = function(boardId) {
   return Board.remove({boardId: boardId});
 };
 
@@ -35,7 +35,7 @@ boardService.destroy = function(boardId) {
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
  */
-boardService.exists = function(boardId) {
+self.exists = function(boardId) {
   return Board.find({boardId: boardId}).limit(1)
   .then((r) => (r.length > 0) ? true : false);
 };
@@ -45,7 +45,7 @@ boardService.exists = function(boardId) {
  * @param {String} boardId the boardId to retrieve the users from
  * @returns {Promise<MongooseArray|Error>}
  */
-boardService.getUsers = function(boardId) {
+self.getUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('users')
   .exec((board) => board.users);
@@ -56,7 +56,7 @@ boardService.getUsers = function(boardId) {
  * @param {String} boardId the boardId to retrieve the admins from
  * @returns {Promise<MongooseArray|Error>}
  */
-boardService.getAdmins = function(boardId) {
+self.getAdmins = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('admins')
   .exec((board) => board.admins);
@@ -67,13 +67,13 @@ boardService.getAdmins = function(boardId) {
  * @param {String} boardId the boardId to retrieve the pendingUsers from
  * @returns {Promise<MongooseArray|Error>}
  */
-boardService.getPendingUsers = function(boardId) {
+self.getPendingUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('pendingUsers')
   .exec((board) => board.pendingUsers);
 };
 
-boardService.addUser = function(boardId, userId) {
+self.addUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
   .then(([board, user]) => {
@@ -83,7 +83,7 @@ boardService.addUser = function(boardId, userId) {
     else if (isNull(user)) {
       throw new NotFoundError(`User (${userId}) does not exist`);
     }
-    else if (boardService.isUser(board, userId)) {
+    else if (self.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) already exists on the board (${boardId})`);
     }
@@ -100,28 +100,24 @@ boardService.addUser = function(boardId, userId) {
  * @param {String} userId the userId to add as admin
  * @returns {Promise<MongooseObject|OperationalError>} user object that was added
  */
-boardService.addAdmin = function(boardId, userId) {
-  const userIsOnBoard = R.partialRight(boardService.isUser, [userId]);
-  const userIsAdmin = R.partialRight(boardService.isAdmin, [userId]);
+self.addAdmin = function(boardId, userId) {
 
   return Board.findOne({boardId: boardId})
   .then((board) => {
-    return Promise.join(Promise.resolve(board),
-                        userIsOnBoard(board),
-                        userIsAdmin(board));
-  })
-  .then(([board, isUser, isAdmin]) => {
-    if (isUser && !isAdmin) {
+    const userOnThisBoard = self.isUser(board, userId);
+    const adminOnThisBoard = self.isAdmin(board, userId);
+
+    if (userOnThisBoard && !adminOnThisBoard) {
       board.admins.push(userId);
       return board.save();
     }
-    else if (!isUser) {
-      throw new NotFoundError(
-        `User (${userId}) does not exist on the board (${boardId})`);
-    }
-    else if (isAdmin) {
+    else if (adminOnThisBoard) {
       throw new ValidationError(
         `User (${userId}) is already an admin on the board (${boardId})`);
+    }
+    else if (!userOnThisBoard) {
+      throw new NotFoundError(
+        `User (${userId}) does not exist on the board (${boardId})`);
     }
   });
 };
@@ -133,7 +129,7 @@ boardService.addAdmin = function(boardId, userId) {
  * @param {String} userId the userId to add as admin
  * @returns {Boolean} whether the user was on the board
  */
-boardService.isUser = function(board, userId) {
+self.isUser = function(board, userId) {
   return R.contains(toPlainObject(userId), toPlainObject(board.users));
 };
 
@@ -144,29 +140,29 @@ boardService.isUser = function(board, userId) {
  * @param {String} userId the userId to add as admin
  * @returns {Promise<Boolean|Error>} whether the user was an admin
  */
-boardService.isAdmin = function(board, userId) {
+self.isAdmin = function(board, userId) {
   return R.contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
 // add user to currentUsers redis
-boardService.join = function(boardId, user) {
+self.join = function(boardId, user) {
   return Redis.sadd(boardId + suffix, user);
 };
 
 // remove user from currentUsers redis
-boardService.leave = function(boardId, user) {
+self.leave = function(boardId, user) {
   return Redis.srem(boardId + suffix, user);
 };
 
 // get all currently connected users
-boardService.getConnectedUsers = function(boardId) {
+self.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
 };
 
-boardService.isAdmin = function() {
-  return new Promise((res) => {
-    res(true);
-  });
-};
+// self.isAdmin = function() {
+//   return new Promise((res) => {
+//     res(true);
+//   });
+// };
 
-module.exports = boardService;
+module.exports = self;

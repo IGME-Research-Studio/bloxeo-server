@@ -1,46 +1,13 @@
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import mochaMongoose from 'mocha-mongoose';
-import Monky from 'monky';
+import {expect} from 'chai';
 import Promise from 'bluebird';
-import sinomocha from 'sinomocha';
 import _ from 'lodash';
 
-import CFG from '../../../config';
-import database from '../../../api/services/database';
+import {monky} from '../../fixtures';
+import {BOARDID, BOARDID_2, COLLECTION_KEY} from '../../constants';
+
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
-chai.use(chaiAsPromised);
-sinomocha();
-const expect = chai.expect;
-
-mochaMongoose(CFG.mongoURL);
-const mongoose = database();
-const monky = new Monky(mongoose);
-
-const DEF_BOARDID = '1';
-const DEF_BOARDID_2 = '2';
-const DEF_USERNAME = 'brapnis';
-const DEF_COLLECTION_KEY = 'collection1';
-
-mongoose.model('Board', require('../../../api/models/Board.js').schema);
-mongoose.model('User', require('../../../api/models/User.js').schema);
-mongoose.model('Idea', require('../../../api/models/Idea.js').schema);
-mongoose.model('IdeaCollection', require('../../../api/models/IdeaCollection.js').schema);
-mongoose.model('User', require('../../../api/models/User.js').schema);
-
-monky.factory('Board', {boardId: DEF_BOARDID});
-monky.factory('User', {username: DEF_USERNAME});
-monky.factory('Idea', {boardId: DEF_BOARDID, content: 'idea1',
-                       userId: monky.ref('User')});
-monky.factory('IdeaCollection', {boardId: DEF_BOARDID, ideas: monky.ref('Idea'),
-              lastUpdatedId: monky.ref('User')});
-
 describe('IdeaCollectionService', function() {
-
-  before((done) => {
-    database(done);
-  });
 
   describe('#getIdeaCollections(boardId)', () => {
 
@@ -57,10 +24,10 @@ describe('IdeaCollectionService', function() {
         .then((allIdeas) => monky.create('IdeaCollection',
               { ideas: allIdeas, key: 'collection1' })),
         // Board 2
-        monky.create('Board', {boardId: DEF_BOARDID_2}),
-        monky.create('Idea', {boardId: DEF_BOARDID_2})
+        monky.create('Board', {boardId: BOARDID_2}),
+        monky.create('Idea', {boardId: BOARDID_2})
           .then((allIdeas) => monky.create('IdeaCollection',
-            {boardId: DEF_BOARDID, ideas: allIdeas, key: 'collection2' })),
+            {boardId: BOARDID, ideas: allIdeas, key: 'collection2' })),
       ])
       .then(() => {
         done();
@@ -68,7 +35,7 @@ describe('IdeaCollectionService', function() {
     });
 
     it('should return all collections on a board', () => {
-      return expect(IdeaCollectionService.getIdeaCollections(DEF_BOARDID))
+      return expect(IdeaCollectionService.getIdeaCollections(BOARDID))
         .to.be.fulfilled
         .then((collections) => {
           expect(collections)
@@ -99,12 +66,12 @@ describe('IdeaCollectionService', function() {
     });
 
     it(`should return a single collection if it exists on the given board`, () => {
-      return expect(IdeaCollectionService.findByKey(DEF_BOARDID, 'collection1'))
+      return expect(IdeaCollectionService.findByKey(BOARDID, 'collection1'))
       .to.eventually.be.an('object');
     });
 
     it(`should throw an error if the collection doesn't exist on the given board`, () => {
-      return expect(IdeaCollectionService.findByKey(DEF_BOARDID, 'collection2'))
+      return expect(IdeaCollectionService.findByKey(BOARDID, 'collection2'))
       .to.rejectedWith(/IdeaCollection with key \w+ not found on board \w+/);
     });
   });
@@ -125,10 +92,10 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should create an IdeaCollection with a single existing Idea', () => {
-      return expect(IdeaCollectionService.create(USER_ID, DEF_BOARDID, 'idea 1'))
+      return expect(IdeaCollectionService.create(USER_ID, BOARDID, 'idea 1'))
         .to.be.fulfilled
         .then((collections) => {
-          const COLLECTION_KEY = _.keys(collections[1])[0];
+          const THIS_COLLECTION_KEY = _.keys(collections[1])[0];
 
           expect(collections)
             .to.be.an('array')
@@ -140,10 +107,10 @@ describe('IdeaCollectionService', function() {
           expect(collections[1])
             .to.be.an('object');
 
-          expect(collections[1][COLLECTION_KEY].ideas)
+          expect(collections[1][THIS_COLLECTION_KEY].ideas)
             .to.have.length(1);
 
-          expect(collections[1][COLLECTION_KEY].ideas[0])
+          expect(collections[1][THIS_COLLECTION_KEY].ideas[0])
             .to.be.an('object')
             .and.have.property('content');
         });
@@ -163,8 +130,8 @@ describe('IdeaCollectionService', function() {
         monky.create('Board'),
         monky.create('User')
           .then((user) => {USER_ID = user.id; return user;}),
-        monky.create('Idea', {boardid: DEF_BOARDID, content: 'idea2'}),
-        monky.create('IdeaCollection', {key: DEF_COLLECTION_KEY}),
+        monky.create('Idea', {boardid: BOARDID, content: 'idea2'}),
+        monky.create('IdeaCollection', {key: COLLECTION_KEY}),
       ])
       .then(() => {
         done();
@@ -172,14 +139,14 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should add an idea to an idea collection', () => {
-      return expect(IdeaCollectionService.addIdea(USER_ID, DEF_BOARDID,
-                                                  DEF_COLLECTION_KEY, 'idea2'))
-      .to.eventually.have.property(DEF_COLLECTION_KEY);
+      return expect(IdeaCollectionService.addIdea(USER_ID, BOARDID,
+                                                  COLLECTION_KEY, 'idea2'))
+      .to.eventually.have.property(COLLECTION_KEY);
     });
 
     xit('Should reject adding a duplicate idea to an exiting idea collection', () => {
-      return expect(IdeaCollectionService.addIdea(USER_ID, DEF_BOARDID,
-                                                  DEF_COLLECTION_KEY, 'idea1'))
+      return expect(IdeaCollectionService.addIdea(USER_ID, BOARDID,
+                                                  COLLECTION_KEY, 'idea1'))
       .to.be.rejectedWith(/Idea collections must have unique ideas/);
     });
   });
@@ -225,7 +192,7 @@ describe('IdeaCollectionService', function() {
       Promise.all([
         monky.create('Board', {boardId: '1'}),
         monky.create('Idea', {boardId: '1', content: 'idea1'}),
-        monky.create('IdeaCollection', {boardId: '1', key: DEF_COLLECTION_KEY}),
+        monky.create('IdeaCollection', {boardId: '1', key: COLLECTION_KEY}),
       ])
       .then(() => {
         done();
@@ -233,12 +200,15 @@ describe('IdeaCollectionService', function() {
     });
 
     it('destroy an idea collection', () => {
-      return expect(IdeaCollectionService.destroy('1', DEF_COLLECTION_KEY))
-      .to.be.eventually.become({});
+      return IdeaCollectionService.findByKey('1', COLLECTION_KEY)
+        .then((collection) => {
+          return expect(IdeaCollectionService.destroy('1', collection))
+          .to.be.eventually.become({});
+        });
     });
 
     it('destroy an idea collection by key', (done) => {
-      IdeaCollectionService.destroyByKey('1', key).then(done());
+      IdeaCollectionService.destroyByKey('1', COLLECTION_KEY).then(done());
     });
   });
 
