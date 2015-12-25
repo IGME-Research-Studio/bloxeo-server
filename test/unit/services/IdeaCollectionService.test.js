@@ -3,7 +3,8 @@ import Promise from 'bluebird';
 import _ from 'lodash';
 
 import {monky} from '../../fixtures';
-import {BOARDID, BOARDID_2, COLLECTION_KEY} from '../../constants';
+import {BOARDID, BOARDID_2, COLLECTION_KEY,
+  IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
 
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
@@ -61,7 +62,7 @@ describe('IdeaCollectionService', function() {
       monky.create('Board')
         .then(() => monky.create('Idea'))
         .then((idea) => monky.create('IdeaCollection',
-              { ideas: idea, key: 'collection1' }))
+              { ideas: [idea], key: 'collection1' }))
         .then(() => done());
     });
 
@@ -156,33 +157,37 @@ describe('IdeaCollectionService', function() {
     const collectionWith2Ideas = '2';
 
     beforeEach((done) => {
-      Promise.all([
-        monky.create('Board', {boardId: '1'}),
-        monky.create('Idea', {boardId: '1', content: 'idea1'}),
-        monky.create('Idea', {boardId: '1', content: 'idea2'}),
-        monky.create('IdeaCollection', {boardId: '1', content: 'idea1',
-                     key: collectionWith1Idea}),
-        monky.create('IdeaCollection', {boardId: '1', content: 'idea1',
-                     key: collectionWith2Ideas}),
+      return Promise.all([
+        monky.create('Board'),
+        monky.create('Idea', {content: IDEA_CONTENT}),
+        monky.create('Idea', {content: IDEA_CONTENT_2}),
       ])
-      .then(() => {
-        IdeaCollectionService.addIdea('1', collectionWith2Ideas, 'idea2')
+      .spread((__, idea1, idea2) => {
+        return Promise.all([
+          monky.create('IdeaCollection', {ideas: [idea1],
+                     key: collectionWith1Idea}),
+          monky.create('IdeaCollection', {ideas: [idea1, idea2],
+                     key: collectionWith2Ideas}),
+        ])
         .then(done());
       });
     });
 
     it('Should remove an idea from an idea collection', () => {
-      expect(IdeaCollectionService.removeIdea('1', collectionWith2Ideas, 'idea1'))
+      expect(IdeaCollectionService.removeIdea(BOARDID, collectionWith2Ideas,
+                                              IDEA_CONTENT))
         .to.eventually.have.length(1);
     });
 
     it('Should destroy an idea collection when it is empty', () => {
-      expect(IdeaCollectionService.removeIdea('1', collectionWith1Idea, 'idea1'))
+      expect(IdeaCollectionService.removeIdea(BOARDID, collectionWith1Idea,
+                                              IDEA_CONTENT))
         .to.eventually.not.have.key(collectionWith1Idea);
     });
 
     it('Should destroy an idea collection when it is empty', () => {
-      expect(IdeaCollectionService.removeIdea('1', collectionWith1Idea, 'idea1'))
+      expect(IdeaCollectionService.removeIdea(BOARDID, collectionWith1Idea,
+                                              IDEA_CONTENT))
         .to.eventually.not.have.key(collectionWith1Idea);
     });
   });
@@ -190,9 +195,9 @@ describe('IdeaCollectionService', function() {
   describe('#destroy()', () => {
     beforeEach((done) => {
       Promise.all([
-        monky.create('Board', {boardId: '1'}),
-        monky.create('Idea', {boardId: '1', content: 'idea1'}),
-        monky.create('IdeaCollection', {boardId: '1', key: COLLECTION_KEY}),
+        monky.create('Board'),
+        monky.create('Idea'),
+        monky.create('IdeaCollection', {key: COLLECTION_KEY}),
       ])
       .then(() => {
         done();
@@ -200,15 +205,16 @@ describe('IdeaCollectionService', function() {
     });
 
     it('destroy an idea collection', () => {
-      return IdeaCollectionService.findByKey('1', COLLECTION_KEY)
+      return IdeaCollectionService.findByKey(BOARDID, COLLECTION_KEY)
         .then((collection) => {
-          return expect(IdeaCollectionService.destroy('1', collection))
-          .to.be.eventually.become({});
+          return expect(IdeaCollectionService.destroy(BOARDID, collection))
+          .to.eventually.become({});
         });
     });
 
-    it('destroy an idea collection by key', (done) => {
-      IdeaCollectionService.destroyByKey('1', COLLECTION_KEY).then(done());
+    it('destroy an idea collection by key', () => {
+      return expect(IdeaCollectionService.destroyByKey(BOARDID, COLLECTION_KEY))
+      .to.eventually.become({});
     });
   });
 
@@ -218,19 +224,21 @@ describe('IdeaCollectionService', function() {
     const diffCollection = '3';
 
     beforeEach((done) => {
-      Promise.all([
-        monky.create('Board', {boardId: '7'}),
+      return Promise.all([
+        monky.create('Board'),
         Promise.all([
-          monky.create('Idea', {boardId: '7', content: 'idea1'}),
-          monky.create('Idea', {boardId: '7', content: 'idea2'}),
+          monky.create('Idea'),
+          monky.create('Idea'),
         ])
         .then((allIdeas) => {
-          monky.create('IdeaCollection',
-              { boardId: '7', ideas: allIdeas[0], key: collection1 });
-          monky.create('IdeaCollection',
-              { boardId: '7', ideas: allIdeas[0], key: duplicate });
-          monky.create('IdeaCollection',
-              { boardId: '7', ideas: allIdeas[1], key: diffCollection });
+          return Promise.all([
+            monky.create('IdeaCollection',
+                {ideas: allIdeas[0], key: collection1 }),
+            monky.create('IdeaCollection',
+                {ideas: allIdeas[0], key: duplicate }),
+            monky.create('IdeaCollection',
+                {ideas: allIdeas[1], key: diffCollection }),
+          ]);
         }),
       ])
       .then(() => {
@@ -239,8 +247,8 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should only remove duplicate ideaCollections', () => {
-      return IdeaCollectionService.removeDuplicates('7')
-      .then(() => IdeaCollectionService.getIdeaCollections('7'))
+      return IdeaCollectionService.removeDuplicates(BOARDID)
+      .then(() => IdeaCollectionService.getIdeaCollections(BOARDID))
       .then((collections) => {
         expect(Object.keys(collections)).to.have.length(2);
         expect(collections).to.contains.key(duplicate);
