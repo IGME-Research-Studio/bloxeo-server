@@ -16,6 +16,15 @@ import {model as Result} from '../../../api/models/Result';
 
 // TODO: TAKE OUT TESTS INVOLVING ONLY REDIS COMMANDS
 // TODO: USE STUBS ON MORE COMPLICATED FUNCTIONS WITH REDIS COMMANDS
+//
+const resetRedis = (userId) => {
+  return Promise.all([
+    RedisService.del(`${BOARDID}-current-users`),
+    RedisService.del(`${BOARDID}-ready`),
+    RedisService.del(`${BOARDID}-voting-${userId}`),
+    RedisService.del(`${BOARDID}-state`),
+  ]);
+};
 
 describe('VotingService', function() {
 
@@ -118,11 +127,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      Promise.all([
-        RedisService.del(`${BOARDID}-current-users`),
-        RedisService.del(`${BOARDID}-ready`),
-        RedisService.del(`${BOARDID}-voting-${USERID}`),
-      ])
+      resetRedis(USERID)
       .then(() => {
         done();
       });
@@ -171,11 +176,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      Promise.all([
-        RedisService.del(`${BOARDID}-current-users`),
-        RedisService.del(`${BOARDID}-ready`),
-        RedisService.del(`${BOARDID}-voting-${USERID}`),
-      ])
+      resetRedis(USERID)
       .then(() => {
         done();
       });
@@ -230,11 +231,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      Promise.all([
-        RedisService.del(`${BOARDID}-current-users`),
-        RedisService.del(`${BOARDID}-ready`),
-        RedisService.del(`${BOARDID}-voting-${USERID}`),
-      ])
+      resetRedis(USERID)
       .then(() => {
         done();
       });
@@ -303,11 +300,7 @@ describe('VotingService', function() {
     });
 
     afterEach((done) => {
-      Promise.all([
-        RedisService.del(`${BOARDID}-current-users`),
-        RedisService.del(`${BOARDID}-ready`),
-        RedisService.del(`${BOARDID}-voting-${USERID}`),
-      ])
+      resetRedis(USERID)
       .then(() => {
         done();
       });
