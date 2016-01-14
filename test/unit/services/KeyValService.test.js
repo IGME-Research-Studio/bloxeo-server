@@ -1,12 +1,12 @@
 import {expect} from 'chai';
 import Promise from 'bluebird';
-import rewire from 'rewire';
 
 import {BOARDID, USERNAME} from '../../constants';
 
 import KeyValService from '../../../api/services/KeyValService';
 
 let RedisStub;
+const keyGen = (boardId) => `key-for-${boardId}`;
 
 describe('KeyValService', function() {
 
@@ -25,17 +25,54 @@ describe('KeyValService', function() {
   describe('#changeUser(operation, boardId, userId)', function() {
 
     it('should succesfully call sadd', function() {
-      expect(KeyValService.changeUser('add', BOARDID, USERNAME))
-        .to.eventually.equal(1);
-      expect(RedisStub.sadd).to.have.been.called;
-      expect(RedisStub.srem).to.not.have.been.called;
+      return expect(KeyValService.changeUser('add', keyGen,
+                                             BOARDID, USERNAME))
+        .to.eventually.equal(USERNAME)
+        .then(() => {
+          expect(RedisStub.sadd).to.have.been.called;
+          expect(RedisStub.srem).to.not.have.been.called;
+        });
     });
 
     it('should succesfully call srem', function() {
-      expect(KeyValService.changeUser('remove', BOARDID, USERNAME))
-        .to.eventually.equal(1);
-      expect(RedisStub.srem).to.have.been.called;
-      expect(RedisStub.sadd).to.not.have.been.called;
+      return expect(KeyValService.changeUser('remove', keyGen,
+                                             BOARDID, USERNAME))
+        .to.eventually.equal(USERNAME)
+        .then(function() {
+          expect(RedisStub.srem).to.have.been.called;
+          expect(RedisStub.sadd).to.not.have.been.called;
+        });
+    });
+
+    describe('#addUser|#readyUser|#finishVoteUser(boardId, userId)', function() {
+      [KeyValService.addUser,
+       KeyValService.readyUser,
+       KeyValService.finishVoteUser]
+       .forEach(function(subject) {
+         it('should succesfully call sadd and return the userId', function() {
+           return expect(subject(BOARDID, USERNAME))
+           .to.eventually.equal(USERNAME)
+            .then(function() {
+              expect(RedisStub.sadd).to.have.been.called;
+              expect(RedisStub.srem).to.not.have.been.called;
+            });
+         });
+       });
+    });
+
+    describe('#removeUser(boardId, userId)', function() {
+      it('should succesfully call sadd and return the userId', function() {
+        return expect(KeyValService.removeUser(BOARDID, USERNAME))
+          .to.eventually.equal(USERNAME)
+          .then(function() {
+            expect(RedisStub.srem).to.have.been.called;
+            expect(RedisStub.sadd).to.not.have.been.called;
+          });
+      });
     });
   });
+
+  xdescribe('#getUsers(boardId)', () => false);
+  xdescribe('#clearKey(boardId)', () => false);
+  xdescribe('#setKey(boardId)', () => false);
 });
