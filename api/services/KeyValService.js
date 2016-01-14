@@ -25,7 +25,7 @@ import R from 'ramda';
 const self = {};
 
 /**
- * Use these as the only keys to set in redis
+ * Use these as the sole way of creating keys to set in Redis
  */
 const stateKey = (boardId) => `${boardId}-state`;
 const votingCollectionsKey = (boardId, userId) => `${boardId}-voting-${userId}`;
@@ -33,6 +33,14 @@ const votingReadyKey = (boardId) => `${boardId}-voting-ready`;
 const votingDoneKey = (boardId) => `${boardId}-voting-done`;
 const currentUsersKey = (boardId) => `${boardId}-current-users`;
 
+/**
+ * Takes the response of a mutating Redis actions (e.g. sadd) and throws a
+ * NoOp Error if the action failed to change anything. Otherwise it just lets
+ * the input fall through.
+ * @param {Integer} numberOfOperations - result of a Redis call
+ * @throws {NoOpError}
+ * @returns {Integer}
+ */
 const maybeThrowIfNoOp = (numberOfOperations) => {
   if (numberOfOperations <= 0) throw new NoOpError('Redis call did nothing');
   return numberOfOperations
