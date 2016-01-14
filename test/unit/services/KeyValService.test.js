@@ -10,7 +10,7 @@ let RedisStub;
 
 describe('KeyValService', function() {
 
-  before(function() {
+  beforeEach(function() {
     RedisStub = {
       sadd: this.spy(() => Promise.resolve(1)),
       srem: this.spy(() => Promise.resolve(1)),
@@ -18,7 +18,7 @@ describe('KeyValService', function() {
     KeyValService.__Rewire__('Redis', RedisStub);
   });
 
-  after(function() {
+  afterEach(function() {
     KeyValService.__ResetDependency__('Redis');
   });
 
@@ -32,7 +32,10 @@ describe('KeyValService', function() {
     });
 
     it('should succesfully call srem', function() {
-
+      expect(KeyValService.changeUser('remove', BOARDID, USERNAME))
+        .to.eventually.equal(1);
+      expect(RedisStub.srem).to.have.been.called;
+      expect(RedisStub.sadd).to.not.have.been.called;
     });
   });
 });

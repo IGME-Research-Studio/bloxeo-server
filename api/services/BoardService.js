@@ -9,6 +9,7 @@ import { isNull } from './ValidatorService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
 import Redis from '../helpers/key-val-store';
+import inMemory from '../services/KeyValService';
 
 const self = {};
 const suffix = '-current-users';
@@ -73,23 +74,56 @@ self.getPendingUsers = function(boardId) {
   .exec((board) => board.pendingUsers);
 };
 
-self.addUser = function(boardId, userId) {
+self.validateBoardAndUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
   .then(([board, user]) => {
     if (isNull(board)) {
       throw new NotFoundError(`Board (${boardId}) does not exist`);
     }
-    else if (isNull(user)) {
+    if (isNull(user)) {
       throw new NotFoundError(`User (${userId}) does not exist`);
     }
-    else if (self.isUser(board, userId)) {
+    return [board, user];
+  });
+};
+
+/**
+ * Adds a user to a board in Mongoose and Redis
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ */
+self.addUser = function(boardId, userId) {
+  return self.validateBoardAndUser(boardId, userId)
+  .then(([board, user]) => {
+    if (self.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) already exists on the board (${boardId})`);
     }
     else {
       board.users.push(userId);
-      return board.save();
+      return Promise.join(board.save(), inMemory.addUser(boardId, userId));
+    }
+  });
+};
+
+/**
+ * Removes a user from a board in Mongoose and Redis
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ */
+self.removeUser = function(boardId, userId) {
+  return self.validateBoardAndUser(boardId, userId)
+  .then(([board, user]) => {
+    if (!self.isUser(board, userId)) {
+      throw new ValidationError(
+        `User (${userId}) is not already on the board (${boardId})`);
+    }
+    else {
+      board.users.pull(userId);
+      return Promise.join(board.save(), inMemory.removeUser(boardId, userId));
     }
   });
 };
@@ -144,17 +178,17 @@ self.isAdmin = function(board, userId) {
   return R.contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
-// add user to currentUsers redis
+// Add user to currentUsers redis
 self.join = function(boardId, user) {
   return Redis.sadd(boardId + suffix, user);
 };
 
-// remove user from currentUsers redis
+// Remove user from currentUsers redis
 self.leave = function(boardId, user) {
   return Redis.srem(boardId + suffix, user);
 };
 
-// get all currently connected users
+// Get all currently connected users
 self.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
 };
