@@ -8,7 +8,7 @@ import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
-import Redis from '../helpers/key-val-store';
+// import Redis from '../helpers/key-val-store';
 import inMemory from '../services/KeyValService';
 
 const self = {};
@@ -43,6 +43,8 @@ self.exists = function(boardId) {
 
 /**
  * Find all users on a board
+ * @TODO perhaps faster to grab userId's in Redis and find those Mongo docs?
+ *       Would need to test performance of Query+Populate to Redis+FindByIds
  * @param {String} boardId the boardId to retrieve the users from
  * @returns {Promise<MongooseArray|Error>}
  */
@@ -96,7 +98,7 @@ self.validateBoardAndUser = function(boardId, userId) {
  */
 self.addUser = function(boardId, userId) {
   return self.validateBoardAndUser(boardId, userId)
-  .then(([board, user]) => {
+  .then(([board, __]) => {
     if (self.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) already exists on the board (${boardId})`);
@@ -116,7 +118,7 @@ self.addUser = function(boardId, userId) {
  */
 self.removeUser = function(boardId, userId) {
   return self.validateBoardAndUser(boardId, userId)
-  .then(([board, user]) => {
+  .then(([board, __]) => {
     if (!self.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) is not already on the board (${boardId})`);
@@ -179,16 +181,19 @@ self.isAdmin = function(board, userId) {
 };
 
 // Add user to currentUsers redis
+// @deprecated
 self.join = function(boardId, user) {
   return Redis.sadd(boardId + suffix, user);
 };
 
 // Remove user from currentUsers redis
+// @deprecated
 self.leave = function(boardId, user) {
   return Redis.srem(boardId + suffix, user);
 };
 
 // Get all currently connected users
+// @deprecated
 self.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
 };
