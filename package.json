@@ -74,7 +74,6 @@
     "mocha-mongoose": "^1.1.1",
     "mongodb": "^2.0.49",
     "monky": "^0.6.8",
-    "rewire": "^2.5.1",
     "sinomocha": "^0.2.4",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
