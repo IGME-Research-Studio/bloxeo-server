@@ -49,11 +49,13 @@ const dispatcher = function(server) {
   stream.on(JOIN, (req) => {
     log.info(JOIN, req.boardId, req.userId);
     req.socket.join(req.boardId);
+    io.in(req.boardId).emit(EXT_EVENT.JOINED_ROOM, req.res);
   });
 
   stream.on(LEAVE, (req) => {
     log.info(LEAVE, req.boardId, req.userId);
     req.socket.leave(req.boardId);
+    io.in(req.boardId).emit(EXT_EVENT.LEFT_ROOM, req.res);
   });
 };
 
