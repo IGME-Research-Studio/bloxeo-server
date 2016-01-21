@@ -32,6 +32,7 @@ self.destroy = function(boardId) {
 };
 
 /**
+ * @deprecated
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
@@ -197,11 +198,5 @@ self.leave = function(boardId, user) {
 self.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
 };
-
-// self.isAdmin = function() {
-//   return new Promise((res) => {
-//     res(true);
-//   });
-// };
 
 module.exports = self;

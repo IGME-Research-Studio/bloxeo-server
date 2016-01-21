@@ -8,11 +8,14 @@
 */
 
 import { isNull } from '../../../services/ValidatorService';
+import { removeUser} from '../../../services/BoardService';
+import { verifyAndGetId } from '../../../services/TokenService';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function leave(req) {
   const { socket, boardId, userToken } = req;
+  const removeThisUser = R.curry(removeUser)(boardId);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
@@ -21,10 +24,13 @@ export default function leave(req) {
   if (isNull(boardId) || isNull(userToken)) {
     return stream.badRequest(LEFT_ROOM, {}, socket);
   }
-  else {
-    stream.leave(socket, boardId);
-    BoardService.leave(boardId, userToken);
-    return stream.ok(LEFT_ROOM, {}, boardId,
-       `User with socket id ${socket.id} left board ${boardId}`);
-  }
+
+  return verifyAndGetId(userToken)
+    .then(removeThisUser)
+    .then(() => {
+      return stream.leave(socket, boardId);
+    })
+    .catch((err) => {
+      return stream.serverError(JOINED_ROOM, err.message, socket);
+    });
 }
