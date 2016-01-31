@@ -190,7 +190,7 @@ describe('VotingService', function() {
       });
     });
 
-    it('Should return the remaining collections to vote on', (done) => {
+    xit('Should return the remaining collections to vote on', (done) => {
       // Set up the voting list in Redis
       VotingService.getVoteList(BOARDID, USERID)
       .then(() => {
