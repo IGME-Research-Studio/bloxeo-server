@@ -16,13 +16,13 @@ import { RECEIVED_TIME } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function getTime(req) {
-  const { socket, boardId, userToken } = req;
-  const getThisTimeLeft = () => getTimeLeft(boardId);
+  const { socket, boardId, timerId, userToken } = req;
+  const getThisTimeLeft = () => getTimeLeft(timerId);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNull(boardId) || isNull(timerId) || isNull(userToken)) {
     return stream.badRequest(RECEIVED_TIME, {}, socket);
   }
 

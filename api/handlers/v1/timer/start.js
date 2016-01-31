@@ -18,7 +18,7 @@ import stream from '../../../event-stream';
 
 export default function start(req) {
   const { socket, boardId, timerLengthInMS, userToken } = req;
-  const startThisTimer = R.partial(startTimer, [boardId]);
+  const startThisTimer = R.partial(startTimer, [boardId, timerLengthInMS]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
@@ -29,8 +29,8 @@ export default function start(req) {
 
   return verifyAndGetId(userToken)
     .then(startThisTimer)
-    .then((eventId) => {
-      return stream.ok(STARTED_TIMER, {boardId: boardId, eventId: eventId},
+    .then((timerId) => {
+      return stream.ok(STARTED_TIMER, {boardId: boardId, timerId: timerId},
                        boardId);
     })
     .catch(JsonWebTokenError, (err) => {
