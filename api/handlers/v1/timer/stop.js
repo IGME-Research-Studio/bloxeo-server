@@ -16,20 +16,20 @@ import { DISABLED_TIMER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function stop(req) {
-  const { socket, boardId, eventId, userToken } = req;
-  const stopThisTimer = () => stopTimer(boardId, eventId);
+  const { socket, boardId, timerId, userToken } = req;
+  const stopThisTimer = () => stopTimer(timerId);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNull(boardId) || isNull(eventId) || isNull(userToken)) {
+  if (isNull(boardId) || isNull(timerId) || isNull(userToken)) {
     return stream.badRequest(DISABLED_TIMER, {}, socket);
   }
 
   return verifyAndGetId(userToken)
     .then(stopThisTimer)
-    .then((success) => {
-      return stream.ok(DISABLED_TIMER, {boardId: boardId, disabled: success},
+    .then(() => {
+      return stream.ok(DISABLED_TIMER, {boardId: boardId},
                        boardId);
     })
     .catch(JsonWebTokenError, (err) => {

@@ -3,52 +3,36 @@
 
   @file Contains the logic for the server-side timer used for voting on client-side
 */
-const Redis = require('redis');
-const config = require('../../config');
-const pub = Redis.createClient(config.default.redisURL);
-const sub = Redis.createClient(config.default.redisURL);
-const DTimer = require('dtimer').DTimer;
-const dt = new DTimer('timer', pub, sub);
 
+const config = require('../../config');
+const radicchio = require('radicchio')(config.redisURL);
 const EXT_EVENTS = require('../constants/EXT_EVENT_API');
 const stream = require('../event-stream').default;
 const StateService = require('./StateService');
-const RedisService = require('../helpers/key-val-store');
 const self = {};
-const suffix = '-timer';
 
-dt.on('event', function(eventData) {
-  StateService.createIdeaCollections(eventData.boardId, false, null)
+radicchio.on('expired', function(timerDataObj) {
+  const boardId = timerDataObj.boardId;
+
+  StateService.createIdeaCollections(boardId, false, null)
   .then((state) => {
-    RedisService.del(eventData.boardId + suffix);
-    stream.ok(EXT_EVENTS.TIMER_EXPIRED, {boardId: eventData.boardId, state: state}, eventData.boardId);
+    stream.ok(EXT_EVENTS.TIMER_EXPIRED, {boardId: boardId, state: state}, boardId);
   });
 });
 
-dt.join(function(err) {
-  if (err) {
-    throw new Error(err);
-  }
-});
-
 /**
-* Returns a promise containing a boolean if the timer started correctly
+* Returns a promise containing a the timer id
 * @param {string} boardId: The string id generated for the board (not the mongo id)
-* @param {number} timerLengthInSeconds: A number containing the amount of seconds the timer should last
-* @param (optional) {string} value: The value to store from setting the key in Redis
+* @param {number} timerLengthInMS: A number containing the amount of milliseconds the timer should last
 */
-self.startTimer = function(boardId, timerLengthInMilliseconds) {
+self.startTimer = function(boardId, timerLengthInMS) {
+  const dataObj = {boardId: boardId};
+
   return new Promise(function(resolve, reject) {
     try {
-      dt.post({boardId: boardId}, timerLengthInMilliseconds, function(err, eventId) {
-        if (err) {
-          reject(new Error(err));
-        }
-        const timerObj = {timeStamp: new Date(), timerLength: timerLengthInMilliseconds};
-        return RedisService.set(boardId + suffix, JSON.stringify(timerObj))
-        .then(() => {
-          resolve(eventId);
-        });
+      radicchio.startTimer(timerLengthInMS, dataObj)
+      .then((timerId) => {
+        resolve(timerId);
       });
     }
     catch (e) {
@@ -58,18 +42,16 @@ self.startTimer = function(boardId, timerLengthInMilliseconds) {
 };
 
 /**
-* Returns a promise containing a boolean which indicates if the timer was stopped
-* @param {string} boardId: The string id generated for the board (not the mongo id)
+* Returns a promise containing a data object associated with the timer
+* @param {string} timerId: The timer id to stop
 */
-self.stopTimer = function(boardId, eventId) {
+self.stopTimer = function(timerId) {
   return new Promise(function(resolve, reject) {
     try {
-      dt.cancel(eventId, function(err) {
-        if (err) {
-          reject(err);
-        }
-        RedisService.del(boardId + suffix);
-        resolve(true);
+      radicchio.deleteTimer(timerId)
+      .then((data) => {
+        delete data.boardId;
+        resolve(data);
       });
     }
     catch (e) {
@@ -80,31 +62,18 @@ self.stopTimer = function(boardId, eventId) {
 
 /**
 * Returns a promise containing the time left
-* @param {string} boardId: The string id generated for the board (not the mongo id)
-* @return the time left in milliseconds. 0 indicates the timer has expired
+* @param {string} timerId: The timer id to get the time left on
 */
-self.getTimeLeft = function(boardId) {
-  const currentDate = new Date();
-
-  return RedisService.get(boardId + suffix)
-  .then(function(result) {
-
-    if (result === null) {
-      return null;
+self.getTimeLeft = function(timerId) {
+  return new Promise(function(resolve, reject) {
+    try {
+      radicchio.getTimeLeft(timerId)
+      .then((timerObj) => {
+        resolve(timerObj.timeLeft);
+      });
     }
-    else {
-      const timerObj = JSON.parse(result);
-      const timeStamp = new Date(timerObj.timeStamp);
-      const timerLength = timerObj.timerLength;
-
-      const difference = currentDate.getTime() - timeStamp.getTime();
-
-      if (difference >= timerLength) {
-        return 0;
-      }
-      else {
-        return timerLength - difference;
-      }
+    catch (e) {
+      reject(e);
     }
   });
 };
