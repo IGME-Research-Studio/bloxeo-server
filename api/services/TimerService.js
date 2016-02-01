@@ -28,16 +28,9 @@ radicchio.on('expired', function(timerDataObj) {
 self.startTimer = function(boardId, timerLengthInMS) {
   const dataObj = {boardId: boardId};
 
-  return new Promise(function(resolve, reject) {
-    try {
-      radicchio.startTimer(timerLengthInMS, dataObj)
-      .then((timerId) => {
-        resolve(timerId);
-      });
-    }
-    catch (e) {
-      reject(e);
-    }
+  return radicchio.startTimer(timerLengthInMS, dataObj)
+  .then((timerId) => {
+    return timerId;
   });
 };
 
@@ -46,17 +39,10 @@ self.startTimer = function(boardId, timerLengthInMS) {
 * @param {string} timerId: The timer id to stop
 */
 self.stopTimer = function(timerId) {
-  return new Promise(function(resolve, reject) {
-    try {
-      radicchio.deleteTimer(timerId)
-      .then((data) => {
-        delete data.boardId;
-        resolve(data);
-      });
-    }
-    catch (e) {
-      reject(e);
-    }
+  return radicchio.deleteTimer(timerId)
+  .then((data) => {
+    delete data.boardId;
+    return data;
   });
 };
 
@@ -65,16 +51,9 @@ self.stopTimer = function(timerId) {
 * @param {string} timerId: The timer id to get the time left on
 */
 self.getTimeLeft = function(timerId) {
-  return new Promise(function(resolve, reject) {
-    try {
-      radicchio.getTimeLeft(timerId)
-      .then((timerObj) => {
-        resolve(timerObj.timeLeft);
-      });
-    }
-    catch (e) {
-      reject(e);
-    }
+  return radicchio.getTimeLeft(timerId)
+  .then((timerObj) => {
+    return timerObj.timeLeft;
   });
 };
 
