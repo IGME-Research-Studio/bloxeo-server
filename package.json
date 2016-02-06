@@ -23,7 +23,6 @@
   "dependencies": {
     "agenda": "^0.7.5",
     "babel-core": "^6.1.2",
-    "babel-plugin-rewire": "^1.0.0-beta-3",
     "babel-preset-es2015": "^6.1.2",
     "babel-template": "^6.3.13",
     "babel-types": "^6.3.24",
@@ -62,6 +61,8 @@
   },
   "devDependencies": {
     "babel-eslint": "^4.1.3",
+    "babel-plugin-rewire": "^1.0.0-beta-3",
+    "babel-plugin-syntax-jsx": "^6.3.13",
     "chai": "^3.3.0",
     "chai-array": "0.0.2",
     "chai-as-promised": "^5.1.0",
