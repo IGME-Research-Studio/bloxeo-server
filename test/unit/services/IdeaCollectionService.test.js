@@ -131,11 +131,15 @@ describe('IdeaCollectionService', function() {
         monky.create('Board'),
         monky.create('User')
           .then((user) => {USER_ID = user.id; return user;}),
+        monky.create('Idea', {boardid: BOARDID, content: 'idea1'}),
         monky.create('Idea', {boardid: BOARDID, content: 'idea2'}),
         monky.create('IdeaCollection', {key: COLLECTION_KEY}),
       ])
       .then(() => {
-        done();
+        IdeaCollectionService.addIdea(USER_ID, BOARDID, COLLECTION_KEY, 'idea1')
+        .then(() => {
+          done();
+        });
       });
     });
 
@@ -145,9 +149,9 @@ describe('IdeaCollectionService', function() {
       .to.eventually.have.property(COLLECTION_KEY);
     });
 
-    xit('Should reject adding a duplicate idea to an exiting idea collection', () => {
+    it('Should reject adding a duplicate idea to an existing idea collection', () => {
       return expect(IdeaCollectionService.addIdea(USER_ID, BOARDID,
-                                                  COLLECTION_KEY, 'idea1'))
+                                                    COLLECTION_KEY, 'idea1'))
       .to.be.rejectedWith(/Idea collections must have unique ideas/);
     });
   });
