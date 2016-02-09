@@ -51,7 +51,7 @@ schema.pre('save', function(next) {
   else {
     // Remove duplicates from the ideas array
     const uniqueArray = _.uniq(this.ideas, function(idea) {
-      return String(idea);
+      return String(idea.id);
     });
     if (this.ideas.length !== uniqueArray.length) {
       self.invalidate('ideas', 'Idea collections must have unique ideas');
@@ -72,6 +72,9 @@ schema.pre('save', function(next) {
  * populated
  */
 schema.statics.findByKey = function(boardId, key) {
+  console.log('Inside find by key in idea collection model');
+  console.log('boardId: ' + boardId);
+  console.log('key: ' + key);
   return this.findOne({boardId: boardId, key: key})
   .select('ideas key votes')
   .populate('ideas', 'content')
