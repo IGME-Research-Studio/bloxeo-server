@@ -1,5 +1,6 @@
 import createBoard from './controllers/v1/boards/create';
 import destroyBoard from './controllers/v1/boards/destroy';
+import updateBoard from './controllers/v1/boards/update';
 import burnSails from './controllers/index';
 import createUser from './controllers/v1/users/create';
 import validateToken from './controllers/v1/auth/validate';
@@ -15,6 +16,11 @@ export default {
       path: '/v1/boards',
       method: 'DELETE',
       handler: destroyBoard,
+    },
+    {
+      path: '/v1/boards',
+      method: 'PATCH',
+      handler: updateBoard,
     },
     {
       path: '/v1/users',

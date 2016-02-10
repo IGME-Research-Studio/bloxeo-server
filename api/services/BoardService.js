@@ -31,6 +31,14 @@ self.destroy = function(boardId) {
 };
 
 /**
+* Update a board's name and description in the database
+*
+*/
+self.update = function(boardId, name, description) {
+  return Board.findOneAndUpdate({boardId: boardId}, {name: name, description: description});
+};
+
+/**
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
