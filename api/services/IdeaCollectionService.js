@@ -80,18 +80,9 @@ self.destroy = function(boardId, collection) {
  * @returns {Promise} - resolves to all the collections on the board
  */
 self.changeIdeas = function(operation, userId, boardId, key, content) {
-  console.log('Inside beginning of changeIdeas.');
   let method;
   if (operation.toLowerCase() === 'add') method = 'push';
-  else if (operation.toLowerCase() === 'remove') {
-    console.log('inside if statement for remove operation');
-    console.log('userId: ' + userId);
-    console.log('boardId: ' + boardId);
-    console.log('key: ' + key);
-    console.log('content: ' + content);
-    console.log('operation: ' + operation);
-    method = 'pull';
-  }
+  else if (operation.toLowerCase() === 'remove') method = 'pull';
   else throw new Error(`Invalid operation ${operation}`);
 
   return Promise.all([
@@ -99,14 +90,10 @@ self.changeIdeas = function(operation, userId, boardId, key, content) {
     ideaService.findByContent(boardId, content),
   ])
   .then(([collection, idea]) => {
-    console.log('Inside then of promise.all in changeIdeas');
-    console.log(collection);
     if (operation.toLowerCase() === 'remove' && collection.ideas.length === 1) {
-      console.log('Inside changeIdeas before destroying about to be empty collection');
-      return self.destroy(collection);
+      return self.destroy(boardId, collection);
     }
     else {
-      console.log('Inside else of then or promise.all');
       collection.ideas[method](idea.id);
       return collection.save()
       .then(() => self.getIdeaCollections(boardId));
@@ -134,7 +121,7 @@ self.addIdea = function(userId, boardId, key, content) {
  * @returns {Promise} - resolves to all the collections on the board
  */
 self.removeIdea = function(userId, boardId, key, content) {
-  console.log('Inside removeIdea');
+
   return self.changeIdeas('remove', userId, boardId, key, content);
 };
 

@@ -153,8 +153,8 @@ describe('IdeaCollectionService', function() {
   });
 
   describe('#removeIdea()', () => {
-    const collectionWith1Idea = '1';
-    const collectionWith2Ideas = '2';
+    const collectionWith1Idea = 'collection1';
+    const collectionWith2Ideas = 'collection2';
     let USER_ID;
 
     beforeEach((done) => {
@@ -167,23 +167,23 @@ describe('IdeaCollectionService', function() {
       ])
       .spread((__, ___, idea1, idea2) => {
         return Promise.all([
-          monky.create('IdeaCollection', {ideas: [idea1],
+          monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea1],
                      key: collectionWith1Idea}),
-          monky.create('IdeaCollection', {ideas: [idea1, idea2],
+          monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea1, idea2],
                      key: collectionWith2Ideas}),
         ])
-        .then(done());
+        .then(() => done());
       });
     });
 
     it('Should remove an idea from an idea collection', () => {
-      expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith2Ideas,
+      return expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith2Ideas,
                                               IDEA_CONTENT))
-        .to.eventually.have.length(1);
+        .to.eventually.have.deep.property('collection2.ideas').with.length(1);
     });
 
     it('Should destroy an idea collection when it is empty', () => {
-      expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith1Idea,
+      return expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith1Idea,
                                               IDEA_CONTENT))
         .to.eventually.not.have.key(collectionWith1Idea);
     });

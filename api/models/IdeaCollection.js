@@ -72,9 +72,6 @@ schema.pre('save', function(next) {
  * populated
  */
 schema.statics.findByKey = function(boardId, key) {
-  console.log('Inside find by key in idea collection model');
-  console.log('boardId: ' + boardId);
-  console.log('key: ' + key);
   return this.findOne({boardId: boardId, key: key})
   .select('ideas key votes')
   .populate('ideas', 'content')
