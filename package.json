@@ -23,7 +23,8 @@
   "dependencies": {
     "agenda": "^0.7.5",
     "babel-core": "^6.1.2",
-    "babel-preset-es2015": "^6.1.2",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-0": "^6.5.0",
     "babel-template": "^6.3.13",
     "babel-types": "^6.3.24",
     "bcryptjs": "^2.2.2",
