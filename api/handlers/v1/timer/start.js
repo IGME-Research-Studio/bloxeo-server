@@ -10,15 +10,18 @@
 
 import R from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
+import { UnauthorizedError } from '../../../helpers/extendable-error';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { startTimer } from '../../../services/TimerService';
+import { errorIfNotAdmin } from '../../../services/BoardService';
 import { STARTED_TIMER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function start(req) {
   const { socket, boardId, timerLengthInMS, userToken } = req;
   const startThisTimer = R.partial(startTimer, [boardId, timerLengthInMS]);
+  const errorIfNotAdminOnThisBoard = R.partial(errorIfNotAdmin, [boardId]);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');
@@ -28,12 +31,16 @@ export default function start(req) {
   }
 
   return verifyAndGetId(userToken)
+    .then(errorIfNotAdminOnThisBoard)
     .then(startThisTimer)
     .then((timerId) => {
       return stream.ok(STARTED_TIMER, {boardId: boardId, timerId: timerId},
                        boardId);
     })
     .catch(JsonWebTokenError, (err) => {
+      return stream.unauthorized(STARTED_TIMER, err.message, socket);
+    })
+    .catch(UnauthorizedError, (err) => {
       return stream.unauthorized(STARTED_TIMER, err.message, socket);
     })
     .catch((err) => {

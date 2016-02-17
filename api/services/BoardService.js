@@ -4,10 +4,11 @@
 import Promise from 'bluebird';
 import { toPlainObject } from '../helpers/utils';
 import { model as Board } from '../models/Board';
+import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
 import { getIdeaCollections } from './IdeaCollectionService';
-import { NotFoundError, ValidationError } from '../helpers/extendable-error';
+import { NotFoundError, ValidationError, UnauthorizedError } from '../helpers/extendable-error';
 import R from 'ramda';
 // import Redis from '../helpers/key-val-store';
 import inMemory from '../services/KeyValService';
@@ -33,7 +34,35 @@ self.destroy = function(boardId) {
 };
 
 /**
- * @deprecated
+* Update a board's name and description in the database
+* @param {Document} board - The mongo board model to update
+* @param {String} attribute - The attribute to update
+* @param {String} value - The value to update the attribute with
+* @returns {Document} - The updated mongo board model
+*/
+self.update = function(board, attribute, value) {
+
+  if (adminEditableFields.indexOf(attribute) === -1) {
+    throw new UnauthorizedError('Attribute is not editable or does not exist.');
+  }
+  const query = {};
+  const updatedData = {};
+  query[attribute] = board[attribute];
+  updatedData[attribute] = value;
+
+  return board.update(query, updatedData);
+};
+
+/**
+* Find a board with populated users and admins
+* @param {String} boardId - the boardId to check
+* @returns {Promise<Board|Error>} - The mongo board model found
+*/
+self.findBoard = function(boardId) {
+  return Board.findBoard(boardId);
+};
+
+/**
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
