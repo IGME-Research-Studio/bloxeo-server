@@ -38,6 +38,11 @@ const votingReadyKey = (boardId) => `${boardId}-voting-ready`;
 // A Redis set created for every board
 // It holds the user ids of users done voting
 const votingDoneKey = (boardId) => `${boardId}-voting-done`;
+// A Redis set created for every user on every board
+// It holds the ids of the idea collections that the user still has to vote on
+const votingListPerUser = R.curry((boardId, userId) => {
+  return `${boardId}-voting-${userId}`;
+});
 // A Redis set created for every board
 // It holds the user ids of users currently in the board
 const currentUsersKey = (boardId) => `${boardId}-current-users`;
@@ -125,6 +130,28 @@ self.clearKey = R.curry((keyGen, boardId) => {
 self.setKey = R.curry((keyGen, boardId, val) => {
   return Redis.set(keyGen(boardId), JSON.stringify(val))
     .then(maybeThrowIfUnsuccessful);
+});
+
+/**
+ * @param {Function} keyGen
+ * @param {String} boardId
+ * @param {String} val
+ * @returns {Promise<Boolean|Error>}
+ */
+self.checkSet = R.curry((keyGen, boardId, val) => {
+  return Redis.sismember((keyGen(boardId), val))
+  .then((ready) => ready === 1);
+});
+
+/**
+ * @param {Function} keyGen
+ * @param {String} boardId
+ * @param {String} val
+ * @returns {Promise<Boolean|Error>}
+ */
+self.checkKey = R.curry((keyGen, boardId, val) => {
+  return Redis.exists((keyGen(boardId), val))
+  .then((ready) => ready === 1);
 });
 
 /**
