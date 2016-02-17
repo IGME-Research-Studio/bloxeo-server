@@ -1,5 +1,6 @@
 /**
 * VotingSerivce
+*
 * contains logic and actions for voting, archiving collections, start and
 * ending the voting state
 */
@@ -9,6 +10,7 @@ import { model as Result } from '../models/Result';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import Redis from '../helpers/key-val-store';
 import Promise from 'bluebird';
+import InMemory from './KeyValService';
 import _ from 'lodash';
 import R from 'ramda';
 import IdeaCollectionService from './IdeaCollectionService';
@@ -32,7 +34,8 @@ self.startVoting = function(boardId) {
     return b.save();
   })  // remove duplicate collections
   .then(() => IdeaCollectionService.removeDuplicates(boardId))
-  .then(() => Redis.del(boardId + '-ready'));
+  .then(() => InMemory.clearVotingReady(boardId));
+  // .then(() => Redis.del(boardId + '-ready'));
 };
 
 /**
@@ -70,7 +73,8 @@ self.finishVoting = function(boardId) {
 */
 self.setUserReady = function(boardId, userId) {
   // in redis push UserId into ready list
-  return Redis.sadd(boardId + '-ready', userId)
+  return InMemory.readyUser(boardId, userId)
+  // return Redis.sadd(boardId + '-ready', userId)
   .then(() => self.isRoomReady(boardId));
 };
 
@@ -139,8 +143,7 @@ self.isRoomReady = function(boardId) {
 * @return {Promise}
 */
 self.isUserReady = function(boardId, userId) {
-  return Redis.sismember(boardId + '-ready', userId)
-  .then((ready) => ready === 1);
+  InMemory.isUserReady(boardId, userId);
 };
 
 /**
