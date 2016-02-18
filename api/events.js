@@ -21,6 +21,7 @@ import disableIdeas from './handlers/v1/state/disableIdeaCreation';
 import forceVote from './handlers/v1/state/forceVote';
 import forceResults from './handlers/v1/state/forceResults';
 import getCurrentState from './handlers/v1/state/get';
+import {update as updateBoard} from './handlers/v1/rooms/update';
 
 import * as EVENTS from './constants/EXT_EVENT_API';
 
@@ -30,6 +31,7 @@ eventMap[EVENTS.GET_CONSTANTS]        = getConstants;
 
 eventMap[EVENTS.JOIN_ROOM]            = joinRoom;
 eventMap[EVENTS.LEAVE_ROOM]           = leaveRoom;
+eventMap[EVENTS.UPDATE_BOARD]         = updateBoard;
 
 eventMap[EVENTS.CREATE_IDEA]          = createIdea;
 eventMap[EVENTS.DESTROY_IDEA]         = destroyIdea;
