@@ -16,3 +16,6 @@ export class NotFoundError extends ExtendableError {
 
 export class ValidationError extends ExtendableError {
 }
+
+export class UnauthorizedError extends ExtendableError {
+}
