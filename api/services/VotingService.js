@@ -33,7 +33,6 @@ self.startVoting = function(boardId) {
   // remove duplicate collections
   .then(() => IdeaCollectionService.removeDuplicates(boardId))
   .then(() => InMemory.clearVotingReady(boardId));
-  // .then(() => Redis.del(boardId + '-ready'));
 };
 
 /**

@@ -191,6 +191,7 @@ describe('VotingService', function() {
       });
     });
 
+
     xit('Should add the collections to vote on into Redis and return them', (done) => {
       VotingService.getVoteList(BOARDID, USERID)
       .then((collections) => {
@@ -245,6 +246,7 @@ describe('VotingService', function() {
         done();
       });
     });
+
 
     xit('Should vote on a collection and not increment the vote', () => {
       return VotingService.getVoteList(BOARDID, USERID)

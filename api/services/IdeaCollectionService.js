@@ -91,7 +91,7 @@ self.changeIdeas = function(operation, userId, boardId, key, content) {
   ])
   .then(([collection, idea]) => {
     if (operation.toLowerCase() === 'remove' && collection.ideas.length === 1) {
-      return self.destroy(collection);
+      return self.destroy(boardId, collection);
     }
     else {
       collection.ideas[method](idea.id);
