@@ -25,14 +25,12 @@ const self = {};
 * Increments the voting round and removes duplicate collections
 * @param {String} boardId of the board to setup voting for
 * @return {Promise}
+* @TODO Possible future optimization: Use promise.all after findOneAndUpdate
 */
 self.startVoting = function(boardId) {
   // increment the voting round on the board model
-  return Board.findOne({boardId: boardId})
-  .then((b) => {
-    b.round++;
-    return b.save();
-  })  // remove duplicate collections
+  return Board.findOneAndUpdate({boardId: boardId}, {$inc: { round: 1 }})
+  // remove duplicate collections
   .then(() => IdeaCollectionService.removeDuplicates(boardId))
   .then(() => InMemory.clearVotingReady(boardId));
   // .then(() => Redis.del(boardId + '-ready'));

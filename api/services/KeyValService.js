@@ -5,7 +5,7 @@
  * The 'Schema', i.e. what we're storing and under which key
  *
  *  // State
- *  `${boardId}-state`: { createIdeaCollectione,
+ *  `${boardId}-state`: { createIdeaCollections,
  *                        createIdeaAndIdeaCollections,
  *                        voteOnIdeaCollections }
  *
@@ -28,10 +28,6 @@ const self = {};
  * Use these as the sole way of creating keys to set in Redis
  */
 
-// A Redis set created for every user on a board
-// It holds the collection ids that the user has yet to vote on
-// When empty the user is done voting
-// const votingCollectionsKey = (boardId, userId) => `${boardId}-voting-${userId}`;
 // A Redis set created for every board
 // It holds the user ids of users ready to vote
 const votingReadyKey = (boardId) => `${boardId}-voting-ready`;
@@ -40,6 +36,7 @@ const votingReadyKey = (boardId) => `${boardId}-voting-ready`;
 const votingDoneKey = (boardId) => `${boardId}-voting-done`;
 // A Redis set created for every user on every board
 // It holds the ids of the idea collections that the user still has to vote on
+// When empty the user is done voting
 const votingListPerUser = R.curry((boardId, userId) => {
   return `${boardId}-voting-${userId}`;
 });
