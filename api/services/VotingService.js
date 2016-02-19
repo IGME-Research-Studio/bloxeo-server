@@ -8,176 +8,290 @@
 import { model as Board } from '../models/Board';
 import { model as Result } from '../models/Result';
 import { model as IdeaCollection } from '../models/IdeaCollection';
-import Redis from '../helpers/key-val-store';
 import Promise from 'bluebird';
 import InMemory from './KeyValService';
 import _ from 'lodash';
 import R from 'ramda';
 import IdeaCollectionService from './IdeaCollectionService';
-import BoardService from './BoardService';
+import ResultService from './ResultService';
 import StateService from './StateService';
-import stream from '../event-stream';
-import EXT_EVENTS from '../constants/EXT_EVENT_API';
 
 const self = {};
 
 /**
 * Increments the voting round and removes duplicate collections
-* @param {String} boardId of the board to setup voting for
-* @return {Promise}
+* @param {String} boardId: id of the board to setup voting for
+* @param {Boolean} requiresAdmin: whether or not action requires admin
+* @param {String} userToken: the encrypted token containing a user id
+* @return {Promise<>}
+* @TODO Possible future optimization: Use promise.all after findOneAndUpdate
 */
-self.startVoting = function(boardId) {
+self.startVoting = function(boardId, requiresAdmin, userToken) {
   // increment the voting round on the board model
-  return Board.findOne({boardId: boardId})
-  .then((b) => {
-    b.round++;
-    return b.save();
-  })  // remove duplicate collections
+  return Board.findOneAndUpdate({boardId: boardId}, {$inc: { round: 1 }})
+  // remove duplicate collections
   .then(() => IdeaCollectionService.removeDuplicates(boardId))
-  .then(() => InMemory.clearVotingReady(boardId));
-  // .then(() => Redis.del(boardId + '-ready'));
+  .then(() => InMemory.clearVotingReady(boardId))
+  .then(() => StateService.voteOnIdeaCollections(boardId, requiresAdmin, userToken));
 };
 
 /**
+* @TODO: Bring back the top # results to the board as new idea collections
 * Handles transferring the collections that were voted on into results
 * @param {String} boardId of the baord to finish voting for
 * @return {Promise}
 */
-self.finishVoting = function(boardId) {
+self.finishVoting = function(boardId, requiresAdmin, userToken) {
   return Board.findOne({boardId: boardId})
-  .then((board) => board.round)
-  .then((round) => {
+  .then((board) => {
     // send all collections to results
     return IdeaCollection.find({boardId: boardId})
-    .select('-_id -__v')
     .then((collections) => {
       return collections.map((collection) => {
-        const r = new Result();
-        r.round = round;
-        r.ideas = collection.ideas;
-        r.votes = collection.votes;
-        r.boardId = boardId;
-        return r.save();
+        return Promise.all([
+          ResultService.create(boardId, collection.lastUpdatedId,
+             collection.ideas, board.round, collection.votes),
+          IdeaCollectionService.destroy(boardId, collection),
+        ]);
       });
     });
-  }) // Destroy old idea collections
-  .then(() => IdeaCollection.remove({boardId: boardId}));
+  })
+  .then(() => InMemory.clearVotingDone(boardId))
+  .then(() => StateService.createIdeaCollections(boardId, requiresAdmin, userToken));
+};
+
+/**
+* Calls startVoting with admin permission to force the board to start voting
+* @param {String} boardId: board id of the current board
+* @param {String} userToken: token containing encrypted user id
+* @returns {Promise<Object|Error>: returns the state of the board}
+*/
+self.forceStartVoting = function(boardId, userToken) {
+  return self.startVoting(boardId, true, userToken);
+};
+
+/**
+* Calls finishVoting with admin permission to force the board to finish voting
+* @param {String} boardId: board id of the current board
+* @param {String} userToken: token containing encrypted user id
+* @returns {Promise<Object|Error>: returns the state of the board}
+*/
+self.forceFinishVoting = function(boardId, userToken) {
+  return self.finishVoting(boardId, false, userToken);
 };
 
 /**
 * Mark a user as ready to progress
 * Used for both readying up for voting, and when done voting
-* @param {String} boardId
-* @param {String} userId
-* @return {Promise}
+* @param {String} votingAction: voting action to check for ('start' or 'finish')
+* @param {String} boardId: id for the board
+* @param {String} userId: id for the user to ready
+* @return {Promise<Boolean|Error>}: returns if the room is ready to progress
 */
-self.setUserReady = function(boardId, userId) {
-  // in redis push UserId into ready list
-  return InMemory.readyUser(boardId, userId)
-  // return Redis.sadd(boardId + '-ready', userId)
-  .then(() => self.isRoomReady(boardId));
+self.setUserReady = function(votingAction, boardId, userId) {
+  let method;
+
+  if (votingAction.toLowerCase() === 'start') method = 'readyUserToVote';
+  else if (votingAction.toLowerCase() === 'finish') {
+    method = 'readyUserDoneVoting';
+  }
+  else throw new Error(`Invalid voting action ${votingAction}`);
+  // in Redis, push UserId into appropriate ready list
+  return InMemory[method](boardId, userId)
+  .then(() => self.isRoomReady(votingAction, boardId));
 };
 
 /**
-* Check if all connected users are ready to move forward
-* @param {String} boardId
-* @return {Promise}
+* Sets the user ready to vote
+* @param {String} boardId: id of the board
+* @param {String} userId: id of the user
+* @returns {Promise<Boolean|Error>}: returns if the room is ready to vote
 */
-self.isRoomReady = function(boardId) {
-  return BoardService.getConnectedUsers(boardId)
-  .then((users) => {
-    if (users.length === 0) {
-      throw new Error('No users in the room');
-    }
-    else {
-      return users.map((u) => {
-        return self.isUserReady(boardId, u)
-        .then((isReady) => {
-          return {ready: isReady};
-        });
-      });
-    }
-  })
-  .then((promises) => {
-    return Promise.all(promises);
-  })
-  .then((states) => {
-    const roomReady = _.every(states, 'ready', true);
-    if (roomReady) {
-      return StateService.getState(boardId)
-      .then((currentState) => {
-        if (_.isEqual(currentState, StateService.StateEnum.createIdeaCollections)) {
-          return self.startVoting(boardId)
-          .then(() => StateService.voteOnIdeaCollections(boardId, false, null))
-          .then((state) => {
-            stream.ok(EXT_EVENTS.READY_TO_VOTE, {boardId: boardId, state: state}, boardId);
-            return true;
-          });
-        }
-        else if (_.isEqual(currentState, StateService.StateEnum.voteOnIdeaCollections)) {
-          return self.finishVoting(boardId)
-          .then(() => StateService.createIdeaCollections(boardId, false, null))
-          .then((state) => {
-            stream.ok(EXT_EVENTS.FINISHED_VOTING, {boardId: boardId, state: state}, boardId);
-            return true;
-          });
-        }
-        else {
-          throw new Error('Current state does not account for readying');
-        }
-      });
+self.setUserReadyToVote = function(boardId, userId) {
+  // Clear the user's voting list if it still exists (from forced state transition)
+  return InMemory.checkUserVotingListExists(boardId, userId)
+  .then((exists) => {
+    if (exists) {
+      return InMemory.clearUserVotingList(boardId, userId);
     }
     else {
       return false;
     }
   })
-  .catch((err) => {
-    throw err;
+  .then(() => self.setUserReady('start', boardId, userId));
+};
+
+/**
+* Sets the user ready to finish voting
+* @param {String} boardId: id of the board
+* @param {String} userId: id of the user
+* @returns {Promise<Boolean|Error>}: returns if the room is done voting
+*/
+self.setUserReadyToFinishVoting = function() {
+  return self.setUserReady('finish', boardId, userId);
+};
+
+/**
+* Checks if the room is ready to proceed based on voting action passed in
+* @param {String} votingAction: voting action to check for ('start' or 'finish')
+* @param {String} boardId: id of the board
+* @returns {Promise<Boolean|Error>}: returns if the room is ready to proceed
+*/
+self.isRoomReady = function(votingAction, boardId) {
+  let method;
+  let action;
+  let requiredBoardState;
+  // Get the connected users
+  return InMemory.getUsersInRoom(boardId)
+  .then((userIds) => {
+    if (userIds.length === 0) {
+      throw new Error('No users are currently connected to the room');
+    }
+    // Check if the users are ready to move forward based on voting action
+    if (votingAction.toLowerCase() === 'start') {
+      method = 'isUserReadyToVote';
+      action = 'startVoting';
+      requiredBoardState = StateService.StateEnum.createIdeaCollections;
+    }
+    else if (votingAction.toLowerCase() === 'finish') {
+      method = 'isUserDoneVoting';
+      action = 'finishVoting';
+      requiredBoardState = StateService.StateEnum.voteOnIdeaCollections;
+    }
+    else throw new Error(`Invalid votingAction ${votingAction}`);
+
+    return userIds.map((userId) => {
+      return self[method](boardId, userId)
+      .then((isReady) => {
+        return {ready: isReady};
+      });
+    });
+  })
+  .then((promises) => {
+    return Promise.all(promises);
+  })
+  // Check if all the users are ready to move forward
+  .then((userStates) => {
+    const roomReadyToMoveForward = _.every(userStates, 'ready');
+
+    if (roomReadyToMoveForward) {
+      // Transition the board state
+      return StateService.getState(boardId)
+      .then((state) => {
+        if (_isEqual(state, requiredBoardState)) {
+          return self[action](boardId, false, '');
+        }
+        else {
+          throw new Error('Current board state does not allow for readying');
+        }
+      })
+      .then(() => true);
+    }
+    else {
+      return false;
+    }
   });
 };
 
 /**
-* Check if a connected user is ready to move forward
-* @param {String} boardId
-* @param {String} userId
-* @return {Promise}
+* Checks to see if the room is ready to vote
+* Should be called every time a user is ready to vote or leaves the room
+* @param {String} boardId: board id of the board to check
+* @returns {Promise<Boolean|Error>}: returns if the room is ready to vote or not
 */
-self.isUserReady = function(boardId, userId) {
-  InMemory.isUserReady(boardId, userId);
+self.isRoomReadyToVote = function(boardId) {
+  return isRoomReady('start', boardId);
 };
 
 /**
-* Returns all remaining collections to vote on, if empty the user is done voting
-* @param {String} boardId
-* @param {String} userId
-* @return {Array} remaining collections to vote on for a user
+* Checks to see if the room is ready to finish voting
+* Should be called every time a user is done voting or leaves the room
+* @param {String} boardId: board id of the board to check
+* @returns {Promise<Boolean|Error>}: returns if the room is finished voting
 */
+self.isRoomDoneVoting = function(boardId) {
+  return isRoomReady('finish', boardId);
+};
+
+/**
+* Checks if the user is ready to move forward based on the voting action
+* @param {String} votingAction: voting action to check for ('start' or 'finish')
+* @param {String} boardId: the id of the board
+* @param {String} userId: the user id of the user to check
+* @returns {Promise<Boolean|Error>}: returns if the user is ready to proceed
+*/
+self.isUserReady = function(votingAction, boardId, userId) {
+  let method;
+
+  if (votingAction.toLowerCase() === 'start') method = 'getUsersReadyToVote';
+  else if (votingAction.toLowerCase === 'finish') method = 'getUsersDoneVoting';
+  else throw new Error(`Invald votingAction ${votingAction}`);
+
+  return InMemory[method](boardId)
+  .then((userIds) => {
+    if (userIds.indexOf(userId) > -1) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  });
+};
+
+/**
+* Check if a connected user is ready to vote
+* @param {String} boardId: board id to get the users ready to vote
+* @param {String} userId: user id to check if ready to vote
+* @return {Promise<Boolean|Error>}: returns if the user is ready to vote or not
+*/
+self.isUserReadyToVote = function(boardId, userId) {
+  return isUserReady('start', boardId, userId);
+};
+
+/**
+* Check if a connected user is done voting
+* @param {String} boardId: board id to get the users done voting
+* @param {String} userId: user id to check if done voting
+* @return {Promise<Boolean|Error>}: returns if the user is done voting or not
+*/
+self.isUserDoneVoting = function(boardId, userId) {
+  return isUserReady('finish', boardId, userId);
+};
+
 self.getVoteList = function(boardId, userId) {
-  return Redis.exists(boardId + '-voting-' + userId)
+  // Check if the user has a redis key for collections to vote on that exists
+  return InMemory.checkUserVotingListExists(boardId, userId)
   .then((exists) => {
-    if (exists === 0) {
-      // check if the user is ready (done with voting)
-      return self.isUserReady(boardId, userId)
+    if (!exists) {
+      // Check if the user is done voting in case of refresh or disconnect
+      return self.isUserDoneVoting(boardId, userId)
       .then((ready) => {
         if (ready) {
           return [];
         }
         else {
+          // User has not voted on any collections yet so get all collections
           return IdeaCollectionService.getIdeaCollections(boardId)
           .then((collections) => {
-            Redis.sadd(`${boardId}-voting-${userId}`,
-                       _.map(collections, (v, k) => k));
-            return collections;
+            const collectionKeys = _.map(collections, function(collection) {
+              return collection.key;
+            });
+            // Stick the collection keys into redis and associate with the user
+            return InMemory.addToUserVotingList(boardId, userId, collectionKeys);
           });
         }
       });
     }
     else {
-      // pull from redis the user's remaining collections to vote on
-      return Redis.smembers(boardId + '-voting-' + userId)
-      .then((keys) => {
-        // @XXX no tests never hit this and I'm pretty sure the following fails
-        return Promise.all(keys.map((k) => IdeaCollection.findByKey(k)));
+      // Get remaining collections to vote on from the collection keys in Redis
+      return InMemory.getCollectionsToVoteOn(boardId, userId)
+      .then((collectionKeys) => {
+        return _.map(collectionKeys, function(collectionKey) {
+          return IdeaCollection.findByKey(boardId, collectionKey);
+        });
+      })
+      .then((promises) => {
+        return Promise.all(promises);
       });
     }
   });
@@ -185,31 +299,24 @@ self.getVoteList = function(boardId, userId) {
 
 /**
 * Requires that the board is in the voting state
+* Find the specific collection and increment its votes or remove it from the
+* user's voting list in Redis
 * @param {String} boardId
 * @param {String} userId
 * @param {String} key of collection to vote for
-* @param {bool} wether to increment the vote for the collection
-* @return {bool} if the user is done voting to inform the client
+* @param {Boolean} wether to increment the vote for the collection
+* @return {Promise<Array|String|Error>} the key or array of keys voted on
 */
 self.vote = function(boardId, userId, key, increment) {
-  // find collection
-  return IdeaCollection.findOne({boardId: boardId, key: key})
-  .then((collection) => {
-    // increment the vote if needed
-    if (increment === true) {
-      collection.votes++;
-      collection.save(); // save async, don't hold up client
-    }
-
-    return Redis.srem(boardId + '-voting-' + userId, key)
-    .then(() => Redis.exists(boardId + '-voting-' +  userId))
-    .then((exists) => {
-      if (exists === 0) {
-        return self.setUserReady(boardId, userId);
-      }
-      return true;
-    });
-  });
+  const query = {boardId: boardId, key: key};
+  const updatedData = {$inc: { votes: 1 }};
+  if (increment) {
+    return IdeaCollection.findOneAndUpdate(query, updatedData)
+    .then(() => InMemory.removeFromUserVotingList(boardId, userId, key));
+  }
+  else {
+    return InMemory.removeFromUserVotingList(boardId, userId, key);
+  }
 };
 
 /**

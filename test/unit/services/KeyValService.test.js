@@ -46,8 +46,8 @@ describe('KeyValService', function() {
 
     describe('#addUser|#readyUser|#finishVoteUser(boardId, userId)', function() {
       [KeyValService.addUser,
-       KeyValService.readyUser,
-       KeyValService.finishVoteUser]
+       KeyValService.readyUserToVote,
+       KeyValService.readyUserDoneVoting]
        .forEach(function(subject) {
          it('should succesfully call sadd and return the userId', function() {
            return expect(subject(BOARDID, USERNAME))

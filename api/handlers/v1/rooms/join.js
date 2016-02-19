@@ -8,7 +8,7 @@
 */
 
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { NotFoundError, ValidationError } from '../helpers/extendable-error';
+import { NotFoundError, ValidationError } from '../../../helpers/extendable-error';
 import { isNull } from '../../../services/ValidatorService';
 import { addUser} from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
