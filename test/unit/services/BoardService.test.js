@@ -152,26 +152,4 @@ describe('BoardService', function() {
         });
     });
   });
-
-  describe('#incrementRound(board)', () => {
-    let round;
-
-    beforeEach((done) => {
-      monky.create('Board', {boardId: BOARDID})
-      .then((board) => {
-        round = board.round;
-        console.log(round);
-        done();
-      });
-    });
-
-    xit('Should increment the voting round on the board', () => {
-      return BoardService.incrementRound(BOARDID)
-      .then((board) => {
-        console.log(board);
-        console.log(board.round);
-        return expect(board.round).to.equal(1);
-      });
-    });
-  });
 });

@@ -23,16 +23,20 @@ const self = {};
 
 /**
 * Increments the voting round and removes duplicate collections
-* @param {String} boardId of the board to setup voting for
-* @return {Promise}
+* @param {String} boardId: id of the board to setup voting for
+* @param {Boolean} requiresAdmin: whether or not action requires admin
+* @param {String} userToken: the encrypted token containing a user id
+* @return {Promise<>}
 * @TODO Possible future optimization: Use promise.all after findOneAndUpdate
+* @TODO Incorporate state changes after initial voting functionality works
 */
-self.startVoting = function(boardId) {
+self.startVoting = function(boardId, requiresAdmin, userToken) {
   // increment the voting round on the board model
   return Board.findOneAndUpdate({boardId: boardId}, {$inc: { round: 1 }})
   // remove duplicate collections
   .then(() => IdeaCollectionService.removeDuplicates(boardId))
-  .then(() => InMemory.clearVotingReady(boardId));
+  .then(() => InMemory.clearVotingReady(boardId))
+  .then(() => StateService.voteOnIdeaCollections(boardId, requiresAdmin, userToken));
 };
 
 /**

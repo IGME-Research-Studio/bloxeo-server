@@ -181,6 +181,15 @@ self.isAdmin = function(board, userId) {
   return R.contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
+self.errorIfNotAdmin = function(board, userId) {
+  if (isAdmin(board, userId)) {
+    return true;
+  }
+  else {
+    throw new UnauthorizedError('User is not authorized to update board');
+  }
+};
+
 // Add user to currentUsers redis
 // @deprecated
 self.join = function(boardId, user) {

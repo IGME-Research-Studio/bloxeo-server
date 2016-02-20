@@ -10,6 +10,7 @@ import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/helpers/key-val-store';
 import BoardService from '../../../api/services/BoardService';
 import KeyValService from '../../../api/services/KeyValService';
+import StateService from '../../../api/services/StateService';
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
 import {model as Board} from '../../../api/models/Board';
@@ -33,6 +34,7 @@ describe('VotingService', function() {
     let boardFindOneAndUpdateStub;
     let removeDuplicateCollectionsStub;
     let clearVotingReadyStub;
+    let voteOnIdeaCollectionsStub;
 
     before(function() {
       boardFindOneAndUpdateStub = this.stub(Board, 'findOneAndUpdate')
@@ -41,6 +43,8 @@ describe('VotingService', function() {
       .returns(Promise.resolve('Returns all of the unique collections'));
       clearVotingReadyStub = this.stub(KeyValService, 'clearVotingReady')
       .returns(Promise.resolve('Cleared voting ready key'));
+      voteOnIdeaCollectionsStub = this.stub(StateService, 'voteOnIdeaCollections')
+      .returns(Promise.resolve('Set state to vote on collections'));
     });
 
     beforeEach((done) => {
@@ -71,6 +75,7 @@ describe('VotingService', function() {
         expect(boardFindOneAndUpdateStub).to.have.been.called;
         expect(removeDuplicateCollectionsStub).to.have.been.called;
         expect(clearVotingReadyStub).to.have.been.called;
+        expect(voteOnIdeaCollectionsStub).to.have.been.called;
       });
     });
   });

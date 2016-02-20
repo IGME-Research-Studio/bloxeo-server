@@ -3,11 +3,12 @@
 
   @file Contains logic for controlling the state of a board
 */
-const RedisService = require('../helpers/key-val-store');
-const Promise = require('bluebird');
+import BoardService from './BoardService';
+import TokenService from './TokenService';
+import KeyValService from './KeyValService';
 const self = {};
 
-self.StateEnum = {
+const StateEnum = {
   createIdeasAndIdeaCollections: {
     createIdeas: true,
     createIdeaCollections: true,
@@ -28,70 +29,87 @@ self.StateEnum = {
   },
 };
 
+/**
+* Check if an action requires admin permissions and verify the user is an admin
+* @param {Boolean} requiresAdmin: whether or not the state change requires an admin
+* @param {String} boardId: the if of the board
+* @param {String} userToken: the encrypted token containing a user id
+* @returns {Promise<Boolean|UnauthorizedError|Error>}
+*/
 function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
-  return new Promise((resolve) => {
-    if (requiresAdmin) {
-      isAdmin(boardId, userToken)
-      .then((result) => {
-        resolve(result);
-      });
-    }
-    else {
-      resolve(false);
-    }
-  });
+  if (requiresAdmin) {
+    return TokenService.verifyAndGetId(userToken)
+      .then((userId) => BoardService.errorIfNotAdmin(boardId, userId));
+  }
+  else {
+    return false;
+  }
 }
 
 /**
 * Set the current state of the board on Redis.
 * Returns a promise containing the boolean showing the success of setting the state
-* @param {string} boardId: The string id generated for the board (not the mongo id)
-* @param {StateEnum} state: The state object to be set on Redis
+* @param {String} boardId: The string id generated for the board (not the mongo id)
+* @param {Object} state: The state object to be set on Redis
+* @param {Boolean} requiresAdmin: Whether or not the state change needs an admin
+* @param {String} userToken: token representing an encrypted user id
+* @returns {Promise<Object|Error>} Promise containing the state object
 */
 self.setState = function(boardId, state, requiresAdmin, userToken) {
   return checkRequiresAdmin(requiresAdmin, boardId, userToken)
-  .then(() => {
-    return RedisService.set(boardId + '-state', JSON.stringify(state))
-    .then((result) => {
-      if (result.toLowerCase() === 'ok') {
-        return state;
-      }
-      else {
-        throw new Error('Failed to set state in Redis');
-      }
-    });
-  })
-  .catch((err) => {
-    throw err;
-  });
+    .then(() => KeyValService.setBoardState(boardId, state));
 };
 
 /**
 * Get the current state of the board from Redis. Returns a promise containing the state.
-* @param {string} boardId: The string id generated for the board (not the mongo id)
+* @param {String} boardId: The string id generated for the board (not the mongo id)
+* @returns {Promise{Object}}
+* @TODO Figure out what to do for a default state if the server crashes and resets
 */
 self.getState = function(boardId) {
-  return RedisService.get(boardId + '-state').then(function(result) {
-    if (result !== null) {
-      return JSON.parse(result);
-    }
-    else {
-      self.setState(boardId, self.StateEnum.createIdeasAndIdeaCollections);
-      return self.StateEnum.createIdeaCollections;
-    }
-  });
+  return KeyValService.getBoardState(boardId);
 };
 
+/**
+* Set the state to create ideas and idea collections
+* @param {String} boardId: the id of the board
+* @param {Boolean} requiresAdmin: whether or not the state change needs an admin
+* @param {String} userToken: the encrypted token containing a user id
+* @returns {Promise<Boolean|NoOpError|Error>}
+*/
 self.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return self.setState(boardId, self.StateEnum.createIdeasAndIdeaCollections, requiresAdmin, userToken);
+  return self.setState(boardId,
+                       StateEnum.createIdeasAndIdeaCollections,
+                       requiresAdmin,
+                       userToken);
 };
 
+/**
+* Set the state to create idea collections
+* @param {String} boardId: the id of the board
+* @param {Boolean} requiresAdmin: whether or not the state change needs an admin
+* @param {String} userToken: the encrypted token containing a user id
+* @returns {Promise<Boolean|NoOpError|Error>}
+*/
 self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return self.setState(boardId, self.StateEnum.createIdeaCollections, requiresAdmin, userToken);
+  return self.setState(boardId,
+                       StateEnum.createIdeaCollections,
+                       requiresAdmin,
+                       userToken);
 };
 
+/**
+* Set the state to vote on idea collections
+* @param {String} boardId: the id of the board
+* @param {Boolean} requiresAdmin: whether or not the state change needs an admin
+* @param {String} userToken: the encrypted token containing a user id
+* @returns {Promise<Boolean|NoOpError|Error>}
+*/
 self.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return self.setState(boardId, self.StateEnum.voteOnIdeaCollections, requiresAdmin, userToken);
+  return self.setState(boardId,
+                       StateEnum.voteOnIdeaCollections,
+                       requiresAdmin,
+                       userToken);
 };
 
 module.exports = self;
