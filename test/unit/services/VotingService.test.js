@@ -12,10 +12,11 @@ import BoardService from '../../../api/services/BoardService';
 import KeyValService from '../../../api/services/KeyValService';
 import StateService from '../../../api/services/StateService';
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import ResultService from '../../../api/services/ResultService';
 
 import {model as Board} from '../../../api/models/Board';
 import {model as IdeaCollection} from '../../../api/models/IdeaCollection';
-import {model as Result} from '../../../api/models/Result';
+// import {model as Result} from '../../../api/models/Result';
 
 // TODO: TAKE OUT TESTS INVOLVING ONLY REDIS COMMANDS
 // TODO: USE STUBS ON MORE COMPLICATED FUNCTIONS WITH REDIS COMMANDS
@@ -70,7 +71,7 @@ describe('VotingService', function() {
     });
 
     it('Should set up voting stage', () => {
-      return expect(VotingService.startVoting(BOARDID)).to.be.fulfilled
+      return expect(VotingService.startVoting(BOARDID, false, '')).to.be.fulfilled
       .then(() => {
         expect(boardFindOneAndUpdateStub).to.have.been.called;
         expect(removeDuplicateCollectionsStub).to.have.been.called;
@@ -81,6 +82,40 @@ describe('VotingService', function() {
   });
 
   describe('#finishVoting(boardId)', () => {
+    let boardFindOneStub;
+    let ideaCollectionFindStub;
+    // let ideaCollectionSelectStub;
+    let ideaCollectionDestroyStub;
+    let resultCreateStub;
+    let clearVotingDoneStub;
+    let stateCreateIdeaCollectionsStub;
+
+    const boardObj = { round: 0 };
+    const collections = [
+      {collection1: {ideas: ['idea1', 'idea2'], votes: 0, lastUpdatedId: 'user1'}},
+    ];
+    // const mockSelect = {
+    //   select: function() { return this; },
+    // };
+
+
+    before(function() {
+      boardFindOneStub = this.stub(Board, 'findOne')
+      .returns(Promise.resolve(boardObj));
+      ideaCollectionFindStub = this.stub(IdeaCollection, 'find')
+      .returns(Promise.resolve(collections));
+      // ideaCollectionSelectStub = this.stub(mockSelect, 'select')
+      // .returns(Promise.resolve(collections));
+      resultCreateStub = this.stub(ResultService, 'create')
+      .returns(Promise.resolve('Called result service create'));
+      ideaCollectionDestroyStub = this.stub(IdeaCollectionService, 'destroy')
+      .returns(Promise.resolve('Called idea collection service destroy'));
+      clearVotingDoneStub = this.stub(KeyValService, 'clearVotingDone')
+      .returns(Promise.resolve('Called KeyValService clearVotingDone'));
+      stateCreateIdeaCollectionsStub = this.stub(StateService, 'createIdeaCollections')
+      .returns(Promise.resolve('Called state service createIdeaCollections'));
+    });
+
     beforeEach((done) => {
       Promise.all([
         monky.create('Board'),
@@ -100,18 +135,15 @@ describe('VotingService', function() {
       });
     });
 
-    it('Should remove current idea collections and create results', (done) => {
-      VotingService.finishVoting(BOARDID)
+    it('Should remove current idea collections and create results', () => {
+      return expect(VotingService.finishVoting(BOARDID, false, '')).to.be.fulfilled
       .then(() => {
-        Promise.all([
-          IdeaCollection.find({boardId: BOARDID}),
-          Result.find({boardId: BOARDID}),
-        ])
-        .spread((collections, results) => {
-          expect(collections).to.have.length(0);
-          expect(results).to.have.length(1);
-          done();
-        });
+        expect(boardFindOneStub).to.have.returned;
+        expect(ideaCollectionFindStub).to.have.returned;
+        expect(resultCreateStub).to.have.been.called;
+        expect(ideaCollectionDestroyStub).to.have.been.called;
+        expect(clearVotingDoneStub).to.have.been.called;
+        expect(stateCreateIdeaCollectionsStub).to.have.been.called;
       });
     });
   });

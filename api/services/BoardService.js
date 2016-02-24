@@ -6,6 +6,7 @@ import { toPlainObject } from '../helpers/utils';
 import { model as Board } from '../models/Board';
 import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
+import { getIdeaCollections } from './IdeaCollectionService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
 // import Redis from '../helpers/key-val-store';
@@ -188,6 +189,23 @@ self.errorIfNotAdmin = function(board, userId) {
   else {
     throw new UnauthorizedError('User is not authorized to update board');
   }
+};
+
+/**
+* Checks if there are collections on the board
+* @param {String} boardId: id of the board
+* @returns {Promise<Boolean|Error>}: return if the board has collections or not
+*/
+self.areThereCollections = function(boardId) {
+  return getIdeaCollections(boardId)
+  .then((collections) => {
+    if (collections.length > 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  });
 };
 
 // Add user to currentUsers redis

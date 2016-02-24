@@ -8,7 +8,7 @@ import TokenService from './TokenService';
 import KeyValService from './KeyValService';
 const self = {};
 
-const StateEnum = {
+self.StateEnum = {
   createIdeasAndIdeaCollections: {
     createIdeas: true,
     createIdeaCollections: true,
@@ -57,7 +57,8 @@ function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
 */
 self.setState = function(boardId, state, requiresAdmin, userToken) {
   return checkRequiresAdmin(requiresAdmin, boardId, userToken)
-    .then(() => KeyValService.setBoardState(boardId, state));
+  .then(() => self.removeState(boardId))
+  .then(() => KeyValService.setBoardState(boardId, state));
 };
 
 /**
@@ -71,6 +72,23 @@ self.getState = function(boardId) {
 };
 
 /**
+* Remove the current state. Used for transitioning to remove current state key
+* @param {String} boardId: The string id generated for the board (not the mongo id)
+* @returns {Promise<Integer|Error>}: returns the number of keys deleted
+*/
+self.removeState = function(boardId) {
+  return KeyValService.checkBoardStateExists(boardId)
+  .then((exists) => {
+    if (exists) {
+      return KeyValService.clearBoardState(boardId);
+    }
+    else {
+      return false;
+    }
+  });
+};
+
+/**
 * Set the state to create ideas and idea collections
 * @param {String} boardId: the id of the board
 * @param {Boolean} requiresAdmin: whether or not the state change needs an admin
@@ -79,7 +97,7 @@ self.getState = function(boardId) {
 */
 self.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
   return self.setState(boardId,
-                       StateEnum.createIdeasAndIdeaCollections,
+                       self.StateEnum.createIdeasAndIdeaCollections,
                        requiresAdmin,
                        userToken);
 };
@@ -93,7 +111,7 @@ self.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken)
 */
 self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
   return self.setState(boardId,
-                       StateEnum.createIdeaCollections,
+                       self.StateEnum.createIdeaCollections,
                        requiresAdmin,
                        userToken);
 };
@@ -106,10 +124,18 @@ self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
 * @returns {Promise<Boolean|NoOpError|Error>}
 */
 self.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return self.setState(boardId,
-                       StateEnum.voteOnIdeaCollections,
-                       requiresAdmin,
-                       userToken);
+  BoardService.areThereCollections(boardId)
+  .then((hasCollections) => {
+    if (hasCollections) {
+      return self.setState(boardId,
+                           self.StateEnum.voteOnIdeaCollections,
+                           requiresAdmin,
+                           userToken);
+    }
+    else {
+      throw new Error('Board cannot transition to voting without collections');
+    }
+  });
 };
 
 module.exports = self;
