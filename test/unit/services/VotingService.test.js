@@ -1,6 +1,7 @@
 import {expect} from 'chai';
 import Promise from 'bluebird';
 import _ from 'lodash';
+import sinon from 'sinon';
 
 import {monky} from '../../fixtures';
 import {BOARDID, COLLECTION_KEY,
@@ -94,18 +95,12 @@ describe('VotingService', function() {
     const collections = [
       {collection1: {ideas: ['idea1', 'idea2'], votes: 0, lastUpdatedId: 'user1'}},
     ];
-    // const mockSelect = {
-    //   select: function() { return this; },
-    // };
-
 
     before(function() {
       boardFindOneStub = this.stub(Board, 'findOne')
       .returns(Promise.resolve(boardObj));
       ideaCollectionFindStub = this.stub(IdeaCollection, 'find')
       .returns(Promise.resolve(collections));
-      // ideaCollectionSelectStub = this.stub(mockSelect, 'select')
-      // .returns(Promise.resolve(collections));
       resultCreateStub = this.stub(ResultService, 'create')
       .returns(Promise.resolve('Called result service create'));
       ideaCollectionDestroyStub = this.stub(IdeaCollectionService, 'destroy')
@@ -148,8 +143,26 @@ describe('VotingService', function() {
     });
   });
 
-  describe('#isRoomReady(boardId)', () => {
+  describe('#isRoomReady(votingAction, boardId)', () => {
     let USERID;
+    let requiredState;
+    let getUsersInRoomStub;
+    let isUserReadyToVoteStub;
+    let isUserDoneVotingStub;
+    let getStateStub;
+    let startVotingStub;
+    let finishVotingStub;
+
+    const users = ['user1', 'user2'];
+
+    before(function() {
+      getUsersInRoomStub = this.stub(KeyValService, 'getUsersInRoom')
+      .returns(Promise.resolve(users));
+      startVotingStub = this.stub(VotingService, 'startVoting')
+      .returns(Promise.resolve('start voting called'));
+      finishVotingStub = this.stub(VotingService, 'finishVoting')
+      .returns(Promise.resolve('finish voting called'));
+    });
 
     beforeEach((done) => {
       Promise.all([
@@ -162,7 +175,6 @@ describe('VotingService', function() {
         ])
         .then((allIdeas) => {
           Promise.all([
-            BoardService.join(BOARDID, USERID),
             monky.create('IdeaCollection', {ideas: allIdeas}),
           ]);
         }),
@@ -175,26 +187,129 @@ describe('VotingService', function() {
     afterEach((done) => {
       resetRedis(USERID)
       .then(() => {
+        getStateStub.restore();
         done();
       });
     });
 
-    xit('Should show that the room is not ready to vote/finish voting', (done) => {
-      VotingService.isRoomReady(BOARDID)
-      .then((isRoomReady) => {
-        expect(isRoomReady).to.be.false;
-        done();
+    it('Should result in the room not being ready to vote', () => {
+      requiredState = StateService.StateEnum.createIdeaCollections;
+
+      isUserReadyToVoteStub = sinon.stub(VotingService, 'isUserReadyToVote')
+      .returns(Promise.resolve(false));
+
+      getStateStub = sinon.stub(StateService, 'getState')
+      .returns(Promise.resolve(requiredState));
+
+      return expect(VotingService.isRoomReady('start', BOARDID)).to.be.fulfilled
+      .then((readyToVote) => {
+        expect(getUsersInRoomStub).to.have.returned;
+        expect(isUserReadyToVoteStub).to.have.returned;
+        expect(getStateStub).to.have.returned;
+        expect(startVotingStub).to.not.have.been.called;
+        expect(readyToVote).to.be.false;
+
+        isUserReadyToVoteStub.restore();
       });
     });
 
-    xit('Should check if all connected users are ready to vote/finish voting', (done) => {
-      VotingService.setUserReady(BOARDID, USERID)
-      .then((isRoomReady) => {
-        expect(isRoomReady).to.be.true;
-        done();
+    it('Should result in the room being ready to vote', () => {
+      requiredState = StateService.StateEnum.createIdeaCollections;
+
+      isUserReadyToVoteStub = sinon.stub(VotingService, 'isUserReadyToVote')
+      .returns(Promise.resolve(true));
+
+      getStateStub = sinon.stub(StateService, 'getState')
+      .returns(Promise.resolve(requiredState));
+
+      return expect(VotingService.isRoomReady('start', BOARDID)).to.be.fulfilled
+      .then((readyToVote) => {
+        expect(getUsersInRoomStub).to.have.returned;
+        expect(isUserReadyToVoteStub).to.have.returned;
+        expect(getStateStub).to.have.returned;
+        expect(startVotingStub).to.have.been.called;
+        expect(readyToVote).to.be.true;
+
+        isUserReadyToVoteStub.restore();
+      });
+    });
+
+    it('Should result in the room not being ready to finish voting', () => {
+      requiredState = StateService.StateEnum.voteOnIdeaCollections;
+
+      isUserDoneVotingStub = sinon.stub(VotingService, 'isUserDoneVoting')
+      .returns(Promise.resolve(false));
+
+      getStateStub = sinon.stub(StateService, 'getState')
+      .returns(Promise.resolve(requiredState));
+
+      return expect(VotingService.isRoomReady('finish', BOARDID)).to.be.fulfilled
+      .then((readyToVote) => {
+        expect(getUsersInRoomStub).to.have.returned;
+        expect(isUserDoneVotingStub).to.have.returned;
+        expect(getStateStub).to.have.returned;
+        expect(finishVotingStub).to.have.not.been.called;
+        expect(readyToVote).to.be.false;
+
+        isUserDoneVotingStub.restore();
+      });
+    });
+
+    it('Should result in the room being ready to finish voting', () => {
+      requiredState = StateService.StateEnum.voteOnIdeaCollections;
+
+      isUserDoneVotingStub = sinon.stub(VotingService, 'isUserDoneVoting')
+      .returns(Promise.resolve(true));
+
+      getStateStub = sinon.stub(StateService, 'getState')
+      .returns(Promise.resolve(requiredState));
+
+      return expect(VotingService.isRoomReady('finish', BOARDID)).to.be.fulfilled
+      .then((readyToVote) => {
+        expect(getUsersInRoomStub).to.have.returned;
+        expect(isUserDoneVotingStub).to.have.returned;
+        expect(getStateStub).to.have.returned;
+        expect(finishVotingStub).to.have.been.called;
+        expect(readyToVote).to.be.true;
+
+        isUserDoneVotingStub.restore();
       });
     });
   });
+
+  // describe('#isUserReady(votingAction, boardId, userId)', () => {
+  //   let getUsersReadyToVoteStub;
+  //   let getUsersDoneVotingStub;
+  //
+  //   beforeEach((done) => {
+  //     Promise.all([
+  //       monky.create('Board'),
+  //       monky.create('User').then((user) => {USERID = user.id; return user;}),
+  //
+  //       Promise.all([
+  //         monky.create('Idea'),
+  //         monky.create('Idea'),
+  //       ])
+  //       .then((allIdeas) => {
+  //         Promise.all([
+  //           monky.create('IdeaCollection', {ideas: allIdeas}),
+  //         ]);
+  //       }),
+  //     ])
+  //     .then(() => {
+  //       done();
+  //     });
+  //   });
+  //
+  //   afterEach((done) => {
+  //     resetRedis(USERID)
+  //     .then(() => {
+  //       done();
+  //     });
+  //   });
+  //
+  //   it('Should not have the user be ready to vote')
+  // });
 
   describe('#getVoteList(boardId, userId)', () => {
     let USERID;
