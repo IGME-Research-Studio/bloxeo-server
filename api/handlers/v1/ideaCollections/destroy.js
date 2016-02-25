@@ -5,12 +5,13 @@
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
 * @param {string} req.key key of the collection
+* @param {string} req.userToken
 */
 
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
-import { destroy as removeCollection } from '../../../services/IdeaCollectionService';
+import { destroyByKey as removeCollection } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../helpers/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';

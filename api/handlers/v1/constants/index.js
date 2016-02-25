@@ -1,5 +1,8 @@
 /**
 * ConstantsController
+*
+* @param {Object} req
+* @param {Object} req.socket the connecting socket object
 */
 
 import constantsService from '../../../services/ConstantsService';

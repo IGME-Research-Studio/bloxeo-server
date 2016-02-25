@@ -4,6 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId the id of the room to leave
+* @param {string} req.userToken
 */
 
 import { isNull } from '../../../services/ValidatorService';
@@ -22,6 +23,7 @@ export default function leave(req) {
   }
   else {
     stream.leave(socket, boardId);
+    BoardService.leave(boardId, userToken);
     return stream.ok(LEFT_ROOM, {}, boardId,
        `User with socket id ${socket.id} left board ${boardId}`);
   }

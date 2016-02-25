@@ -4,6 +4,7 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId the id of the room to join
+* @param {string} req.userToken
 */
 
 import { isNull } from '../../../services/ValidatorService';
@@ -26,6 +27,7 @@ export default function join(req) {
     .then((exists) => {
       if (exists) {
         stream.join(socket, boardId);
+        BoardService.join(boardId, userToken);
         return stream.ok(JOINED_ROOM,
                   `User with socket id ${socket.id} joined board ${boardId}`,
                   boardId);
