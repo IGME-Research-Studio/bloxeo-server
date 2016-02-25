@@ -39,10 +39,7 @@ export default function update(req) {
   .then((updatedBoard) => {
     return stream.ok(UPDATED_BOARD, strip(updatedBoard), boardId);
   })
-  .catch(JsonWebTokenError, (err) => {
-    return stream.unauthorized(UPDATED_BOARD, err.message, socket);
-  })
-  .catch(UnauthorizedError, (err) => {
+  .catch(JsonWebTokenError, UnauthorizedError, (err) => {
     return stream.unauthorized(UPDATED_BOARD, err.message, socket);
   })
   .catch((err) => {
