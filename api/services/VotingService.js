@@ -18,6 +18,15 @@ import StateService from './StateService';
 
 const self = {};
 
+const maybeIncrementCollectionVote = function(query, update, increment) {
+  if (increment) {
+    return IdeaCollection.findOneAndUpdate(query, updatedData);
+  }
+  else {
+    return Promise.resolve(false);
+  }
+};
+
 /**
 * Increments the voting round and removes duplicate collections
 * @param {String} boardId: id of the board to setup voting for
@@ -127,7 +136,7 @@ self.setUserReadyToVote = function(boardId, userId) {
 * @param {String} userId: id of the user
 * @returns {Promise<Boolean|Error>}: returns if the room is done voting
 */
-self.setUserReadyToFinishVoting = function() {
+self.setUserReadyToFinishVoting = function(boardId, userId) {
   return self.setUserReady('finish', boardId, userId);
 };
 
@@ -173,12 +182,11 @@ self.isRoomReady = function(votingAction, boardId) {
   // Check if all the users are ready to move forward
   .then((userStates) => {
     const roomReadyToMoveForward = _.every(userStates, 'ready');
-
     if (roomReadyToMoveForward) {
       // Transition the board state
       return StateService.getState(boardId)
       .then((state) => {
-        if (_isEqual(state, requiredBoardState)) {
+        if (_.isEqual(state, requiredBoardState)) {
           return self[action](boardId, false, '');
         }
         else {
@@ -310,13 +318,15 @@ self.getVoteList = function(boardId, userId) {
 self.vote = function(boardId, userId, key, increment) {
   const query = {boardId: boardId, key: key};
   const updatedData = {$inc: { votes: 1 }};
-  if (increment) {
-    return IdeaCollection.findOneAndUpdate(query, updatedData)
-    .then(() => InMemory.removeFromUserVotingList(boardId, userId, key));
-  }
-  else {
-    return InMemory.removeFromUserVotingList(boardId, userId, key);
-  }
+
+  return maybeIncrementCollectionVote(query, updatedData, increment)
+  .then(() => InMemory.removeFromUserVotingList(boardId, userId, key))
+  .then(() => InMemory.getCollectionsToVoteOn(boardId, userId))
+  .then((collections) => {
+    if (collections.length === 0) {
+      return self.setUserReadyToFinishVoting(boardId, userId);
+    }
+  });
 };
 
 /**
