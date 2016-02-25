@@ -131,11 +131,15 @@ describe('IdeaCollectionService', function() {
         monky.create('Board'),
         monky.create('User')
           .then((user) => {USER_ID = user.id; return user;}),
+        monky.create('Idea', {boardid: BOARDID, content: 'idea1'}),
         monky.create('Idea', {boardid: BOARDID, content: 'idea2'}),
         monky.create('IdeaCollection', {key: COLLECTION_KEY}),
       ])
       .then(() => {
-        done();
+        IdeaCollectionService.addIdea(USER_ID, BOARDID, COLLECTION_KEY, 'idea1')
+        .then(() => {
+          done();
+        });
       });
     });
 
@@ -145,48 +149,45 @@ describe('IdeaCollectionService', function() {
       .to.eventually.have.property(COLLECTION_KEY);
     });
 
-    xit('Should reject adding a duplicate idea to an exiting idea collection', () => {
+    it('Should reject adding a duplicate idea to an existing idea collection', () => {
       return expect(IdeaCollectionService.addIdea(USER_ID, BOARDID,
-                                                  COLLECTION_KEY, 'idea1'))
+                                                    COLLECTION_KEY, 'idea1'))
       .to.be.rejectedWith(/Idea collections must have unique ideas/);
     });
   });
 
   describe('#removeIdea()', () => {
-    const collectionWith1Idea = '1';
-    const collectionWith2Ideas = '2';
+    const collectionWith1Idea = 'collection1';
+    const collectionWith2Ideas = 'collection2';
+    let USER_ID;
 
     beforeEach((done) => {
       return Promise.all([
         monky.create('Board'),
+        monky.create('User')
+          .then((user) => {USER_ID = user.id; return user;}),
         monky.create('Idea', {content: IDEA_CONTENT}),
         monky.create('Idea', {content: IDEA_CONTENT_2}),
       ])
-      .spread((__, idea1, idea2) => {
+      .spread((__, ___, idea1, idea2) => {
         return Promise.all([
-          monky.create('IdeaCollection', {ideas: [idea1],
+          monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea1],
                      key: collectionWith1Idea}),
-          monky.create('IdeaCollection', {ideas: [idea1, idea2],
+          monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea1, idea2],
                      key: collectionWith2Ideas}),
         ])
-        .then(done());
+        .then(() => done());
       });
     });
 
     it('Should remove an idea from an idea collection', () => {
-      expect(IdeaCollectionService.removeIdea(BOARDID, collectionWith2Ideas,
+      return expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith2Ideas,
                                               IDEA_CONTENT))
-        .to.eventually.have.length(1);
+        .to.eventually.have.deep.property('collection2.ideas').with.length(1);
     });
 
     it('Should destroy an idea collection when it is empty', () => {
-      expect(IdeaCollectionService.removeIdea(BOARDID, collectionWith1Idea,
-                                              IDEA_CONTENT))
-        .to.eventually.not.have.key(collectionWith1Idea);
-    });
-
-    it('Should destroy an idea collection when it is empty', () => {
-      expect(IdeaCollectionService.removeIdea(BOARDID, collectionWith1Idea,
+      return expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith1Idea,
                                               IDEA_CONTENT))
         .to.eventually.not.have.key(collectionWith1Idea);
     });
@@ -251,8 +252,6 @@ describe('IdeaCollectionService', function() {
       .then(() => IdeaCollectionService.getIdeaCollections(BOARDID))
       .then((collections) => {
         expect(Object.keys(collections)).to.have.length(2);
-        expect(collections).to.contains.key(duplicate);
-        expect(collections).to.contains.key(diffCollection);
       });
     });
   });

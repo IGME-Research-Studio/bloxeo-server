@@ -43,8 +43,10 @@ describe('BoardService', function() {
         .then((createdBoardId) => {
           return BoardModel.findOne({boardId: createdBoardId})
             .then((createdBoard) => {
-              expect(toPlainObject(createdBoard.admins[0])).to.equal(toPlainObject(USERID));
-              expect(toPlainObject(createdBoard.users[0])).to.equal(toPlainObject(USERID));
+              expect(toPlainObject(createdBoard.admins[0]))
+                .to.equal(toPlainObject(USERID));
+              expect(toPlainObject(createdBoard.users[0]))
+                .to.equal(toPlainObject(USERID));
             });
         });
     });
@@ -66,8 +68,9 @@ describe('BoardService', function() {
 
     it('should add the existing user as an admin on the board', function(done) {
       BoardService.addUser(BOARDID, USERID)
-        .then((board) => {
+        .then(([board, additionsToRoom]) => {
           expect(toPlainObject(board.users[0])).to.equal(USERID);
+          expect(additionsToRoom).to.equal(USERID);
           done();
         });
     });

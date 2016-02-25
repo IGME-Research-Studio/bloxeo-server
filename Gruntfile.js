@@ -1,4 +1,4 @@
-require('babel-core/register');
+require('babel-core/register')({plugins: ['rewire']});
 
 module.exports = function (grunt) {
   'use strict';

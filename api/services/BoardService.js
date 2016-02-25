@@ -6,9 +6,11 @@ import { toPlainObject } from '../helpers/utils';
 import { model as Board } from '../models/Board';
 import { model as User } from '../models/User';
 import { isNull } from './ValidatorService';
+import { getIdeaCollections } from './IdeaCollectionService';
 import { NotFoundError, ValidationError } from '../helpers/extendable-error';
 import R from 'ramda';
-import Redis from '../helpers/key-val-store';
+// import Redis from '../helpers/key-val-store';
+import inMemory from '../services/KeyValService';
 
 const self = {};
 const suffix = '-current-users';
@@ -31,6 +33,7 @@ self.destroy = function(boardId) {
 };
 
 /**
+ * @deprecated
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
@@ -42,6 +45,8 @@ self.exists = function(boardId) {
 
 /**
  * Find all users on a board
+ * @TODO perhaps faster to grab userId's in Redis and find those Mongo docs?
+ *       Would need to test performance of Query+Populate to Redis+FindByIds
  * @param {String} boardId the boardId to retrieve the users from
  * @returns {Promise<MongooseArray|Error>}
  */
@@ -73,23 +78,56 @@ self.getPendingUsers = function(boardId) {
   .exec((board) => board.pendingUsers);
 };
 
-self.addUser = function(boardId, userId) {
+self.validateBoardAndUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
   .then(([board, user]) => {
     if (isNull(board)) {
       throw new NotFoundError(`Board (${boardId}) does not exist`);
     }
-    else if (isNull(user)) {
+    if (isNull(user)) {
       throw new NotFoundError(`User (${userId}) does not exist`);
     }
-    else if (self.isUser(board, userId)) {
+    return [board, user];
+  });
+};
+
+/**
+ * Adds a user to a board in Mongoose and Redis
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ */
+self.addUser = function(boardId, userId) {
+  return self.validateBoardAndUser(boardId, userId)
+  .then(([board, __]) => {
+    if (self.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) already exists on the board (${boardId})`);
     }
     else {
       board.users.push(userId);
-      return board.save();
+      return Promise.join(board.save(), inMemory.addUser(boardId, userId));
+    }
+  });
+};
+
+/**
+ * Removes a user from a board in Mongoose and Redis
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ */
+self.removeUser = function(boardId, userId) {
+  return self.validateBoardAndUser(boardId, userId)
+  .then(([board, __]) => {
+    if (!self.isUser(board, userId)) {
+      throw new ValidationError(
+        `User (${userId}) is not already on the board (${boardId})`);
+    }
+    else {
+      board.users.pull(userId);
+      return Promise.join(board.save(), inMemory.removeUser(boardId, userId));
     }
   });
 };
@@ -144,25 +182,48 @@ self.isAdmin = function(board, userId) {
   return R.contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
-// add user to currentUsers redis
+self.errorIfNotAdmin = function(board, userId) {
+  if (isAdmin(board, userId)) {
+    return true;
+  }
+  else {
+    throw new UnauthorizedError('User is not authorized to update board');
+  }
+};
+
+/**
+* Checks if there are collections on the board
+* @param {String} boardId: id of the board
+* @returns {Promise<Boolean|Error>}: return if the board has collections or not
+*/
+self.areThereCollections = function(boardId) {
+  return getIdeaCollections(boardId)
+  .then((collections) => {
+    if (collections.length > 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  });
+};
+
+// Add user to currentUsers redis
+// @deprecated
 self.join = function(boardId, user) {
   return Redis.sadd(boardId + suffix, user);
 };
 
-// remove user from currentUsers redis
+// Remove user from currentUsers redis
+// @deprecated
 self.leave = function(boardId, user) {
   return Redis.srem(boardId + suffix, user);
 };
 
-// get all currently connected users
+// Get all currently connected users
+// @deprecated
 self.getConnectedUsers = function(boardId) {
   return Redis.smembers(boardId + suffix);
 };
-
-// self.isAdmin = function() {
-//   return new Promise((res) => {
-//     res(true);
-//   });
-// };
 
 module.exports = self;

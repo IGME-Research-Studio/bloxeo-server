@@ -11,8 +11,10 @@
 
 import ExtendableError from 'es6-error';
 
-export class NotFoundError extends ExtendableError {
-}
+export class NotFoundError extends ExtendableError { }
 
-export class ValidationError extends ExtendableError {
-}
+export class ValidationError extends ExtendableError { }
+
+export class NoOpError extends ExtendableError { }
+
+export class UnauthorizedError extends ExtendableError { }

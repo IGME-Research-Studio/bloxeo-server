@@ -3,6 +3,7 @@
   "rules": {
     "brace-style": [2, "stroustrup", { "allowSingleLine": true }],
     "no-param-reassign": 1,
+    "no-unused-vars": [2, {"args": "after-used", "argsIgnorePattern": "^__"}],
     "no-shadow": 1,
     "default-case": 1,
     "new-cap": 0,
