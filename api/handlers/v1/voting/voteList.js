@@ -7,9 +7,8 @@
 * @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partial, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getVoteList } from '../../../services/VotingService';
 import { stripNestedMap as strip } from '../../../helpers/utils';
@@ -18,12 +17,12 @@ import stream from '../../../event-stream';
 
 export default function voteList(req) {
   const { socket, boardId, userToken } = req;
-  const getThisVoteList = R.partial(getVoteList, [boardId]);
+  const getThisVoteList = partial(getVoteList, [boardId]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(RECEIVED_VOTING_ITEMS, {}, socket);
   }
 

@@ -9,9 +9,8 @@
 * @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partialRight } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../helpers/utils';
@@ -20,13 +19,13 @@ import stream from '../../../event-stream';
 
 export default function addIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
-  const addThisIdeaBy = R.partialRight(addIdeaToCollection,
-                                       [boardId, key, content]);
+  const addThisIdeaBy = partialRight(addIdeaToCollection,
+                                     [boardId, key, content]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNull(boardId) || isNull(content) || isNull(key) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(content) || isNil(key) || isNil(userToken)) {
     return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
   }
 

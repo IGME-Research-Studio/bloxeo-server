@@ -7,9 +7,8 @@
 * @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partial, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { createIdeaCollections } from '../../../services/StateService';
 import { DISABLED_IDEAS } from '../../../constants/EXT_EVENT_API';
@@ -17,12 +16,12 @@ import stream from '../../../event-stream';
 
 export default function disableIdeaCreation(req) {
   const { socket, boardId, userToken } = req;
-  const setState = R.partial(createIdeaCollections, [boardId, true]);
+  const setState = partial(createIdeaCollections, [boardId, true]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  else if (isNull(boardId) || isNull(userToken)) {
+  else if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(DISABLED_IDEAS, {}, socket);
   }
 

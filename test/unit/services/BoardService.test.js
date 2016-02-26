@@ -78,7 +78,7 @@ describe('BoardService', function() {
     it('should reject if the user does not exist on the board', function() {
       const userThatDoesntExist = Types.ObjectId();
       return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
-        .to.be.rejectedWith(NotFoundError, /does not exist/);
+        .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
     });
   });
 

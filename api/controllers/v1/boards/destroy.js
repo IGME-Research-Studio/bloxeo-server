@@ -5,13 +5,13 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
+import { isNil } from 'ramda';
 import boardService from '../../../services/BoardService';
-import { isNull } from '../../../services/ValidatorService';
 
 export default function destroy(req, res) {
   const boardId = req.param('boardId');
 
-  if (isNull(boardId)) {
+  if (isNil(boardId)) {
     return res.badRequest(
       {message: 'Not all required parameters were supplied'});
   }

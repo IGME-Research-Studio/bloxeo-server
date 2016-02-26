@@ -4,8 +4,7 @@
 *
 */
 
-import R from 'ramda';
-import { isNull } from '../../../services/ValidatorService';
+import { partial, isNil } from 'ramda';
 import { UPDATED_BOARD } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 import { errorIfNotAdmin } from '../../../services/BoardService';
@@ -18,13 +17,13 @@ import { strip } from '../../../helpers/utils';
 
 export default function update(req) {
   const { socket, boardId, userToken, attribute, value } = req;
-  const errorIfNotAdminOnThisBoard = R.partial(errorIfNotAdmin, [boardId]);
+  const errorIfNotAdminOnThisBoard = partial(errorIfNotAdmin, [boardId]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(UPDATED_BOARD, {}, socket);
   }
 

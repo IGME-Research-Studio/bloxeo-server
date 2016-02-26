@@ -11,7 +11,7 @@ import { model as IdeaCollection } from '../models/IdeaCollection';
 import Promise from 'bluebird';
 import InMemory from './KeyValService';
 import _ from 'lodash';
-import R from 'ramda';
+import { groupBy, prop } from 'ramda';
 import IdeaCollectionService from './IdeaCollectionService';
 import ResultService from './ResultService';
 import StateService from './StateService';
@@ -337,7 +337,7 @@ self.vote = function(boardId, userId, key, increment) {
 self.getResults = function(boardId) {
   // fetch all results for the board
   return Result.findOnBoard(boardId)
-    .then((results) => R.groupBy(R.prop('round'))(results));
+    .then((results) => groupBy(prop('round'))(results));
 };
 
 module.exports = self;

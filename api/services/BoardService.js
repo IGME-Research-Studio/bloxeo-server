@@ -1,20 +1,21 @@
 /**
-* BoardService: contains actions related to users and boards.
-*/
+ * BoardService
+ * contains actions related to users and boards.
+ */
+
 import Promise from 'bluebird';
+import { isNil, contains } from 'ramda';
+
 import { toPlainObject } from '../helpers/utils';
+import { NotFoundError, ValidationError,
+  UnauthorizedError } from '../helpers/extendable-error';
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
-import { isNull } from './ValidatorService';
 import { getIdeaCollections } from './IdeaCollectionService';
-import { NotFoundError, ValidationError, UnauthorizedError } from '../helpers/extendable-error';
-import R from 'ramda';
-// import Redis from '../helpers/key-val-store';
-import inMemory from '../services/KeyValService';
+import inMemory from './KeyValService';
 
 const self = {};
-const suffix = '-current-users';
 
 /**
  * Create a board in the database
@@ -111,11 +112,11 @@ self.validateBoardAndUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
   .then(([board, user]) => {
-    if (isNull(board)) {
-      throw new NotFoundError(`Board (${boardId}) does not exist`);
+    if (isNil(board)) {
+      throw new NotFoundError(`{board: ${boardId}}`);
     }
-    if (isNull(user)) {
-      throw new NotFoundError(`User (${userId}) does not exist`);
+    if (isNil(user)) {
+      throw new NotFoundError(`{user: ${userId}}`);
     }
     return [board, user];
   });
@@ -197,7 +198,7 @@ self.addAdmin = function(boardId, userId) {
  * @returns {Boolean} whether the user was on the board
  */
 self.isUser = function(board, userId) {
-  return R.contains(toPlainObject(userId), toPlainObject(board.users));
+  return contains(toPlainObject(userId), toPlainObject(board.users));
 };
 
 /**
@@ -208,7 +209,7 @@ self.isUser = function(board, userId) {
  * @returns {Promise<Boolean|Error>} whether the user was an admin
  */
 self.isAdmin = function(board, userId) {
-  return R.contains(toPlainObject(userId), toPlainObject(board.admins));
+  return contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
 self.errorIfNotAdmin = function(board, userId) {

@@ -7,8 +7,8 @@
 * @param {string} req.userToken to authenticate the user
 */
 
+import { isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getState } from '../../../services/StateService';
 import { RECEIVED_STATE } from '../../../constants/EXT_EVENT_API';
@@ -18,10 +18,10 @@ export default function get(req) {
   const { socket, boardId, userToken } = req;
   const getThisState = () => getState(boardId);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(RECEIVED_STATE, {}, socket);
   }
 

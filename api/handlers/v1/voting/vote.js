@@ -7,9 +7,8 @@
 * @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { curry, __, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { vote as incrementVote } from '../../../services/VotingService';
 import { VOTED } from '../../../constants/EXT_EVENT_API';
@@ -18,12 +17,12 @@ import stream from '../../../event-stream';
 export default function vote(req) {
   const { socket, boardId, key, increment, userToken } = req;
   const incrementVotesForThis =
-    R.curry(incrementVote)(boardId, R.__, key, increment);
+    curry(incrementVote)(boardId, __, key, increment);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNull(boardId) || isNull(userToken) || isNull(key) || isNull(increment)) {
+  if (isNil(boardId) || isNil(userToken) || isNil(key) || isNil(increment)) {
     return stream.badRequest(VOTED, {}, socket);
   }
 

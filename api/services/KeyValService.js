@@ -18,9 +18,9 @@
  *  `${boardId}-current-users`: [ref('Users'), ...]
  */
 
+import { curry } from 'ramda';
 import Redis from '../helpers/key-val-store';
 import {NoOpError} from '../helpers/extendable-error';
-import R from 'ramda';
 
 const self = {};
 
@@ -37,7 +37,7 @@ const votingDoneKey = (boardId) => `${boardId}-voting-done`;
 // A Redis set created for every user on every board
 // It holds the ids of the idea collections that the user still has to vote on
 // When empty the user is done voting
-const votingListPerUser = R.curry((boardId, userId) => {
+const votingListPerUser = curry((boardId, userId) => {
   return `${boardId}-voting-${userId}`;
 });
 // A Redis set created for every board
@@ -96,7 +96,7 @@ const maybeThrowIfNull = (response) => {
  * @param {String} userId
  * @returns {Promise<String|NoOpError|Error>}
  */
-self.changeUser = R.curry((operation, keyGen, boardId, userId) => {
+self.changeUser = curry((operation, keyGen, boardId, userId) => {
   let method;
 
   if (operation.toLowerCase() === 'add') method = 'sadd';
@@ -113,7 +113,7 @@ self.changeUser = R.curry((operation, keyGen, boardId, userId) => {
  * @param {String} boardId
  * @returns {Promise<Array|Error>} resolves to an array of userIds
  */
-self.getUsers = R.curry((keyGen, boardId) => {
+self.getUsers = curry((keyGen, boardId) => {
   return Redis.smembers(keyGen(boardId));
 });
 
@@ -126,7 +126,7 @@ self.getUsers = R.curry((keyGen, boardId) => {
  * @param {Array|String} val - Array of collection keys or single collection key
  * @returns {Promise<Array|String|NoOpError|Error>}
  */
-self.changeUserVotingList = R.curry((operation, keyGen, boardId, userId, val) => {
+self.changeUserVotingList = curry((operation, keyGen, boardId, userId, val) => {
   let method;
 
   if (operation.toLowerCase() === 'add') method = 'sadd';
@@ -144,7 +144,7 @@ self.changeUserVotingList = R.curry((operation, keyGen, boardId, userId, val) =>
  * @param {String} userId
  * @returns {Promise<Array|Error>} resolves to an array of collection keys
  */
-self.getUserVotingList = R.curry((keyGen, boardId, userId) => {
+self.getUserVotingList = curry((keyGen, boardId, userId) => {
   return Redis.smembers(keyGen(boardId, userId));
 });
 
@@ -154,12 +154,12 @@ self.getUserVotingList = R.curry((keyGen, boardId, userId) => {
  * @param {String} boardId
  * @returns {Promise<Integer|NoOpError|Error>}
  */
-self.clearKey = R.curry((keyGen, boardId) => {
+self.clearKey = curry((keyGen, boardId) => {
   return Redis.del(keyGen(boardId))
     .then(maybeThrowIfNoOp);
 });
 
-self.clearVotingSetKey = R.curry((keyGen, boardId, userId) => {
+self.clearVotingSetKey = curry((keyGen, boardId, userId) => {
   return Redis.del(keyGen(boardId, userId))
     .then(maybeThrowIfNoOp);
 });
@@ -172,7 +172,7 @@ self.clearVotingSetKey = R.curry((keyGen, boardId, userId) => {
  * @param {String} val
  * @returns {Promise<True|NoOpError|Error>}
  */
-self.setKey = R.curry((keyGen, boardId, val) => {
+self.setKey = curry((keyGen, boardId, val) => {
   return Redis.set(keyGen(boardId), JSON.stringify(val))
     .then(maybeThrowIfUnsuccessful);
 });
@@ -184,7 +184,7 @@ self.setKey = R.curry((keyGen, boardId, val) => {
  * @param {String} boardId
  * @returns {Promise<String|Object|NoOpError|Error>}
  */
-self.getKey = R.curry((keyGen, boardId) => {
+self.getKey = curry((keyGen, boardId) => {
   return Redis.get(keyGen(boardId))
   .then(maybeThrowIfNull)
   .then((response) => JSON.parse(response))
@@ -197,7 +197,7 @@ self.getKey = R.curry((keyGen, boardId) => {
  * @param {String} val
  * @returns {Promise<Boolean|Error>}
  */
-self.checkSet = R.curry((keyGen, boardId, val) => {
+self.checkSet = curry((keyGen, boardId, val) => {
   return Redis.sismember((keyGen(boardId), val))
   .then((ready) => ready === 1);
 });
@@ -207,7 +207,7 @@ self.checkSet = R.curry((keyGen, boardId, val) => {
  * @param {String} boardId
  * @returns {Promise<Boolean|Error>}
  */
-self.checkKey = R.curry((keyGen, boardId) => {
+self.checkKey = curry((keyGen, boardId) => {
   return Redis.exists((keyGen(boardId)))
   .then((ready) => ready === 1);
 });
@@ -218,7 +218,7 @@ self.checkKey = R.curry((keyGen, boardId) => {
  * @param {String} userId
  * @returns {Promise<Boolean|Error>}
  */
-self.checkSetExists = R.curry((keyGen, boardId, userId) => {
+self.checkSetExists = curry((keyGen, boardId, userId) => {
   return Redis.exists((keyGen(boardId, userId)))
   .then((ready) => ready === 1);
 });

@@ -7,7 +7,7 @@
 * @param {string} req.userToken
 */
 
-import { isNull } from '../../../services/ValidatorService';
+import { curry, isNil } from 'ramda';
 import { removeUser} from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
@@ -15,13 +15,13 @@ import stream from '../../../event-stream';
 
 export default function leave(req) {
   const { socket, boardId, userToken } = req;
-  const removeThisUser = R.curry(removeUser)(boardId);
+  const removeThisUser = curry(removeUser)(boardId);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(LEFT_ROOM, {}, socket);
   }
 

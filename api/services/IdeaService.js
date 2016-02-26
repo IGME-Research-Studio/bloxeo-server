@@ -5,14 +5,14 @@
  * @module IdeaService api/services/IdeaService
  */
 
+import { isNil } from 'ramda';
 import { model as Idea } from '../models/Idea.js';
-import { isNull } from './ValidatorService';
 
 const self = {};
 
 // Private
 const maybeThrowNotFound = (obj, boardId, content) => {
-  if (isNull(obj)) {
+  if (isNil(obj)) {
     throw new Error(`Idea with content ${content} not found on board ${boardId}`);
   }
   else {

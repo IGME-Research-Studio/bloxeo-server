@@ -8,9 +8,8 @@
 * @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partialRight, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { create as createIdea } from '../../../services/IdeaService';
 import { stripMap as strip } from '../../../helpers/utils';
@@ -19,13 +18,13 @@ import stream from '../../../event-stream';
 
 export default function create(req) {
   const { socket, boardId, content, userToken } = req;
-  const createThisIdeaBy = R.partialRight(createIdea, [boardId, content]);
+  const createThisIdeaBy = partialRight(createIdea, [boardId, content]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(content) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(content) || isNil(userToken)) {
     return stream.badRequest(UPDATED_IDEAS, {}, socket);
   }
 

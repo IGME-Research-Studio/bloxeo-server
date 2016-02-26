@@ -1,7 +1,7 @@
 import _ from 'lodash';
+import { isNil } from 'ramda';
 import { model as IdeaCollection } from '../models/IdeaCollection';
 import ideaService from './IdeaService';
-import { isNull } from './ValidatorService';
 
 const self = {};
 
@@ -17,7 +17,7 @@ const self = {};
 self.findByKey = function(boardId, key) {
   return IdeaCollection.findByKey(boardId, key)
   .then((collection) => {
-    if (isNull(collection)) {
+    if (isNil(collection)) {
       throw new Error(`IdeaCollection with key ${key} not found on board ${boardId}`);
     }
     else {
