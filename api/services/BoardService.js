@@ -4,10 +4,11 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, isEmpty, contains } from 'ramda';
+import { isNil, isEmpty, not, contains } from 'ramda';
+
 import { toPlainObject } from '../helpers/utils';
 import { NotFoundError, ValidationError,
-  UnauthorizedError } from '../helpers/extendable-error';
+  UnauthorizedError, NoOpError } from '../helpers/extendable-error';
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
@@ -48,8 +49,9 @@ self.destroy = function(boardId) {
 */
 self.update = function(board, attribute, value) {
 
-  if (adminEditableFields.indexOf(attribute) === -1) {
-    throw new UnauthorizedError('Attribute is not editable or does not exist.');
+  if (not(contains(attribute, adminEditableFields))) {
+    throw new UnauthorizedError(
+      `Attribute is not editable or does not exist.`);
   }
   const query = {};
   const updatedData = {};
@@ -154,10 +156,12 @@ self.validateBoardAndUser = function(boardId, userId) {
                       User.findById(userId))
   .then(([board, user]) => {
     if (isNil(board)) {
-      throw new NotFoundError(`{board: ${boardId}}`);
+      throw new NotFoundError(
+        `Board ${boardId} does not exist`, {board: boardId});
     }
     if (isNil(user)) {
-      throw new NotFoundError(`{user: ${userId}}`);
+      throw new NotFoundError(
+        `User ${userId} does not exist`, {user: userId});
     }
     return [board, user];
   });
@@ -173,8 +177,9 @@ self.addUser = function(boardId, userId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (self.isUser(board, userId)) {
-      throw new ValidationError(
-        `User (${userId}) already exists on the board (${boardId})`);
+      throw new NoOpError(
+        `User ${userId} already exists on the board ${boardId}`,
+        {user: userId, board: boardId});
     }
     else {
       board.users.push(userId);
@@ -194,7 +199,8 @@ self.removeUser = function(boardId, userId) {
   .then(([board, __]) => {
     if (!self.isUser(board, userId)) {
       throw new ValidationError(
-        `User (${userId}) is not already on the board (${boardId})`);
+        `User ${userId} is not already on the board ${boardId}`,
+        {user: userId, board: boardId});
     }
     else {
       board.users.pull(userId);
@@ -221,12 +227,14 @@ self.addAdmin = function(boardId, userId) {
       return board.save();
     }
     else if (adminOnThisBoard) {
-      throw new ValidationError(
-        `User (${userId}) is already an admin on the board (${boardId})`);
+      throw new NoOpError(
+        `User ${userId} is already an admin on the board ${boardId}`,
+        {user: userId, board: boardId});
     }
     else if (!userOnThisBoard) {
       throw new NotFoundError(
-        `User (${userId}) does not exist on the board (${boardId})`);
+        `User ${userId} does not exist on the board ${boardId}`,
+        {user: userId, board: boardId});
     }
   });
 };
@@ -258,7 +266,9 @@ self.errorIfNotAdmin = function(board, userId) {
     return Promise.resolve(true);
   }
   else {
-    throw new UnauthorizedError('User is not authorized to update board');
+    throw new UnauthorizedError(
+      `User ${userId} is not authorized to update board`,
+      {user: userId});
   }
 };
 
