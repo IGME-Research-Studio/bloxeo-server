@@ -5,8 +5,7 @@ import {monky} from '../../fixtures';
 import {BOARDID} from '../../constants';
 
 import { toPlainObject } from '../../../api/helpers/utils';
-import { NotFoundError,
-  ValidationError } from '../../../api/helpers/extendable-error';
+import { NotFoundError, NoOpError } from '../../../api/helpers/extendable-error';
 import {model as BoardModel} from '../../../api/models/Board';
 import BoardService from '../../../api/services/BoardService';
 
@@ -118,7 +117,7 @@ describe('BoardService', function() {
 
     it('should reject if the user is already an admin on the board', function() {
       return expect(BoardService.addAdmin(BOARDID, USERID_2))
-        .to.be.rejectedWith(ValidationError, /is already an admin on the board/);
+        .to.be.rejectedWith(NoOpError, /is already an admin on the board/);
     });
   });
 
