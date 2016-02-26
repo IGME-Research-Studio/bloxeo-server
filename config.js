@@ -20,6 +20,7 @@ default:
 const DEFAULT_CFG = {
   logLevel: 'debug',
   mongoURL: mongoURL,
+  roomLimit: 15,
   mongoOpts: { server: { socketOptions: { keepAlive: 1 } } },
   redisURL: process.env.REDISCLOUD_URL || 'redis://localhost:6379',
   port: process.env.PORT || '1337',
