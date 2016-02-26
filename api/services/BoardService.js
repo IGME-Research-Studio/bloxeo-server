@@ -237,22 +237,4 @@ self.areThereCollections = function(boardId) {
   });
 };
 
-// Add user to currentUsers redis
-// @deprecated
-self.join = function(boardId, user) {
-  return Redis.sadd(boardId + suffix, user);
-};
-
-// Remove user from currentUsers redis
-// @deprecated
-self.leave = function(boardId, user) {
-  return Redis.srem(boardId + suffix, user);
-};
-
-// Get all currently connected users
-// @deprecated
-self.getConnectedUsers = function(boardId) {
-  return Redis.smembers(boardId + suffix);
-};
-
 module.exports = self;

@@ -7,17 +7,18 @@
 * @param {string} req.userToken
 */
 
+import { curry } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { NotFoundError, ValidationError } from '../../../helpers/extendable-error';
 import { isNull } from '../../../services/ValidatorService';
-import { addUser} from '../../../services/BoardService';
+import { addUser } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function join(req) {
   const { socket, boardId, userToken } = req;
-  const addThisUser = R.curry(addUser)(boardId);
+  const addThisUser = curry(addUser)(boardId);
 
   if (isNull(socket)) {
     return new Error('Undefined request socket in handler');

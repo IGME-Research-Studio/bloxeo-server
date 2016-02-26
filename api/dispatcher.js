@@ -14,19 +14,12 @@ import {BROADCAST, EMIT_TO, JOIN, LEAVE} from './constants/INT_EVENT_API';
 const dispatcher = function(server) {
   const io = sio(server, {
     origins: '*:*',
-    logger: {
-      debug: log.debug,
-      info: log.info,
-      error: log.error,
-      warn: log.warn,
-    },
   });
 
   io.on('connection', function(socket) {
     log.info(`User with ${socket.id} has connected`);
 
-    _.forEach(events, (method, event) => {
-      log.info(event, method.name);
+    _.forEach(events, function(method, event) {
       socket.on(event, (req) => {
         log.info(event, req);
         method(_.merge({socket: socket}, req));
