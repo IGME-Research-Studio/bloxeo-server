@@ -7,7 +7,6 @@
 
 import tokenService from './TokenService';
 import { model as User } from '../models/User.js';
-
 const self = {};
 
 /**
