@@ -32,9 +32,7 @@ export default function remove(req) {
     Board.findOne({boardId: boardId}),
     verifyAndGetId(userToken),
   ])
-  .then(([board, userId]) => {
-    return destroyThisIdeaBy(board, userId);
-  })
+  .spread(destroyThisIdeaBy)
   .then((allIdeas) => {
     return stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId);
   })
