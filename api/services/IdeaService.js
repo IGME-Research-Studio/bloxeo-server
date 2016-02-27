@@ -7,6 +7,7 @@
 
 import { isNil } from 'ramda';
 import { model as Idea } from '../models/Idea.js';
+import { errorIfNotAdmin } from './BoardService';
 
 const self = {};
 
@@ -16,7 +17,7 @@ const maybeThrowNotFound = (obj, boardId, content) => {
     throw new Error(`Idea with content ${content} not found on board ${boardId}`);
   }
   else {
-    return obj;
+    return Promise.resolve(obj);
   }
 };
 
@@ -44,12 +45,15 @@ self.create = function(userId, boardId, ideaContent) {
  * to include that in requests to client. How can we DRY that out so we don't
  * repeat logic everywhere?
  */
-self.destroy = function(boardId, ideaContent) {
-
-  return Idea.findOne({boardId: boardId, content: ideaContent}).exec()
-  .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent))
-  .then((idea) => idea.remove())
-  .then(() => self.getIdeas(boardId));
+self.destroy = function(board, userId, ideaContent) {
+  // Check for admin permissions
+  return errorIfNotAdmin(board, userId)
+  .then(() => {
+    return Idea.findOne({boardId: board.boardId, content: ideaContent}).exec()
+    .then((idea) => maybeThrowNotFound(idea, board.boardId, ideaContent))
+    .then((idea) => idea.remove())
+    .then(() => self.getIdeas(board.boardId));
+  });
 };
 
 /**

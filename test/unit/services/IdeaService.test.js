@@ -93,20 +93,30 @@ describe('IdeaService', function() {
     });
   });
 
-  describe('#destroy(boardId, ideaContent)', () => {
+  describe('#destroy(board, userId, ideaContent)', () => {
+    let boardObj;
+    let userId;
+
     beforeEach((done) => {
-      Promise.all([
-        monky.create('Board'),
-        monky.create('Idea', {content: IDEA_CONTENT}),
-        monky.create('Idea', {content: IDEA_CONTENT_2}),
-      ])
+      monky.create('User')
+      .then((user) => {
+        userId = user.id;
+        return user.id;
+      })
       .then(() => {
-        done();
+        return Promise.all([
+          monky.create('Board', {admins: [userId]}).then((board) => { boardObj = board; }),
+          monky.create('Idea', {boardId: BOARDID, content: IDEA_CONTENT}),
+          monky.create('Idea', {boardId: BOARDID, content: IDEA_CONTENT_2}),
+        ])
+        .then(() => {
+          done();
+        });
       });
     });
 
     it('should destroy the correct idea from the board', () => {
-      return IdeaService.destroy(BOARDID, IDEA_CONTENT)
+      return IdeaService.destroy(boardObj, userId, IDEA_CONTENT)
         .then(() => {
           return expect(IdeaService.getIdeas(BOARDID))
             .to.eventually.have.deep.property('[0].content', IDEA_CONTENT_2);
@@ -114,7 +124,7 @@ describe('IdeaService', function() {
     });
 
     it('should return all the ideas in the correct format to send back to client', () => {
-      return expect(IdeaService.destroy(BOARDID, IDEA_CONTENT))
+      return expect(IdeaService.destroy(boardObj, userId, IDEA_CONTENT))
         .to.eventually.be.an('array')
           .and.to.have.deep.property('[0]')
           .and.to.not.respondTo('userId')
