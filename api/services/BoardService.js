@@ -4,7 +4,7 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, contains } from 'ramda';
+import { isNil, isEmpty, contains } from 'ramda';
 
 import { toPlainObject } from '../helpers/utils';
 import { NotFoundError, ValidationError,
@@ -83,7 +83,20 @@ self.exists = function(boardId) {
 self.getUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('users')
-  .exec((board) => board.users);
+  .then((board) => toPlainObject(board))
+  .then((board) => {
+    if (isNil(board)) {
+      throw new NotFoundError(`Board with id ${boardId} does not exist`);
+    }
+    return board;
+  })
+  .then(({users}) => {
+    if (isEmpty(users)) {
+      throw new NotFoundError(`Board with id ${boardId} has no users`);
+    }
+
+    return users;
+  });
 };
 
 /**

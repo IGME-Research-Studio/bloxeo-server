@@ -152,4 +152,30 @@ describe('BoardService', function() {
         });
     });
   });
+
+  describe('#getUsers(boardId)', () => {
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('User'),
+      ])
+      .then((users) => {
+        monky.create('Board', {boardId: BOARDID, users: users})
+        .then(() => {
+          done();
+        });
+      });
+    });
+
+    it('Should throw a not found error if the board does not exist', () => {
+      return expect(BoardService.getUsers('notRealId')).to.eventually.be.rejectedWith(NotFoundError);
+    });
+
+    it('Should return the users on the board', (done) => {
+      return BoardService.getUsers(BOARDID)
+      .then((users) => {
+        expect(users).to.have.length(1);
+        done();
+      });
+    });
+  });
 });
