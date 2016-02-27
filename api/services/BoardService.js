@@ -1,21 +1,27 @@
 /**
-* BoardService: contains actions related to users and boards.
-*/
-import Promise from 'bluebird';
-import { toPlainObject } from '../helpers/utils';
-import { model as Board } from '../models/Board';
-import { model as User } from '../models/User';
-import { isNull } from './ValidatorService';
-import { NotFoundError, ValidationError } from '../helpers/extendable-error';
-import R from 'ramda';
+ * BoardService
+ * contains actions related to users and boards.
+ */
 
-const boardService = {};
+import Promise from 'bluebird';
+import { isNil, isEmpty, contains } from 'ramda';
+
+import { toPlainObject } from '../helpers/utils';
+import { NotFoundError, ValidationError,
+  UnauthorizedError } from '../helpers/extendable-error';
+import { model as Board } from '../models/Board';
+import { adminEditableFields } from '../models/Board';
+import { model as User } from '../models/User';
+import { getIdeaCollections } from './IdeaCollectionService';
+import inMemory from './KeyValService';
+
+const self = {};
 
 /**
  * Create a board in the database
  * @returns {Promise<String|Error>} the created boards boardId
  */
-boardService.create = function(userId) {
+self.create = function(userId) {
   return new Board({users: [userId], admins: [userId]}).save()
   .then((result) => result.boardId);
 };
@@ -24,8 +30,37 @@ boardService.create = function(userId) {
  * Remove a board from the database
  * @param {String} boardId the boardId of the board to remove
  */
-boardService.destroy = function(boardId) {
+self.destroy = function(boardId) {
   return Board.remove({boardId: boardId});
+};
+
+/**
+* Update a board's name and description in the database
+* @param {Document} board - The mongo board model to update
+* @param {String} attribute - The attribute to update
+* @param {String} value - The value to update the attribute with
+* @returns {Document} - The updated mongo board model
+*/
+self.update = function(board, attribute, value) {
+
+  if (adminEditableFields.indexOf(attribute) === -1) {
+    throw new UnauthorizedError('Attribute is not editable or does not exist.');
+  }
+  const query = {};
+  const updatedData = {};
+  query[attribute] = board[attribute];
+  updatedData[attribute] = value;
+
+  return board.update(query, updatedData);
+};
+
+/**
+* Find a board with populated users and admins
+* @param {String} boardId - the boardId to check
+* @returns {Promise<Board|Error>} - The mongo board model found
+*/
+self.findBoard = function(boardId) {
+  return Board.findBoard(boardId);
 };
 
 /**
@@ -33,20 +68,35 @@ boardService.destroy = function(boardId) {
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
  */
-boardService.exists = function(boardId) {
+self.exists = function(boardId) {
   return Board.find({boardId: boardId}).limit(1)
   .then((r) => (r.length > 0) ? true : false);
 };
 
 /**
  * Find all users on a board
+ * @TODO perhaps faster to grab userId's in Redis and find those Mongo docs?
+ *       Would need to test performance of Query+Populate to Redis+FindByIds
  * @param {String} boardId the boardId to retrieve the users from
  * @returns {Promise<MongooseArray|Error>}
  */
-boardService.getUsers = function(boardId) {
+self.getUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('users')
-  .exec((board) => board.users);
+  .then((board) => toPlainObject(board))
+  .then((board) => {
+    if (isNil(board)) {
+      throw new NotFoundError(`Board with id ${boardId} does not exist`);
+    }
+    return board;
+  })
+  .then(({users}) => {
+    if (isEmpty(users)) {
+      throw new NotFoundError(`Board with id ${boardId} has no users`);
+    }
+
+    return users;
+  });
 };
 
 /**
@@ -54,7 +104,7 @@ boardService.getUsers = function(boardId) {
  * @param {String} boardId the boardId to retrieve the admins from
  * @returns {Promise<MongooseArray|Error>}
  */
-boardService.getAdmins = function(boardId) {
+self.getAdmins = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('admins')
   .exec((board) => board.admins);
@@ -65,29 +115,62 @@ boardService.getAdmins = function(boardId) {
  * @param {String} boardId the boardId to retrieve the pendingUsers from
  * @returns {Promise<MongooseArray|Error>}
  */
-boardService.getPendingUsers = function(boardId) {
+self.getPendingUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('pendingUsers')
   .exec((board) => board.pendingUsers);
 };
 
-boardService.addUser = function(boardId, userId) {
+self.validateBoardAndUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
   .then(([board, user]) => {
-    if (isNull(board)) {
-      throw new NotFoundError(`Board (${boardId}) does not exist`);
+    if (isNil(board)) {
+      throw new NotFoundError(`{board: ${boardId}}`);
     }
-    else if (isNull(user)) {
-      throw new NotFoundError(`User (${userId}) does not exist`);
+    if (isNil(user)) {
+      throw new NotFoundError(`{user: ${userId}}`);
     }
-    else if (boardService.isUser(board, userId)) {
+    return [board, user];
+  });
+};
+
+/**
+ * Adds a user to a board in Mongoose and Redis
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ */
+self.addUser = function(boardId, userId) {
+  return self.validateBoardAndUser(boardId, userId)
+  .then(([board, __]) => {
+    if (self.isUser(board, userId)) {
       throw new ValidationError(
         `User (${userId}) already exists on the board (${boardId})`);
     }
     else {
       board.users.push(userId);
-      return board.save();
+      return Promise.join(board.save(), inMemory.addUser(boardId, userId));
+    }
+  });
+};
+
+/**
+ * Removes a user from a board in Mongoose and Redis
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ */
+self.removeUser = function(boardId, userId) {
+  return self.validateBoardAndUser(boardId, userId)
+  .then(([board, __]) => {
+    if (!self.isUser(board, userId)) {
+      throw new ValidationError(
+        `User (${userId}) is not already on the board (${boardId})`);
+    }
+    else {
+      board.users.pull(userId);
+      return Promise.join(board.save(), inMemory.removeUser(boardId, userId));
     }
   });
 };
@@ -98,28 +181,24 @@ boardService.addUser = function(boardId, userId) {
  * @param {String} userId the userId to add as admin
  * @returns {Promise<MongooseObject|OperationalError>} user object that was added
  */
-boardService.addAdmin = function(boardId, userId) {
-  const userIsOnBoard = R.partialRight(boardService.isUser, [userId]);
-  const userIsAdmin = R.partialRight(boardService.isAdmin, [userId]);
+self.addAdmin = function(boardId, userId) {
 
   return Board.findOne({boardId: boardId})
   .then((board) => {
-    return Promise.join(Promise.resolve(board),
-                        userIsOnBoard(board),
-                        userIsAdmin(board));
-  })
-  .then(([board, isUser, isAdmin]) => {
-    if (isUser && !isAdmin) {
+    const userOnThisBoard = self.isUser(board, userId);
+    const adminOnThisBoard = self.isAdmin(board, userId);
+
+    if (userOnThisBoard && !adminOnThisBoard) {
       board.admins.push(userId);
       return board.save();
     }
-    else if (!isUser) {
-      throw new NotFoundError(
-        `User (${userId}) does not exist on the board (${boardId})`);
-    }
-    else if (isAdmin) {
+    else if (adminOnThisBoard) {
       throw new ValidationError(
         `User (${userId}) is already an admin on the board (${boardId})`);
+    }
+    else if (!userOnThisBoard) {
+      throw new NotFoundError(
+        `User (${userId}) does not exist on the board (${boardId})`);
     }
   });
 };
@@ -131,8 +210,8 @@ boardService.addAdmin = function(boardId, userId) {
  * @param {String} userId the userId to add as admin
  * @returns {Boolean} whether the user was on the board
  */
-boardService.isUser = function(board, userId) {
-  return R.contains(toPlainObject(userId), toPlainObject(board.users));
+self.isUser = function(board, userId) {
+  return contains(toPlainObject(userId), toPlainObject(board.users));
 };
 
 /**
@@ -142,8 +221,34 @@ boardService.isUser = function(board, userId) {
  * @param {String} userId the userId to add as admin
  * @returns {Promise<Boolean|Error>} whether the user was an admin
  */
-boardService.isAdmin = function(board, userId) {
-  return R.contains(toPlainObject(userId), toPlainObject(board.admins));
+self.isAdmin = function(board, userId) {
+  return contains(toPlainObject(userId), toPlainObject(board.admins));
 };
 
-module.exports = boardService;
+self.errorIfNotAdmin = function(board, userId) {
+  if (isAdmin(board, userId)) {
+    return true;
+  }
+  else {
+    throw new UnauthorizedError('User is not authorized to update board');
+  }
+};
+
+/**
+* Checks if there are collections on the board
+* @param {String} boardId: id of the board
+* @returns {Promise<Boolean|Error>}: return if the board has collections or not
+*/
+self.areThereCollections = function(boardId) {
+  return getIdeaCollections(boardId)
+  .then((collections) => {
+    if (collections.length > 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  });
+};
+
+module.exports = self;

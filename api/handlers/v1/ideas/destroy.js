@@ -5,11 +5,11 @@
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to remove
+* @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partialRight, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { destroy } from '../../../services/IdeaService';
 import { stripMap as strip } from '../../../helpers/utils';
@@ -18,13 +18,13 @@ import stream from '../../../event-stream';
 
 export default function remove(req) {
   const { socket, boardId, content, userToken } = req;
-  const destroyThisIdeaBy = R.partialRight(destroy, [boardId, content]);
+  const destroyThisIdeaBy = partialRight(destroy, [boardId, content]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(UPDATED_IDEAS, {}, socket);
   }
 

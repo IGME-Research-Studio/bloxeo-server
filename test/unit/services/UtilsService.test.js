@@ -1,8 +1,6 @@
-import chai from 'chai';
+import {expect} from 'chai';
 
 import utils from '../../../api/helpers/utils';
-
-const expect = chai.expect;
 
 describe('UtilsService', () => {
   // Objects with _id prop

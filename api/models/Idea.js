@@ -14,11 +14,6 @@ const schema = new mongoose.Schema({
     required: true,
   },
 
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-
   // Who created the idea, used for color coding the ideas
   userId: {
     type: mongoose.Schema.ObjectId,
