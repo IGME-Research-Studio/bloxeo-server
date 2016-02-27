@@ -9,7 +9,7 @@
 * @param {string} req.userToken
 */
 
-import { partialRight } from 'ramda';
+import { partialRight, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
