@@ -27,8 +27,8 @@ export default function leave(req) {
 
   return verifyAndGetId(userToken)
     .then(removeThisUser)
-    .then(() => {
-      return stream.leave(socket, boardId);
+    .then(([__, userId]) => {
+      return stream.leave({socket, boardId, userId});
     })
     .catch((err) => {
       return stream.serverError(JOINED_ROOM, err.message, socket);

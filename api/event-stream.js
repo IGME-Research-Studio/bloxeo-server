@@ -8,7 +8,8 @@
 
 import { EventEmitter } from 'events';
 
-import INT_EVENTS from './constants/INT_EVENT_API';
+import { BROADCAST, EMIT_TO, JOIN, LEAVE } from './constants/INT_EVENT_API';
+import { JOINED_ROOM, LEFT_ROOM } from './constants/EXT_EVENT_API';
 
 /**
 * Helper method to construct a standard object to send to Socket.io
@@ -61,35 +62,45 @@ function error(code, event, data, socket, msg) {
 class EventStream extends EventEmitter {
 
   /**
-  * Emits a broadcast event to tell socket.io to broadcast to a room
-  *
-  * @param {Object} req can be anything to pass along to client
-  * @param {Object} req.boardId what board to send to
-  */
+   * Emits a broadcast event to tell socket.io to broadcast to a room
+   *
+   * @param {Object} req can be anything to pass along to client
+   * @param {Object} req.boardId what board to send to
+   */
   broadcast(req) {
-    this.emit(INT_EVENTS.BROADCAST, req);
+    this.emit(BROADCAST, req);
   }
 
   /**
-  * Emits an event to a specific socket
-  *
-  * @param {Object} req
-  * @param {Object} req.socket the socket to emit to
-  * @param {Object} req.event the socket event
-  * @param {Object} req.res data to send to client
-  */
+   * Emits an event to a specific socket
+   *
+   * @param {Object} req
+   * @param {Object} req.socket the socket to emit to
+   * @param {Object} req.event the socket event
+   * @param {Object} req.res data to send to client
+   */
   emitTo(req) {
-    this.emit(INT_EVENTS.EMIT_TO, req);
+    this.emit(EMIT_TO, req);
   }
 
-  join(socket, boardId, userId) {
-    this.emit(INT_EVENTS.JOIN, {socket: socket, boardId: boardId,
-              userId: userId});
+  /**
+   * Emits an event to modify a users state in a room, either join or leave.
+   * Unlike other emits/broadcasts these have are special cases that
+   * hard-code the events and responses
+   *
+   * @param {Object} req
+   * @param {Object} req.socket the socket to emit to
+   * @param {Object} req.boardId
+   * @param {Object} req.userId
+   */
+  join({socket, boardId, userId}) {
+    const cbRes = success(200, JOINED_ROOM, {boardId, userId});
+    this.emit(JOIN, {socket, boardId, userId, cbRes});
   }
 
-  leave(socket, boardId) {
-    this.emit(INT_EVENTS.LEAVE, {socket: socket, boardId: boardId,
-              userId: userId});
+  leave({socket, boardId, userId}) {
+    const cbRes = success(200, LEFT_ROOM, {boardId, userId});
+    this.emit(LEAVE, {socket, boardId, userId, cbRes});
   }
 
   /**

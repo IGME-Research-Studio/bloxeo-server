@@ -68,12 +68,10 @@ describe('BoardService', function() {
       ]);
     });
 
-    it('should add the existing user as an admin on the board', function(done) {
-      BoardService.addUser(BOARDID, USERID)
-        .then(([board, additionsToRoom]) => {
-          expect(toPlainObject(board.users[0])).to.equal(USERID);
-          expect(additionsToRoom).to.equal(USERID);
-          done();
+    it('should add the existing user to the board', function() {
+      return BoardService.addUser(BOARDID, USERID)
+        .then(([__, userId]) => {
+          expect(userId).to.equal(USERID);
         });
     });
 

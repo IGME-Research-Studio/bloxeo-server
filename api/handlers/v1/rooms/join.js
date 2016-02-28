@@ -22,24 +22,23 @@ export default function join(req) {
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
   if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(JOINED_ROOM, {}, socket);
   }
 
   return verifyAndGetId(userToken)
     .then(addThisUser)
-    .then(() => {
-      return stream.join(socket, boardId);
+    .then(([__, userId]) => {
+      return stream.join({socket, boardId, userId});
     })
     .catch(NotFoundError, (err) => {
-      return stream.notFound(JOINED_ROOM, err.message, socket);
+      return stream.notFound(JOINED_ROOM, err.data, socket, err.message);
     })
     .catch(JsonWebTokenError, (err) => {
-      return stream.unauthorized(JOINED_ROOM, err.message, socket);
+      return stream.unauthorized(JOINED_ROOM, err.data, socket, err.message);
     })
     .catch(ValidationError, (err) => {
-      return stream.serverError(JOINED_ROOM, err.message, socket);
+      return stream.serverError(JOINED_ROOM, err.data, socket, err.message);
     })
     .catch((err) => {
       return stream.serverError(JOINED_ROOM, err.message, socket);

@@ -185,7 +185,8 @@ self.addUser = function(boardId, userId) {
       board.users.push(userId);
       return Promise.join(board.save(), inMemory.addUser(boardId, userId));
     }
-  });
+  })
+  .return([boardId, userId]);
 };
 
 /**
@@ -206,7 +207,8 @@ self.removeUser = function(boardId, userId) {
       board.users.pull(userId);
       return Promise.join(board.save(), inMemory.removeUser(boardId, userId));
     }
-  });
+  })
+  .return([boardId, userId]);
 };
 
 /**
