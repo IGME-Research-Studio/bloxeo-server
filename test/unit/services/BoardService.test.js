@@ -128,7 +128,7 @@ describe('BoardService', function() {
     beforeEach((done) => {
       monky.create('User')
         .then((user) => {
-          monky.create('Board', {boardId: BOARDID, users: [user]})
+          return monky.create('Board', {boardId: BOARDID, users: [user]})
             .then((board) => {
               USERID = board.users[0].id;
               done();
@@ -196,6 +196,29 @@ describe('BoardService', function() {
         expect(options).to.have.property('numResultsReturn');
         done();
       });
+    });
+  });
+
+  describe('#findBoardsForUser(userId)', function() {
+    const BOARDID_A = 'abc123';
+    const BOARDID_B = 'def456';
+    let USERID;
+
+    beforeEach(() => {
+      return monky.create('User')
+        .then((user) => { USERID = user.id; return user;})
+        .then((user) => {
+          return Promise.all([
+            monky.create('Board', {boardId: BOARDID_A, users: [user]}),
+            monky.create('Board', {boardId: BOARDID_B, users: [user]}),
+            monky.create('Board'),
+          ]);
+        });
+    });
+
+    it('should return the boards a user is a part of', function() {
+      return expect(BoardService.getBoardsForUser(USERID))
+        .to.eventually.have.length(2);
     });
   });
 });
