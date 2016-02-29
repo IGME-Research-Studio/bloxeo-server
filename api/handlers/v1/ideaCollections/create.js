@@ -25,7 +25,6 @@ export default function create(req) {
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
   if (isNil(boardId) || isNil(content) || isNil(userToken)) {
     return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
   }
