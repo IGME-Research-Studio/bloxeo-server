@@ -76,12 +76,7 @@ self.findBoard = function(boardId) {
  * @returns {Promise<[MongooseObjects]|Error>} Boards for the given user
  */
 self.getBoardsForUser = function(userId) {
-  return Board.model.find({})
-  .where('users')
-  .elemMatch((elem) => {
-    elem.where('users', userId);
-  })
-  .then((boards) => boards);
+  return Board.find({users: userId});
 };
 
 /**
