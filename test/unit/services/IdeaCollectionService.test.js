@@ -252,8 +252,6 @@ describe('IdeaCollectionService', function() {
       .then(() => IdeaCollectionService.getIdeaCollections(BOARDID))
       .then((collections) => {
         expect(Object.keys(collections)).to.have.length(2);
-        expect(collections).to.contains.key(duplicate);
-        expect(collections).to.contains.key(diffCollection);
       });
     });
   });

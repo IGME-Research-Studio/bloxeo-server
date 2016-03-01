@@ -20,7 +20,7 @@ const self = {};
 
 const maybeIncrementCollectionVote = function(query, update, increment) {
   if (increment) {
-    return IdeaCollection.findOneAndUpdate(query, updatedData);
+    return IdeaCollection.findOneAndUpdate(query, update);
   }
   else {
     return Promise.resolve(false);
@@ -232,7 +232,7 @@ self.isUserReady = function(votingAction, boardId, userId) {
   let method;
 
   if (votingAction.toLowerCase() === 'start') method = 'getUsersReadyToVote';
-  else if (votingAction.toLowerCase === 'finish') method = 'getUsersDoneVoting';
+  else if (votingAction.toLowerCase() === 'finish') method = 'getUsersDoneVoting';
   else throw new Error(`Invald votingAction ${votingAction}`);
 
   return InMemory[method](boardId)
@@ -325,6 +325,9 @@ self.vote = function(boardId, userId, key, increment) {
   .then((collections) => {
     if (collections.length === 0) {
       return self.setUserReadyToFinishVoting(boardId, userId);
+    }
+    else {
+      return false;
     }
   });
 };
