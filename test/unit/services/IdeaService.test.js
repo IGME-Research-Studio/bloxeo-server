@@ -6,6 +6,7 @@ import {BOARDID, BOARDID_2,
   IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
 
 import IdeaService from '../../../api/services/IdeaService';
+import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
 describe('IdeaService', function() {
 
@@ -104,22 +105,35 @@ describe('IdeaService', function() {
         return user.id;
       })
       .then(() => {
+        return monky.create('Board', {admins: [userId]});
+      })
+      .then((board) => {
+        boardObj = board;
+
         return Promise.all([
-          monky.create('Board', {admins: [userId]}).then((board) => { boardObj = board; }),
           monky.create('Idea', {boardId: BOARDID, content: IDEA_CONTENT}),
           monky.create('Idea', {boardId: BOARDID, content: IDEA_CONTENT_2}),
         ])
-        .then(() => {
+        .then((ideas) => {
+          monky.create('IdeaCollection', {boardId: BOARDID, ideas: ideas});
           done();
         });
       });
     });
 
-    it('should destroy the correct idea from the board', () => {
+    it('should destroy the correct idea from the board', (done) => {
       return IdeaService.destroy(boardObj, userId, IDEA_CONTENT)
         .then(() => {
-          return expect(IdeaService.getIdeas(BOARDID))
-            .to.eventually.have.deep.property('[0].content', IDEA_CONTENT_2);
+          return Promise.all([
+            IdeaService.getIdeas(BOARDID),
+            IdeaCollectionService.getIdeaCollections(BOARDID),
+          ]);
+        })
+        .then(([ideas, collections]) => {
+          expect(ideas).to.have.deep.property('[0].content', IDEA_CONTENT_2);
+          expect(collections.collection1).to.have.property('ideas')
+            .to.not.have.members([IDEA_CONTENT]);
+          done();
         });
     });
 

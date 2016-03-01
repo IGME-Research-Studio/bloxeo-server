@@ -34,7 +34,13 @@ export default function remove(req) {
   ])
   .spread(destroyThisIdeaBy)
   .then((allIdeas) => {
-    return stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId);
+    return [getIdeaCollections(boardId), allIdeas];
+  })
+  .then(([ideaCollections, allIdeas]) => {
+    return Promise.all([
+      stream.ok(UPDATED_IDEAS, strip(allIdeas), boardId),
+      stream.ok(UPDATED_COLLECTIONS, strip(ideaCollections), boardId),
+    ]);
   })
   .catch(JsonWebTokenError, (err) => {
     return stream.unauthorized(UPDATED_IDEAS, err.message, socket);
