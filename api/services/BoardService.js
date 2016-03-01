@@ -74,6 +74,28 @@ self.exists = function(boardId) {
 };
 
 /**
+* Get the board options
+* @param {String} boardId: id of the board
+* @returns {Promise<Object|Error>}: returns an object with the board options
+*/
+self.getBoardOptions = function(boardId) {
+  return Board.findOne({boardId: boardId})
+  .select('userColorsEnabled numResultsShown numResultsReturn')
+  .then((board) => toPlainObject(board))
+  .then((board) => {
+    if (isNil(board)) {
+      throw new NotFoundError(`Board with id ${boardId} does not exist`);
+    }
+
+    const options = {userColorsEnabled: board.userColorsEnabled,
+                     numResultsShown: board.numResultsShown,
+                     numResultsReturn: board.numResultsReturn };
+
+    return options;
+  });
+};
+
+/**
  * Find all users on a board
  * @TODO perhaps faster to grab userId's in Redis and find those Mongo docs?
  *       Would need to test performance of Query+Populate to Redis+FindByIds
@@ -88,6 +110,7 @@ self.getUsers = function(boardId) {
     if (isNil(board)) {
       throw new NotFoundError(`Board with id ${boardId} does not exist`);
     }
+
     return board;
   })
   .then(({users}) => {

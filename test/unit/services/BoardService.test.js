@@ -178,4 +178,24 @@ describe('BoardService', function() {
       });
     });
   });
+
+  describe('#getBoardOptions(boardId)', () => {
+    beforeEach((done) => {
+      monky.create('Board')
+      .then(() => {
+        done();
+      });
+    });
+
+    it('Should return the board options', (done) => {
+      return BoardService.getBoardOptions(BOARDID)
+      .then((options) => {
+        expect(options).to.be.an('object');
+        expect(options).to.have.property('userColorsEnabled');
+        expect(options).to.have.property('numResultsShown');
+        expect(options).to.have.property('numResultsReturn');
+        done();
+      });
+    });
+  });
 });
