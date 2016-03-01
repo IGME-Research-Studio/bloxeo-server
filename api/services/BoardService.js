@@ -22,8 +22,10 @@ const self = {};
  * Create a board in the database
  * @returns {Promise<String|Error>} the created boards boardId
  */
-self.create = function(userId) {
-  return new Board({users: [userId], admins: [userId]}).save()
+self.create = function(userId, name = 'Project Title',
+  description = 'This is a description.') {
+  return new Board({users: [userId], admins: [userId], name: name,
+    description: description}).save()
   .then((result) => {
     return createIdeasAndIdeaCollections(result.boardId, false, '')
     .then(() => result.boardId);

@@ -24,16 +24,19 @@ describe('BoardService', function() {
     });
 
     it('should create a board and return the correct boardId', (done) => {
-      BoardService.create(USERID)
+      return BoardService.create(USERID, 'title', 'description')
         .then((createdBoardId) => {
-          try {
-            expect(createdBoardId).to.be.a('string');
-            expect(BoardService.exists(createdBoardId))
-              .to.become(true).notify(done);
-          }
-          catch (e) {
-            done(e);
-          }
+          return Promise.all([
+            Promise.resolve(createdBoardId),
+            BoardModel.findOne({boardId: createdBoardId}),
+          ]);
+        })
+        .then(([boardId, board]) => {
+          expect(boardId).to.be.a('string');
+          expect(board.name).to.equal('title');
+          expect(board.description).to.equal('description');
+          expect(BoardService.exists(boardId)).to.eventually.be.true;
+          done();
         });
     });
 
