@@ -4,12 +4,10 @@ import _ from 'lodash';
 import sinon from 'sinon';
 
 import {monky} from '../../fixtures';
-import {BOARDID, COLLECTION_KEY,
-  IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
+import {BOARDID, IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
 
 import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/helpers/key-val-store';
-import BoardService from '../../../api/services/BoardService';
 import KeyValService from '../../../api/services/KeyValService';
 import StateService from '../../../api/services/StateService';
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
@@ -17,11 +15,7 @@ import ResultService from '../../../api/services/ResultService';
 
 import {model as Board} from '../../../api/models/Board';
 import {model as IdeaCollection} from '../../../api/models/IdeaCollection';
-// import {model as Result} from '../../../api/models/Result';
 
-// TODO: TAKE OUT TESTS INVOLVING ONLY REDIS COMMANDS
-// TODO: USE STUBS ON MORE COMPLICATED FUNCTIONS WITH REDIS COMMANDS
-//
 const resetRedis = (userId) => {
   return Promise.all([
     RedisService.del(`${BOARDID}-current-users`),
@@ -277,63 +271,74 @@ describe('VotingService', function() {
     });
   });
 
-  // describe('#isUserReady(votingAction, boardId, userId)', () => {
-  //   let getUsersReadyToVoteStub;
-  //   let getUsersDoneVotingStub;
-  //
-  //   beforeEach((done) => {
-  //     Promise.all([
-  //       monky.create('Board'),
-  //       monky.create('User').then((user) => {USERID = user.id; return user;}),
-  //
-  //       Promise.all([
-  //         monky.create('Idea'),
-  //         monky.create('Idea'),
-  //       ])
-  //       .then((allIdeas) => {
-  //         Promise.all([
-  //           monky.create('IdeaCollection', {ideas: allIdeas}),
-  //         ]);
-  //       }),
-  //     ])
-  //     .then(() => {
-  //       done();
-  //     });
-  //   });
-  //
-  //   afterEach((done) => {
-  //     resetRedis(USERID)
-  //     .then(() => {
-  //       done();
-  //     });
-  //   });
-  //
-  //   it('Should not have the user be ready to vote')
-  // });
+  describe('#isUserReady(votingAction, boardId, userId)', () => {
+    let getUsersReadyToVoteStub;
+    let getUsersDoneVotingStub;
 
-  describe('#getVoteList(boardId, userId)', () => {
-    let USERID;
+    const users = ['user1', 'user2'];
+
+    before(function() {
+      getUsersReadyToVoteStub = this.stub(KeyValService, 'getUsersReadyToVote')
+      .returns(Promise.resolve(users));
+      getUsersDoneVotingStub = this.stub(KeyValService, 'getUsersDoneVoting')
+      .returns(Promise.resolve(users));
+    });
 
     beforeEach((done) => {
       Promise.all([
         monky.create('Board'),
-        monky.create('User').then((user) => {USERID = user.id; return user;}),
-
-        Promise.all([
-          monky.create('Idea'),
-          monky.create('Idea'),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            BoardService.join('1', USERID),
-            monky.create('IdeaCollection', {ideas: allIdeas,
-                         key: COLLECTION_KEY}),
-          ]);
-        }),
       ])
       .then(() => {
         done();
       });
+    });
+
+    it('Should not have the user be ready to vote', () => {
+      return expect(VotingService.isUserReady('start', BOARDID, 'user3')).to.be.fulfilled
+      .then((readyToVote) => {
+        expect(getUsersReadyToVoteStub).to.have.returned;
+        expect(readyToVote).to.be.false;
+      });
+    });
+
+    it('Should have the user be ready to vote', () => {
+      return expect(VotingService.isUserReady('start', BOARDID, 'user2')).to.be.fulfilled
+      .then((readyToVote) => {
+        expect(getUsersReadyToVoteStub).to.have.returned;
+        expect(readyToVote).to.be.true;
+      });
+    });
+
+    it('Should have the user not be ready to finish voting', () => {
+      return expect(VotingService.isUserReady('finish', BOARDID, 'user3')).to.be.fulfilled
+      .then((finishedVoting) => {
+        expect(getUsersDoneVotingStub).to.have.returned;
+        expect(finishedVoting).to.be.false;
+      });
+    });
+
+    it('Should have the user be ready to finish voting', () => {
+      return expect(VotingService.isUserReady('finish', BOARDID, 'user2')).to.be.fulfilled
+      .then((finishedVoting) => {
+        expect(getUsersDoneVotingStub).to.have.returned;
+        expect(finishedVoting).to.be.true;
+      });
+    });
+  });
+
+  describe('#setUserReady(votingAction, boardId, userId)', () => {
+    const USERID = 'user1';
+    let readyUserToVoteStub;
+    let readyUserDoneVotingStub;
+    let isRoomReadyStub;
+
+    before(function() {
+      readyUserToVoteStub = this.stub(KeyValService, 'readyUserToVote')
+      .returns(Promise.resolve('readyUserToVote was called'));
+      readyUserDoneVotingStub = this.stub(KeyValService, 'readyUserDoneVoting')
+      .returns(Promise.resolve('readyUserDoneVoting was called'));
+      isRoomReadyStub = this.stub(VotingService, 'isRoomReady')
+      .returns(Promise.resolve('isRoomReady was called'));
     });
 
     afterEach((done) => {
@@ -343,53 +348,126 @@ describe('VotingService', function() {
       });
     });
 
+    it('Should set the user ready to vote', () => {
+      return expect(VotingService.setUserReady('start', BOARDID, USERID)).to.be.fulfilled
+      .then(() => {
+        expect(readyUserToVoteStub).to.have.returned;
+        expect(isRoomReadyStub).to.have.returned;
+      });
+    });
 
-    xit('Should add the collections to vote on into Redis and return them', (done) => {
-      VotingService.getVoteList(BOARDID, USERID)
-      .then((collections) => {
-        expect(_.keys(collections)).to.have.length(1);
+    it('Should set the user ready to finish voting', () => {
+      return expect(VotingService.setUserReady('finish', BOARDID, USERID)).to.be.fulfilled
+      .then(() => {
+        expect(readyUserDoneVotingStub).to.have.returned;
+        expect(isRoomReadyStub).to.have.returned;
+      });
+    });
+  });
+
+  describe('#getVoteList(boardId, userId)', () => {
+    const USERID = 'user1';
+    let checkUserVotingListExistsStub;
+    let isUserDoneVotingStub;
+    let getIdeaCollectionsStub;
+    let addToUserVotingListStub;
+    let getCollectionsToVoteOnStub;
+    let findByKeyStub;
+
+    const collectionObjs = [
+      {key: 'abc123'},
+      {key: 'abc1234'},
+    ];
+
+    const collectionKeys = ['abc123', 'abc1234'];
+
+    const collectionPromises = [Promise.resolve({key: 'abc1234'}),
+                      Promise.resolve({key: 'abc1234'})];
+
+    before(function() {
+      getIdeaCollectionsStub = this.stub(IdeaCollectionService, 'getIdeaCollections')
+      .returns(Promise.resolve(collectionObjs));
+      addToUserVotingListStub = this.stub(KeyValService, 'addToUserVotingList')
+      .returns(Promise.resolve(collectionKeys));
+      getCollectionsToVoteOnStub = this.stub(KeyValService, 'getCollectionsToVoteOn')
+      .returns(Promise.resolve(collectionKeys));
+      findByKeyStub = this.stub(IdeaCollection, 'findByKey')
+      .returns(Promise.resolve(collectionPromises));
+    });
+
+    afterEach((done) => {
+      resetRedis(USERID)
+      .then(() => {
         done();
       });
     });
 
-    xit('Should return the remaining collections to vote on', (done) => {
-      // Set up the voting list in Redis
-      VotingService.getVoteList(BOARDID, USERID)
-      .then(() => {
-        VotingService.vote(BOARDID, USERID, COLLECTION_KEY, false)
-        .then(() => {
-          VotingService.getVoteList(BOARDID, USERID)
-          .then((collections) => {
-            expect(_.keys(collections)).to.have.length(0);
-            done();
-          });
-        });
+    // @TODO: Add comments to explain each case
+    it('Should create a new voting list with all the idea collections', function() {
+      checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
+      .returns(Promise.resolve(false));
+
+      isUserDoneVotingStub = this.stub(VotingService, 'isUserDoneVoting')
+      .returns(Promise.resolve(false));
+
+      return expect(VotingService.getVoteList(BOARDID, USERID)).to.be.fulfilled
+      .then((collectionsToVoteOn) => {
+        expect(checkUserVotingListExistsStub).to.have.returned;
+        expect(isUserDoneVotingStub).to.have.returned;
+        expect(getIdeaCollectionsStub).to.have.returned;
+        expect(addToUserVotingListStub).to.have.returned;
+        expect(collectionsToVoteOn).to.have.length(2);
+      });
+    });
+
+    it('Should return an empty collection since the user is done voting', function() {
+      checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
+      .returns(Promise.resolve(false));
+
+      isUserDoneVotingStub = this.stub(VotingService, 'isUserDoneVoting')
+      .returns(Promise.resolve(true));
+
+      return expect(VotingService.getVoteList(BOARDID, USERID)).to.be.fulfilled
+      .then((collectionsToVoteOn) => {
+        expect(checkUserVotingListExistsStub).to.have.returned;
+        expect(isUserDoneVotingStub).to.have.returned;
+        expect(getIdeaCollectionsStub).to.have.returned;
+        expect(addToUserVotingListStub).to.have.returned;
+        expect(collectionsToVoteOn).to.have.length(0);
+      });
+    });
+
+    it('Should return remaining idea collections to vote on', function() {
+      checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
+      .returns(Promise.resolve(true));
+
+      return expect(VotingService.getVoteList(BOARDID, USERID)).to.be.fulfilled
+      .then((collectionsToVoteOn) => {
+        expect(checkUserVotingListExistsStub).to.have.returned;
+        expect(getCollectionsToVoteOnStub).to.have.returned;
+        expect(findByKeyStub).to.have.returned;
+        expect(collectionsToVoteOn).to.have.length(2);
       });
     });
   });
 
   describe('#vote(boardId, userId, key, increment)', () => {
-    let USERID;
+    const USERID = 'user1';
+    let findOneAndUpdateStub;
+    let removeFromUserVotingListStub;
+    let getCollectionsToVoteOnStub;
+    let setUserReadyToFinishVotingStub;
 
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board'),
-        monky.create('User').then((user) => {USERID = user.id; return user;}),
-        Promise.all([
-          monky.create('Idea'),
-          monky.create('Idea'),
-        ])
-        .then((allIdeas) => {
-          return Promise.all([
-            BoardService.join('1', USERID),
-            monky.create('IdeaCollection', {ideas: allIdeas,
-                         key: COLLECTION_KEY}),
-          ]);
-        }),
-      ])
-      .then(() => {
-        done();
-      });
+    const collectionKeys = ['abc123', 'abc1234'];
+    const emptyCollection = [];
+
+    before(function() {
+      findOneAndUpdateStub = this.stub(IdeaCollection, 'findOneAndUpdate')
+      .returns(Promise.resolve('findOneAndUpdate was called'));
+      removeFromUserVotingListStub = this.stub(KeyValService, 'removeFromUserVotingList')
+      .returns(Promise.resolve('removeFromUserVotingList was called'));
+      setUserReadyToFinishVotingStub = this.stub(VotingService, 'setUserReadyToFinishVoting')
+      .returns(Promise.resolve(true));
     });
 
     afterEach((done) => {
@@ -399,85 +477,61 @@ describe('VotingService', function() {
       });
     });
 
+    it('Should vote on a collection, increment it and set user ready to finish', function() {
+      getCollectionsToVoteOnStub = this.stub(KeyValService, 'getCollectionsToVoteOn')
+      .returns(Promise.resolve(emptyCollection));
 
-    xit('Should vote on a collection and not increment the vote', () => {
-      return VotingService.getVoteList(BOARDID, USERID)
-      .then(() => {
-        return VotingService.vote(BOARDID, USERID, COLLECTION_KEY, false)
-        .then((success) => {
-
-          // Momentarily we send back true as a response to a successful vote
-          // If there are no collections left to vote on it sets the user ready
-          // Either way this is true so how do we differentiate? By Events?
-          expect(success).to.be.true;
-
-          // Have to query for the idea collection we voted on again since votes are stripped
-          return IdeaCollection.findOne({boardId: BOARDID, key: COLLECTION_KEY})
-          .then((collection) => {
-            expect(collection.votes).to.equal(0);
-          });
-        });
+      return expect(VotingService.vote(BOARDID, USERID, 'key', true)).to.be.fulfilled
+      .then((setUserReady) => {
+        expect(findOneAndUpdateStub).to.have.returned;
+        expect(removeFromUserVotingListStub).to.have.returned;
+        expect(getCollectionsToVoteOnStub).to.have.returned;
+        expect(setUserReadyToFinishVotingStub).to.have.returned;
+        expect(setUserReady).to.be.true;
       });
     });
 
-    xit('Should vote on a collection and increment the vote', (done) => {
-      VotingService.getVoteList(BOARDID, USERID)
-      .then(() => {
-        VotingService.vote(BOARDID, USERID, COLLECTION_KEY, true)
-        .then((success) => {
-          expect(success).to.be.true;
-          IdeaCollection.findOne({boardId: BOARDID, key: COLLECTION_KEY})
-          .then((collection) => {
-            expect(collection.votes).to.equal(1);
-            done();
-          });
-        });
+    it('Should vote on a collection and not increment it', function() {
+      getCollectionsToVoteOnStub = this.stub(KeyValService, 'getCollectionsToVoteOn')
+      .returns(Promise.resolve(collectionKeys));
+
+      return expect(VotingService.vote(BOARDID, USERID, 'key', true)).to.be.fulfilled
+      .then((setUserReady) => {
+        expect(findOneAndUpdateStub).to.have.returned;
+        expect(removeFromUserVotingListStub).to.have.returned;
+        expect(getCollectionsToVoteOnStub).to.have.returned;
+        expect(setUserReady).to.be.false;
       });
     });
   });
 
   describe('#getResults(boardId)', () => {
-    let USERID;
 
     beforeEach((done) => {
-      Promise.all([
-        monky.create('Board', {boardId: '1'}),
-        monky.create('User').then((user) => {USERID = user.id; return user;}),
-
-        Promise.all([
-          monky.create('Idea', {boardId: '1', content: 'idea1'}),
-          monky.create('Idea', {boardId: '1', content: 'idea2'}),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            BoardService.join(BOARDID, USERID),
-            monky.create('IdeaCollection', {ideas: allIdeas,
-                         key: COLLECTION_KEY}),
-            monky.create('IdeaCollection', {ideas: [allIdeas[0]]}),
-          ]);
-        }),
-      ])
+      return monky.create('Board', {boardId: BOARDID})
+      .then(() => {
+        return Promise.all([
+          monky.create('Idea', {boardId: BOARDID, content: 'idea1'}),
+          monky.create('Idea', {boardId: BOARDID, content: 'idea2'}),
+        ]);
+      })
+      .then((allIdeas) => {
+        return Promise.all([
+          monky.create('Result', {key: 'resultOne', boardId: BOARDID, ideas: allIdeas}),
+          monky.create('Result', {key: 'resultTwo', boardId: BOARDID, ideas: [allIdeas[0]]}),
+        ]);
+      })
       .then(() => {
         done();
       });
     });
 
-    afterEach((done) => {
-      resetRedis(USERID)
-      .then(() => {
+    it('Should get all of the results on a board ', (done) => {
+      return VotingService.getResults(BOARDID)
+      .then((results) => {
+        expect(_.keys(results)).to.have.length(1);
+        expect(_.keys(results[0])).to.have.length(2);
         done();
-      });
-    });
-
-    xit('Should get all of the results on a board ', (done) => {
-      VotingService.finishVoting(BOARDID)
-      .then(() => {
-        VotingService.getResults(BOARDID)
-        .then((results) => {
-          expect(_.keys(results)).to.have.length(1);
-          expect(_.keys(results[0])).to.have.length(2);
-          done();
-        });
       });
     });
   });
