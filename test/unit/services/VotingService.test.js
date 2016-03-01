@@ -1,10 +1,8 @@
 import {expect} from 'chai';
 import Promise from 'bluebird';
 import _ from 'lodash';
-import sinon from 'sinon';
-
 import {monky} from '../../fixtures';
-import {BOARDID, IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
+import {BOARDID} from '../../constants';
 
 import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/helpers/key-val-store';
@@ -43,28 +41,6 @@ describe('VotingService', function() {
       .returns(Promise.resolve('Set state to vote on collections'));
     });
 
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board')
-        .then(() => {
-        }),
-
-        Promise.all([
-          monky.create('Idea', {boardId: BOARDID, content: IDEA_CONTENT}),
-          monky.create('Idea', {boardId: BOARDID, content: IDEA_CONTENT_2}),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {ideas: allIdeas}),
-            monky.create('IdeaCollection', {ideas: allIdeas}),
-          ]);
-        }),
-      ])
-      .then(() => {
-        done();
-      });
-    });
-
     it('Should set up voting stage', () => {
       return expect(VotingService.startVoting(BOARDID, false, '')).to.be.fulfilled
       .then(() => {
@@ -79,13 +55,13 @@ describe('VotingService', function() {
   describe('#finishVoting(boardId)', () => {
     let boardFindOneStub;
     let ideaCollectionFindStub;
-    // let ideaCollectionSelectStub;
     let ideaCollectionDestroyStub;
     let resultCreateStub;
     let clearVotingDoneStub;
     let stateCreateIdeaCollectionsStub;
 
     const boardObj = { round: 0 };
+
     const collections = [
       {collection1: {ideas: ['idea1', 'idea2'], votes: 0, lastUpdatedId: 'user1'}},
     ];
@@ -103,25 +79,6 @@ describe('VotingService', function() {
       .returns(Promise.resolve('Called KeyValService clearVotingDone'));
       stateCreateIdeaCollectionsStub = this.stub(StateService, 'createIdeaCollections')
       .returns(Promise.resolve('Called state service createIdeaCollections'));
-    });
-
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board'),
-
-        Promise.all([
-          monky.create('Idea'),
-          monky.create('Idea'),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {ideas: allIdeas}),
-          ]);
-        }),
-      ])
-      .then(() => {
-        done();
-      });
     });
 
     it('Should remove current idea collections and create results', () => {
@@ -158,41 +115,20 @@ describe('VotingService', function() {
       .returns(Promise.resolve('finish voting called'));
     });
 
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board'),
-        monky.create('User').then((user) => {USERID = user.id; return user;}),
-
-        Promise.all([
-          monky.create('Idea'),
-          monky.create('Idea'),
-        ])
-        .then((allIdeas) => {
-          Promise.all([
-            monky.create('IdeaCollection', {ideas: allIdeas}),
-          ]);
-        }),
-      ])
-      .then(() => {
-        done();
-      });
-    });
-
     afterEach((done) => {
       resetRedis(USERID)
       .then(() => {
-        getStateStub.restore();
         done();
       });
     });
 
-    it('Should result in the room not being ready to vote', () => {
+    it('Should result in the room not being ready to vote', function() {
       requiredState = StateService.StateEnum.createIdeaCollections;
 
-      isUserReadyToVoteStub = sinon.stub(VotingService, 'isUserReadyToVote')
+      isUserReadyToVoteStub = this.stub(VotingService, 'isUserReadyToVote')
       .returns(Promise.resolve(false));
 
-      getStateStub = sinon.stub(StateService, 'getState')
+      getStateStub = this.stub(StateService, 'getState')
       .returns(Promise.resolve(requiredState));
 
       return expect(VotingService.isRoomReady('start', BOARDID)).to.be.fulfilled
@@ -202,18 +138,16 @@ describe('VotingService', function() {
         expect(getStateStub).to.have.returned;
         expect(startVotingStub).to.not.have.been.called;
         expect(readyToVote).to.be.false;
-
-        isUserReadyToVoteStub.restore();
       });
     });
 
-    it('Should result in the room being ready to vote', () => {
+    it('Should result in the room being ready to vote', function() {
       requiredState = StateService.StateEnum.createIdeaCollections;
 
-      isUserReadyToVoteStub = sinon.stub(VotingService, 'isUserReadyToVote')
+      isUserReadyToVoteStub = this.stub(VotingService, 'isUserReadyToVote')
       .returns(Promise.resolve(true));
 
-      getStateStub = sinon.stub(StateService, 'getState')
+      getStateStub = this.stub(StateService, 'getState')
       .returns(Promise.resolve(requiredState));
 
       return expect(VotingService.isRoomReady('start', BOARDID)).to.be.fulfilled
@@ -223,18 +157,16 @@ describe('VotingService', function() {
         expect(getStateStub).to.have.returned;
         expect(startVotingStub).to.have.been.called;
         expect(readyToVote).to.be.true;
-
-        isUserReadyToVoteStub.restore();
       });
     });
 
-    it('Should result in the room not being ready to finish voting', () => {
+    it('Should result in the room not being ready to finish voting', function() {
       requiredState = StateService.StateEnum.voteOnIdeaCollections;
 
-      isUserDoneVotingStub = sinon.stub(VotingService, 'isUserDoneVoting')
+      isUserDoneVotingStub = this.stub(VotingService, 'isUserDoneVoting')
       .returns(Promise.resolve(false));
 
-      getStateStub = sinon.stub(StateService, 'getState')
+      getStateStub = this.stub(StateService, 'getState')
       .returns(Promise.resolve(requiredState));
 
       return expect(VotingService.isRoomReady('finish', BOARDID)).to.be.fulfilled
@@ -244,18 +176,16 @@ describe('VotingService', function() {
         expect(getStateStub).to.have.returned;
         expect(finishVotingStub).to.have.not.been.called;
         expect(readyToVote).to.be.false;
-
-        isUserDoneVotingStub.restore();
       });
     });
 
-    it('Should result in the room being ready to finish voting', () => {
+    it('Should result in the room being ready to finish voting', function() {
       requiredState = StateService.StateEnum.voteOnIdeaCollections;
 
-      isUserDoneVotingStub = sinon.stub(VotingService, 'isUserDoneVoting')
+      isUserDoneVotingStub = this.stub(VotingService, 'isUserDoneVoting')
       .returns(Promise.resolve(true));
 
-      getStateStub = sinon.stub(StateService, 'getState')
+      getStateStub = this.stub(StateService, 'getState')
       .returns(Promise.resolve(requiredState));
 
       return expect(VotingService.isRoomReady('finish', BOARDID)).to.be.fulfilled
@@ -265,8 +195,6 @@ describe('VotingService', function() {
         expect(getStateStub).to.have.returned;
         expect(finishVotingStub).to.have.been.called;
         expect(readyToVote).to.be.true;
-
-        isUserDoneVotingStub.restore();
       });
     });
   });
@@ -282,15 +210,6 @@ describe('VotingService', function() {
       .returns(Promise.resolve(users));
       getUsersDoneVotingStub = this.stub(KeyValService, 'getUsersDoneVoting')
       .returns(Promise.resolve(users));
-    });
-
-    beforeEach((done) => {
-      Promise.all([
-        monky.create('Board'),
-      ])
-      .then(() => {
-        done();
-      });
     });
 
     it('Should not have the user be ready to vote', () => {
@@ -402,7 +321,8 @@ describe('VotingService', function() {
       });
     });
 
-    // @TODO: Add comments to explain each case
+    // Check to see if a user hasn't voted yet and generates the list of
+    // collections to vote on and stores them in Redis.
     it('Should create a new voting list with all the idea collections', function() {
       checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
       .returns(Promise.resolve(false));
@@ -420,6 +340,8 @@ describe('VotingService', function() {
       });
     });
 
+    // In this case, the user has already voted and is done voting so we look
+    // to send back just an empty collection
     it('Should return an empty collection since the user is done voting', function() {
       checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
       .returns(Promise.resolve(false));
@@ -437,6 +359,8 @@ describe('VotingService', function() {
       });
     });
 
+    // In this case, the user has started voting, but hasn't finished yet so
+    // we get their remaining collection keys from Redis and generate them
     it('Should return remaining idea collections to vote on', function() {
       checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
       .returns(Promise.resolve(true));
