@@ -6,6 +6,7 @@
 import BoardService from './BoardService';
 import TokenService from './TokenService';
 import KeyValService from './KeyValService';
+import Promise from 'bluebird';
 const self = {};
 
 self.StateEnum = {
@@ -42,7 +43,7 @@ function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
       .then((userId) => BoardService.errorIfNotAdmin(boardId, userId));
   }
   else {
-    return false;
+    return Promise.resolve(false);
   }
 }
 

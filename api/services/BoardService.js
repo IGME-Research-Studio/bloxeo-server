@@ -14,6 +14,7 @@ import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
 import { getIdeaCollections } from './IdeaCollectionService';
 import inMemory from './KeyValService';
+import { createIdeasAndIdeaCollections } from './StateService';
 
 const self = {};
 
@@ -23,7 +24,10 @@ const self = {};
  */
 self.create = function(userId) {
   return new Board({users: [userId], admins: [userId]}).save()
-  .then((result) => result.boardId);
+  .then((result) => {
+    return createIdeasAndIdeaCollections(result.boardId, false, '')
+    .then(() => result.boardId);
+  });
 };
 
 /**
