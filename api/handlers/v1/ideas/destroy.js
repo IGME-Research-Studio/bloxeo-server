@@ -34,7 +34,10 @@ export default function remove(req) {
   ])
   .spread(destroyThisIdeaBy)
   .then((allIdeas) => {
-    return [getIdeaCollections(boardId), allIdeas];
+    return Promise.all([
+      getIdeaCollections(boardId),
+      Promise.resolve(allIdeas),
+    ]);
   })
   .then(([ideaCollections, allIdeas]) => {
     return Promise.all([
