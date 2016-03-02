@@ -10,13 +10,13 @@
 import { partial, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
-import { setUserReady } from '../../../services/VotingService';
+import { setUserReadyToVote } from '../../../services/VotingService';
 import { READIED_USER } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function ready(req) {
   const { socket, boardId, userToken } = req;
-  const setUserReadyHere = partial(setUserReady, [boardId]);
+  const setUserReadyHere = partial(setUserReadyToVote, [boardId]);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
