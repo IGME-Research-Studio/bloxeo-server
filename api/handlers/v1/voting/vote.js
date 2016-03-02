@@ -29,7 +29,7 @@ export default function vote(req) {
   return verifyAndGetId(userToken)
     .then(incrementVotesForThis)
     .then(() => {
-      return stream.ok(VOTED, {}, boardId);
+      return stream.okTo(VOTED, {}, boardId);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(VOTED, err.message, socket);
