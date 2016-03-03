@@ -33,7 +33,6 @@ self.findByKey = function(boardId, key) {
  * @returns {Promise} resolves to all collections on a board
  */
 self.create = function(userId, boardId, content) {
-
   return ideaService.findByContent(boardId, content)
   .then((idea) => new IdeaCollection({lastUpdatedId: userId, boardId: boardId,
                                      ideas: [idea.id]}).save())
@@ -56,7 +55,6 @@ self.create = function(userId, boardId, content) {
  * idea collection model
  */
 self.destroyByKey = function(boardId, key) {
-
   return self.findByKey(boardId, key)
   .then((collection) => collection.remove())
   .then(() => self.getIdeaCollections(boardId));
@@ -109,19 +107,17 @@ self.changeIdeas = function(operation, userId, boardId, key, content) {
  * @returns {Promise} - resolves to all the collections on the board
  */
 self.addIdea = function(userId, boardId, key, content) {
-
   return self.changeIdeas('add', userId, boardId, key, content);
 };
 
 /**
  * Remove an Idea from an Idea collection
  * @param {String} boardId
- * @param {String} key - The key of the collection to remove
+ * @param {String} key - The key of the collection to remove from
  * @param {String} content - The content of an Idea to remove
  * @returns {Promise} - resolves to all the collections on the board
  */
 self.removeIdea = function(userId, boardId, key, content) {
-
   return self.changeIdeas('remove', userId, boardId, key, content);
 };
 
@@ -130,7 +126,6 @@ self.removeIdea = function(userId, boardId, key, content) {
  * @returns {Promise} - resolves to all the collections on the board
  */
 self.getIdeaCollections = function(boardId) {
-
   return IdeaCollection.findOnBoard(boardId)
   .then((collections) => _.indexBy(collections, 'key'));
 };

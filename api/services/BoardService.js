@@ -5,7 +5,6 @@
 
 import Promise from 'bluebird';
 import { isNil, isEmpty, contains } from 'ramda';
-
 import { toPlainObject } from '../helpers/utils';
 import { NotFoundError, ValidationError,
   UnauthorizedError } from '../helpers/extendable-error';
@@ -255,8 +254,8 @@ self.isAdmin = function(board, userId) {
 };
 
 self.errorIfNotAdmin = function(board, userId) {
-  if (isAdmin(board, userId)) {
-    return true;
+  if (self.isAdmin(board, userId)) {
+    return Promise.resolve(true);
   }
   else {
     throw new UnauthorizedError('User is not authorized to update board');
