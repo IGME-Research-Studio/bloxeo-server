@@ -281,6 +281,13 @@ self.checkBoardStateExists = self.checkKey(stateKey);
 self.clearBoardState = self.clearKey(stateKey);
 
 /**
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<True|NoOpError|Error>}
+ */
+self.isUserInRoom = self.checkSet(currentUsersKey);
+
+/**
 * @param {String} boardId
 * @returns {Promise<String|Object|NoOpError|Error>}
 */
