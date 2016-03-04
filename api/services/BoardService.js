@@ -318,4 +318,12 @@ self.areThereCollections = function(boardId) {
   });
 };
 
+self.splitSocketIdAndUserId = function(mergedString) {
+  const splitArray = mergedString.split('-');
+  const socketUserObj = {};
+
+  socketUserObj[splitArray[0]] = splitArray[1];
+  return socketUserObj;
+};
+
 module.exports = self;
