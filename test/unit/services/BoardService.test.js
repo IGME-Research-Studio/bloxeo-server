@@ -1,135 +1,156 @@
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import mochaMongoose from 'mocha-mongoose';
-import Monky from 'monky';
-import sinomocha from 'sinomocha';
+import {expect} from 'chai';
+
+import {Types} from 'mongoose';
+import {monky} from '../../fixtures';
+import {BOARDID} from '../../constants';
+
 import { toPlainObject } from '../../../api/helpers/utils';
-import { NotFoundError } from '../../../api/helpers/extendable-error';
-
-import CFG from '../../../config';
-import database from '../../../api/services/database';
+import { NotFoundError, NoOpError } from '../../../api/helpers/extendable-error';
+import {model as BoardModel} from '../../../api/models/Board';
 import BoardService from '../../../api/services/BoardService';
-
-import {schema as BoardSchema, model as BoardModel} from '../../../api/models/Board';
-import {schema as UserSchema} from '../../../api/models/User';
-
-chai.use(chaiAsPromised);
-sinomocha();
-const expect = chai.expect;
-
-mochaMongoose(CFG.mongoURL);
-const mongoose = database();
-const monky = new Monky(mongoose);
-
-const DEF_BOARDID = 'boardid';
-
-mongoose.model('Board', BoardSchema);
-mongoose.model('User', UserSchema);
-
-monky.factory('Board', {boardId: DEF_BOARDID});
-monky.factory('User', {username: 'yolo'});
 
 describe('BoardService', function() {
 
-  before((done) => {
-    database(done);
-  });
-
   describe('#create()', () => {
-    let USER_ID;
+    let USERID;
 
     beforeEach((done) => {
       monky.create('User')
       .then((user) => {
-        USER_ID = user._id;
+        USERID = user._id;
         done();
       });
     });
 
     it('should create a board and return the correct boardId', (done) => {
-      BoardService.create(USER_ID)
+      return BoardService.create(USERID, 'title', 'description')
         .then((createdBoardId) => {
-          try {
-            expect(createdBoardId).to.be.a('string');
-            expect(BoardService.exists(createdBoardId))
-              .to.become(true).notify(done);
-          }
-          catch (e) {
-            done(e);
-          }
+          return Promise.all([
+            Promise.resolve(createdBoardId),
+            BoardModel.findOne({boardId: createdBoardId}),
+          ]);
+        })
+        .then(([boardId, board]) => {
+          expect(boardId).to.be.a('string');
+          expect(board.name).to.equal('title');
+          expect(board.description).to.equal('description');
+          expect(BoardService.exists(boardId)).to.eventually.be.true;
+          done();
         });
     });
 
     it('should add the creating user as the admin', () => {
-      return expect(BoardService.create(USER_ID))
+      return expect(BoardService.create(USERID))
         .to.be.fulfilled
-        .then((boardId) => {
-          return BoardModel.findOne({boardId: boardId})
-            .then((board) => {
-              expect(toPlainObject(board.admins[0])).to.equal(toPlainObject(USER_ID));
-              expect(toPlainObject(board.users[0])).to.equal(toPlainObject(USER_ID));
+        .then((createdBoardId) => {
+          return BoardModel.findOne({boardId: createdBoardId})
+            .then((createdBoard) => {
+              expect(toPlainObject(createdBoard.admins[0]))
+                .to.equal(toPlainObject(USERID));
+              expect(toPlainObject(createdBoard.users[0]))
+                .to.equal(toPlainObject(USERID));
             });
         });
     });
   });
 
-  describe('#addUser(boardId, userId)', function() {
-    let DEF_USERID;
+  describe('#addUser(boardId, userId, socketId)', function() {
+    let USERID;
+    const SOCKETID = 'socketId123';
 
     beforeEach((done) => {
       Promise.all([
         monky.create('Board'),
         monky.create('User')
           .then((user) => {
-            DEF_USERID = user.id;
+            USERID = user.id;
             done();
           }),
       ]);
     });
 
-    it('should add the existing user as an admin on the board', function(done) {
-      BoardService.addUser(DEF_BOARDID, DEF_USERID)
-        .then((board) => {
-          expect(toPlainObject(board.users[0])).to.equal(DEF_USERID);
+    it('should add the existing user to the board', function(done) {
+      BoardService.addUser(BOARDID, USERID, SOCKETID)
+        .then(([board, additionsToRoom]) => {
+          expect(toPlainObject(board.users[0])).to.equal(USERID);
+          expect(additionsToRoom).to.equal(`${SOCKETID}-${USERID}`);
           done();
         });
     });
 
     it('should reject if the user does not exist on the board', function() {
-      const userThatDoesntExist = mongoose.Types.ObjectId();
-      return expect(BoardService.addUser(DEF_BOARDID, userThatDoesntExist))
-        .to.be.rejectedWith(NotFoundError, /does not exist/);
+      const userThatDoesntExist = Types.ObjectId();
+      return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+        .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
     });
   });
 
+  // describe('#removeUser(boardId, userId, socketId)', function() {
+  //   let USERID;
+  //   const SOCKETID = 'socketId123';
+  //
+  //   beforeEach((done) => {
+  //     Promise.all([
+  //       monky.create('Board'),
+  //       monky.create('User')
+  //         .then((user) => {
+  //           USERID = user.id;
+  //           return addUser(BOARDID, USERID, SOCKETID)
+  //           done();
+  //         }),
+  //     ]);
+  //   });
+  //
+  //   it('should add the existing user to the board', function(done) {
+  //     BoardService.addUser(BOARDID, USERID, SOCKETID)
+  //       .then(([board, additionsToRoom]) => {
+  //         expect(toPlainObject(board.users[0])).to.equal(USERID);
+  //         expect(additionsToRoom).to.equal(`${SOCKETID}-${USERID}`);
+  //         done();
+  //       });
+  //   });
+  //
+  //   it('should reject if the user does not exist on the board', function() {
+  //     const userThatDoesntExist = Types.ObjectId();
+  //     return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+  //       .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
+  //   });
+  // });
+
   describe('#addAdmin(boardId, userId)', function() {
-    let DEF_USERID;
+    let USERID;
+    let USERID_2;
 
     beforeEach((done) => {
-      monky.create('User')
-        .then((user) => {
-          monky.create('Board', {boardId: DEF_BOARDID, users: [user]})
-            .then((board) => {
-              DEF_USERID = board.users[0].id;
-              done();
-            });
+      Promise.all([
+        monky.create('User'),
+        monky.create('User'),
+      ])
+      .then((users) => {
+        monky.create('Board', {boardId: BOARDID, users: users, admins: [users[1]]})
+        .then((board) => {
+          USERID = board.users[0].id;
+          USERID_2 = board.users[1].id;
+          done();
         });
+      });
     });
 
-    it('should add the existing user as an admin on the board', function(done) {
-      BoardService.addAdmin(DEF_BOARDID, DEF_USERID)
+    it('should add the existing user as an admin on the board', function() {
+      return BoardService.addAdmin(BOARDID, USERID)
         .then((board) => {
-          expect(toPlainObject(board.admins[0])).to.equal(DEF_USERID);
-          done();
+          return expect(toPlainObject(board.admins)).to.include(USERID);
         });
     });
 
     it('should reject if the user does not exist on the board', function() {
-      return expect(BoardService.addAdmin(DEF_BOARDID, 'user-not-on-the-board'))
+      return expect(BoardService.addAdmin(BOARDID, 'user-not-on-the-board'))
         .to.be.rejectedWith(NotFoundError, /does not exist/);
     });
 
-    xit('should reject if the user is already an admin on the board', function() {
+    it('should reject if the user is already an admin on the board', function() {
+      return expect(BoardService.addAdmin(BOARDID, USERID_2))
+        .to.be.rejectedWith(NoOpError, /is already an admin on the board/);
     });
   });
 
@@ -137,33 +158,102 @@ describe('BoardService', function() {
   });
 
   describe('#isUser(board, userId)', function() {
-    let DEF_USERID;
+    let USERID;
 
     beforeEach((done) => {
       monky.create('User')
         .then((user) => {
-          monky.create('Board', {boardId: DEF_BOARDID, users: [user]})
+          return monky.create('Board', {boardId: BOARDID, users: [user]})
             .then((board) => {
-              DEF_USERID = board.users[0].id;
+              USERID = board.users[0].id;
               done();
             });
         });
     });
 
     it('should return true when the user exists', function() {
-      return BoardModel.findOne({boardId: DEF_BOARDID})
+      return BoardModel.findOne({boardId: BOARDID})
         .then((board) => {
-          return expect(BoardService.isUser(board, DEF_USERID))
+          return expect(BoardService.isUser(board, USERID))
             .to.equal(true);
         });
     });
 
     it('should return false when the user doesn\'t exists', function() {
-      return BoardModel.findOne({boardId: DEF_BOARDID})
+      return BoardModel.findOne({boardId: BOARDID})
         .then((board) => {
           return expect(BoardService.isUser(board, 'a nonexistant userid'))
             .to.equal(false);
         });
+    });
+  });
+
+  describe('#getUsers(boardId)', () => {
+    beforeEach((done) => {
+      Promise.all([
+        monky.create('User'),
+      ])
+      .then((users) => {
+        monky.create('Board', {boardId: BOARDID, users: users})
+        .then(() => {
+          done();
+        });
+      });
+    });
+
+    it('Should throw a not found error if the board does not exist', () => {
+      return expect(BoardService.getUsers('notRealId')).to.eventually.be.rejectedWith(NotFoundError);
+    });
+
+    it('Should return the users on the board', (done) => {
+      return BoardService.getUsers(BOARDID)
+      .then((users) => {
+        expect(users).to.have.length(1);
+        done();
+      });
+    });
+  });
+
+  describe('#getBoardOptions(boardId)', () => {
+    beforeEach((done) => {
+      monky.create('Board')
+      .then(() => {
+        done();
+      });
+    });
+
+    it('Should return the board options', (done) => {
+      return BoardService.getBoardOptions(BOARDID)
+      .then((options) => {
+        expect(options).to.be.an('object');
+        expect(options).to.have.property('userColorsEnabled');
+        expect(options).to.have.property('numResultsShown');
+        expect(options).to.have.property('numResultsReturn');
+        done();
+      });
+    });
+  });
+
+  describe('#findBoardsForUser(userId)', function() {
+    const BOARDID_A = 'abc123';
+    const BOARDID_B = 'def456';
+    let USERID;
+
+    beforeEach(() => {
+      return monky.create('User')
+        .then((user) => { USERID = user.id; return user;})
+        .then((user) => {
+          return Promise.all([
+            monky.create('Board', {boardId: BOARDID_A, users: [user]}),
+            monky.create('Board', {boardId: BOARDID_B, users: [user]}),
+            monky.create('Board'),
+          ]);
+        });
+    });
+
+    it('should return the boards a user is a part of', function() {
+      return expect(BoardService.getBoardsForUser(USERID))
+        .to.eventually.have.length(2);
     });
   });
 });

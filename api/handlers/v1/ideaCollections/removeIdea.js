@@ -6,11 +6,11 @@
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to create
 * @param {string} req.key key of the collection
+* @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partialRight, isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { removeIdea as removeIdeaFromCollection } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../helpers/utils';
@@ -19,13 +19,14 @@ import stream from '../../../event-stream';
 
 export default function removeIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
-  const removeThisIdeaBy = R.partialRight(removeIdeaFromCollection, [boardId, key, content]);
+  const removeThisIdeaBy = partialRight(removeIdeaFromCollection,
+                                        [boardId, key, content]);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(content) || isNull(key) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(content) || isNil(key) || isNil(userToken)) {
     return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
   }
 

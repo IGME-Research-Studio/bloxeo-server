@@ -4,10 +4,11 @@
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
 * @param {string} req.boardId
+* @param {string} req.userToken
 */
 
+import { isNil } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getIdeaCollections } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip } from '../../../helpers/utils';
@@ -18,11 +19,11 @@ export default function index(req) {
   const { socket, boardId, userToken } = req;
   const getCollections = () => getIdeaCollections(boardId);
 
-  if (isNull(socket)) {
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
 
-  if (isNull(boardId) || isNull(userToken)) {
+  if (isNil(boardId) || isNil(userToken)) {
     return stream.badRequest(RECEIVED_COLLECTIONS, {}, socket);
   }
 
