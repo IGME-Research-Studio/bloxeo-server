@@ -180,19 +180,20 @@ self.validateBoardAndUser = function(boardId, userId) {
  * Adds a user to a board in Mongoose and Redis
  * @param {String} boardId
  * @param {String} userId
+ * @param {String} socketId
  * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
  */
-self.addUser = function(boardId, userId) {
+self.addUser = function(boardId, userId, socketId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (self.isUser(board, userId)) {
-      throw new NoOpError(
-        `User ${userId} already exists on the board ${boardId}`,
-        {user: userId, board: boardId});
+      self.addUserToRedis(boardId, userId, socketId);
     }
     else {
-      board.users.push(userId);
-      return Promise.join(board.save(), inMemory.addUser(boardId, userId));
+      return Promise.all([
+        self.addUserToMongo(board, userId),
+        self.addUserToRedis(boardId, userId, socketId),
+      ]);
     }
   })
   .return([boardId, userId]);
@@ -202,22 +203,40 @@ self.addUser = function(boardId, userId) {
  * Removes a user from a board in Mongoose and Redis
  * @param {String} boardId
  * @param {String} userId
- * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ * @param {String} socketId
+ * @returns {Promise<[Redis]|Error> } resolves to a Redis response
  */
-self.removeUser = function(boardId, userId) {
+self.removeUser = function(boardId, userId, socketId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (!self.isUser(board, userId)) {
-      throw new ValidationError(
-        `User ${userId} is not already on the board ${boardId}`,
-        {user: userId, board: boardId});
+      throw new NoOpError(
+        `No user with userId ${userId} to remove from boardId ${boardId}`);
     }
     else {
-      board.users.pull(userId);
-      return Promise.join(board.save(), inMemory.removeUser(boardId, userId));
+      // @TODO: When admins become fully implmented, remove user from mongo too
+      return self.removeUserFromRedis(boardId, userId, socketId);
     }
   })
   .return([boardId, userId]);
+};
+
+self.addUserToMongo = function(board, userId) {
+  board.users.push(userId);
+  return board.save();
+};
+
+self.removeUserFromMongo = function(boardId, userId) {
+  board.users.pull(userId);
+  return board.save();
+};
+
+self.addUserToRedis = function(boardId, userId, socketId) {
+  return inMemory.addUser(boardId, userId, socketId);
+};
+
+self.removeUserFromRedis = function(boardId, userId, socketId) {
+  return inMemory.removeUser(boardId, userId, socketId);
 };
 
 /**

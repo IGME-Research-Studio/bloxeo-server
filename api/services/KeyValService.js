@@ -41,7 +41,7 @@ const votingListPerUser = curry((boardId, userId) => {
   return `${boardId}-voting-${userId}`;
 });
 // A Redis set created for every board
-// It holds the user ids of users currently in the board
+// It holds the user ids and socket ids of users currently in the board
 const currentUsersKey = (boardId) => `${boardId}-current-users`;
 // A Redis string created for every board
 // It holds a JSON string representing the state of the board
@@ -106,6 +106,18 @@ self.changeUser = curry((operation, keyGen, boardId, userId) => {
   return Redis[method](keyGen(boardId), userId)
     .then(maybeThrowIfNoOp)
     .then(() => userId);
+});
+
+self.changeConnectedUser = curry((operation, keyGen, boardId, userId, socketId) => {
+  let method;
+
+  if (operation.toLowerCase() === 'add') method = 'sadd';
+  else if (operation.toLowerCase() === 'remove') method = 'srem';
+  else throw new Error(`Invalid operation ${operation}`);
+
+  return Redis[method](keyGen(boardId), `${socketId}-${userId}`)
+    .then(maybeThrowIfNoOp)
+    .then(() => `${socketId}-${userId}`);
 });
 
 /**
@@ -230,10 +242,17 @@ self.checkSetExists = curry((keyGen, boardId, userId) => {
 /**
  * @param {String} boardId
  * @param {String} userId
+ * @param {String} socketId
  * @returns {Promise<Integer|NoOpError|Error>}
  */
-self.addUser = self.changeUser('add', currentUsersKey);
-self.removeUser = self.changeUser('remove', currentUsersKey);
+self.addUser = self.changeConnectedUser('add', currentUsersKey);
+self.removeUser = self.changeConnectedUser('remove', currentUsersKey);
+
+/**
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<Integer|NoOpError|Error>}
+ */
 self.readyUserToVote = self.changeUser('add', votingReadyKey);
 self.readyUserDoneVoting = self.changeUser('add', votingDoneKey);
 
