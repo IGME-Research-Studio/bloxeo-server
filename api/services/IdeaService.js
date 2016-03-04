@@ -74,4 +74,4 @@ self.getIdeas = function(boardId) {
   return Idea.findOnBoard(boardId);
 };
 
-module.exports = self;
+export default self;

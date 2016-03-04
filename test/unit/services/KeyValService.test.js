@@ -44,10 +44,9 @@ describe('KeyValService', function() {
         });
     });
 
-    describe('#addUser|#readyUser|#finishVoteUser(boardId, userId)', function() {
-      [KeyValService.addUser,
-       KeyValService.readyUserToVote,
-       KeyValService.readyUserDoneVoting]
+    describe('#readyUser|#finishVoteUser(boardId, userId)', function() {
+      [KeyValService.readyUserToVote,
+        KeyValService.readyUserDoneVoting]
        .forEach(function(subject) {
          it('should succesfully call sadd and return the userId', function() {
            return expect(subject(BOARDID, USERNAME))
@@ -60,10 +59,25 @@ describe('KeyValService', function() {
        });
     });
 
-    describe('#removeUser(boardId, userId)', function() {
+    describe('#addUser(boardId, userId, socketId)', function() {
+      const SOCKETID = 'socketId123';
+
+      it('should successfully call sadd and return the socketId-userId', function() {
+        return expect(KeyValService.addUser(BOARDID, USERNAME, SOCKETID))
+        .to.eventually.equal(`${SOCKETID}-${USERNAME}`)
+        .then(function() {
+          expect(RedisStub.sadd).to.have.been.called;
+          expect(RedisStub.srem).to.not.have.been.called;
+        });
+      });
+    });
+
+    describe('#removeUser(boardId, userId, socketId)', function() {
+      const SOCKETID = 'socketId123';
+
       it('should succesfully call sadd and return the userId', function() {
-        return expect(KeyValService.removeUser(BOARDID, USERNAME))
-          .to.eventually.equal(USERNAME)
+        return expect(KeyValService.removeUser(BOARDID, USERNAME, SOCKETID))
+          .to.eventually.equal(`${SOCKETID}-${USERNAME}`)
           .then(function() {
             expect(RedisStub.srem).to.have.been.called;
             expect(RedisStub.sadd).to.not.have.been.called;
