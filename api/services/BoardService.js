@@ -7,8 +7,8 @@ import Promise from 'bluebird';
 import { isNil, isEmpty, not, contains } from 'ramda';
 
 import { toPlainObject } from '../helpers/utils';
-import { NotFoundError, ValidationError,
-  UnauthorizedError, NoOpError } from '../helpers/extendable-error';
+import { NotFoundError, UnauthorizedError,
+   NoOpError } from '../helpers/extendable-error';
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
@@ -187,7 +187,7 @@ self.addUser = function(boardId, userId, socketId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (self.isUser(board, userId)) {
-      self.addUserToRedis(boardId, userId, socketId);
+      return self.addUserToRedis(boardId, userId, socketId);
     }
     else {
       return Promise.all([
@@ -195,8 +195,7 @@ self.addUser = function(boardId, userId, socketId) {
         self.addUserToRedis(boardId, userId, socketId),
       ]);
     }
-  })
-  .return([boardId, userId]);
+  });
 };
 
 /**
