@@ -54,8 +54,9 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#addUser(boardId, userId)', function() {
+  describe('#addUser(boardId, userId, socketId)', function() {
     let USERID;
+    const SOCKETID = 'socketId123';
 
     beforeEach((done) => {
       Promise.all([
@@ -68,10 +69,12 @@ describe('BoardService', function() {
       ]);
     });
 
-    it('should add the existing user to the board', function() {
-      return BoardService.addUser(BOARDID, USERID)
-        .then(([__, userId]) => {
-          expect(userId).to.equal(USERID);
+    it('should add the existing user to the board', function(done) {
+      BoardService.addUser(BOARDID, USERID, SOCKETID)
+        .then(([board, additionsToRoom]) => {
+          expect(toPlainObject(board.users[0])).to.equal(USERID);
+          expect(additionsToRoom).to.equal(`${SOCKETID}-${USERID}`);
+          done();
         });
     });
 
@@ -81,6 +84,38 @@ describe('BoardService', function() {
         .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
     });
   });
+
+  // describe('#removeUser(boardId, userId, socketId)', function() {
+  //   let USERID;
+  //   const SOCKETID = 'socketId123';
+  //
+  //   beforeEach((done) => {
+  //     Promise.all([
+  //       monky.create('Board'),
+  //       monky.create('User')
+  //         .then((user) => {
+  //           USERID = user.id;
+  //           return addUser(BOARDID, USERID, SOCKETID)
+  //           done();
+  //         }),
+  //     ]);
+  //   });
+  //
+  //   it('should add the existing user to the board', function(done) {
+  //     BoardService.addUser(BOARDID, USERID, SOCKETID)
+  //       .then(([board, additionsToRoom]) => {
+  //         expect(toPlainObject(board.users[0])).to.equal(USERID);
+  //         expect(additionsToRoom).to.equal(`${SOCKETID}-${USERID}`);
+  //         done();
+  //       });
+  //   });
+  //
+  //   it('should reject if the user does not exist on the board', function() {
+  //     const userThatDoesntExist = Types.ObjectId();
+  //     return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+  //       .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
+  //   });
+  // });
 
   describe('#addAdmin(boardId, userId)', function() {
     let USERID;
