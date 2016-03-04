@@ -256,4 +256,15 @@ describe('BoardService', function() {
         .to.eventually.have.length(2);
     });
   });
+
+  describe('#splitSocketIdAndUserId(mergedString)', function() {
+    const USERID = 'userId123';
+    const SOCKETID = 'socketId123';
+    const mergedString = `${SOCKETID}-${USERID}`;
+
+    it('Should return an object containing the socketId and userId', function() {
+      return expect(BoardService.splitSocketIdAndUserId(mergedString)).to.be.an('object')
+      .with.property(`${SOCKETID}`, USERID);
+    });
+  });
 });
