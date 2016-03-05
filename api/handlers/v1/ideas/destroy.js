@@ -8,24 +8,26 @@
 * @param {string} req.userToken
 */
 
-import { curry, isNil, __ } from 'ramda';
+import { curry, isNil, __, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { destroy } from '../../../services/IdeaService';
-import { stripMap as strip } from '../../../helpers/utils';
+import { stripMap as strip, anyAreNil } from '../../../helpers/utils';
 import { UPDATED_IDEAS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 import Promise from 'bluebird';
 
 export default function remove(req) {
   const { socket, boardId, content, userToken } = req;
+  const required = { boardId, content, userToken };
+
   const destroyThisIdeaBy = curry(destroy, __, __, content);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNil(boardId) || isNil(userToken)) {
-    return stream.badRequest(UPDATED_IDEAS, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(UPDATED_IDEAS, required, socket);
   }
 
   return Promise.all([

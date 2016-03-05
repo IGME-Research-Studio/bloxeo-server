@@ -6,20 +6,21 @@
 * @param {string} req.boardId the id of the room to join
 */
 
-import { isNil } from 'ramda';
+import { isNil, values } from 'ramda';
 import { getBoardOptions } from '../../../services/BoardService';
+import { anyAreNil } from '../../../helpers/utils';
 import { RECEIVED_OPTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function getOptions(req) {
   const { socket, boardId } = req;
+  const required = { boardId };
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
-  if (isNil(boardId)) {
-    return stream.badRequest(RECEIVED_OPTIONS, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(RECEIVED_OPTIONS, required, socket);
   }
 
   return getBoardOptions(boardId)

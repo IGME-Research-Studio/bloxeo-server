@@ -1,4 +1,4 @@
-import R from 'ramda';
+import { any, isNil, pipe, map, omit } from 'ramda';
 
 const utils = {
   /**
@@ -21,7 +21,7 @@ const utils = {
    * @return {Object}
    */
   strip: (mongooseResult, omitBy = ['_id']) => {
-    return R.pipe(R.omit(omitBy), utils.toPlainObject)(mongooseResult);
+    return pipe(omit(omitBy), utils.toPlainObject)(mongooseResult);
   },
 
   /**
@@ -33,7 +33,7 @@ const utils = {
    * @return {Object}
    */
   stripMap: (mongooseResult, omitBy = ['_id']) => {
-    return R.pipe(R.map(R.omit(omitBy)), utils.toPlainObject)(mongooseResult);
+    return pipe(map(omit(omitBy)), utils.toPlainObject)(mongooseResult);
   },
 
   /**
@@ -45,13 +45,19 @@ const utils = {
    */
   stripNestedMap: (mongooseResult, omitBy = ['_id'], arrKey = 'ideas') => {
     const stripNested = (obj) => {
-      obj[arrKey] = R.map(R.omit(omitBy))(obj[arrKey]);
+      obj[arrKey] = map(omit(omitBy))(obj[arrKey]);
       return obj;
     };
-    return R.pipe(R.map(R.omit(omitBy)),
-                     R.map(stripNested),
-                     utils.toPlainObject)(mongooseResult);
+    return pipe(map(omit(omitBy)),
+                    map(stripNested),
+                    utils.toPlainObject)(mongooseResult);
   },
+
+  /**
+   * @param {Array<T>} arrayOfValues
+   * @returns {Boolean} True if any value is null or undefined
+   */
+  anyAreNil: any(isNil),
 };
 
 module.exports = utils;

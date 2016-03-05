@@ -8,25 +8,28 @@
 * @param {string} req.userToken
 */
 
-import { partial, isNil } from 'ramda';
+import { partial, isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { UnauthorizedError } from '../../../helpers/extendable-error';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { stopTimer } from '../../../services/TimerService';
 import { errorIfNotAdmin } from '../../../services/BoardService';
 import { DISABLED_TIMER } from '../../../constants/EXT_EVENT_API';
+import { anyAreNil } from '../../../helpers/utils';
 import stream from '../../../event-stream';
 
 export default function stop(req) {
   const { socket, boardId, timerId, userToken } = req;
+  const required = { boardId, timerId, userToken };
+
   const stopThisTimer = () => stopTimer(timerId);
   const errorIfNotAdminOnThisBoard = partial(errorIfNotAdmin, [boardId]);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNil(boardId) || isNil(timerId) || isNil(userToken)) {
-    return stream.badRequest(DISABLED_TIMER, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(DISABLED_TIMER, required, socket);
   }
 
   return verifyAndGetId(userToken)

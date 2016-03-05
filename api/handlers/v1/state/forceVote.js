@@ -7,22 +7,25 @@
 * @param {string} req.userToken
 */
 
-import { partial, isNil } from 'ramda';
+import { partial, isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { voteOnIdeaCollections } from '../../../services/StateService';
 import { FORCED_VOTE } from '../../../constants/EXT_EVENT_API';
+import { anyAreNil } from '../../../helpers/utils';
 import stream from '../../../event-stream';
 
 export default function forceVote(req) {
-  const { socket, boardId, userToken } = req;
+  const { socket, boardid, usertoken } = req;
+  const required = { boardid, usertoken };
+
   const setState = partial(voteOnIdeaCollections, [boardId, true]);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNil(boardId) || isNil(userToken)) {
-    return stream.badRequest(FORCED_VOTE, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(FORCED_VOTE, required, socket);
   }
 
   return verifyAndGetId(userToken)
