@@ -7,9 +7,10 @@
 * @param {string} req.userToken
 */
 
-import { curry, isNil } from 'ramda';
+import { curry, isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { NotFoundError, ValidationError } from '../../../helpers/extendable-error';
+import { anyAreNil } from '../../../helpers/utils';
 import { addUser } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
@@ -17,13 +18,15 @@ import stream from '../../../event-stream';
 
 export default function join(req) {
   const { socket, boardId, userToken } = req;
+  const required = { boardId, userToken };
+
   const addThisUser = curry(addUser)(boardId);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNil(boardId) || isNil(userToken)) {
-    return stream.badRequest(JOINED_ROOM, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(JOINED_ROOM, required, socket);
   }
 
   return verifyAndGetId(userToken)

@@ -8,22 +8,25 @@
 * @param {string} req.userToken
 */
 
-import { isNil } from 'ramda';
+import { isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getTimeLeft } from '../../../services/TimerService';
 import { RECEIVED_TIME } from '../../../constants/EXT_EVENT_API';
+import { anyAreNil } from '../../../helpers/utils';
 import stream from '../../../event-stream';
 
 export default function getTime(req) {
   const { socket, boardId, timerId, userToken } = req;
+  const required = { boardId, timerId, userToken };
+
   const getThisTimeLeft = () => getTimeLeft(timerId);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-  if (isNil(boardId) || isNil(timerId) || isNil(userToken)) {
-    return stream.badRequest(RECEIVED_TIME, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(RECEIVED_TIME, required, socket);
   }
 
   return verifyAndGetId(userToken)
