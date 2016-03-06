@@ -7,7 +7,7 @@
 * @param {string} req.userToken
 */
 
-import { curry, isNil, values } from 'ramda';
+import { isNil, values } from 'ramda';
 import { removeUser} from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { anyAreNil } from '../../../helpers/utils';
@@ -18,8 +18,6 @@ export default function leave(req) {
   const { socket, boardId, userToken } = req;
   const required = { boardId, userToken };
 
-  const removeThisUser = curry(removeUser)(boardId);
-
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
@@ -28,7 +26,12 @@ export default function leave(req) {
   }
 
   return verifyAndGetId(userToken)
-    .then(removeThisUser)
+    .then((userId) => {
+      return Promise.all([
+        removeUser(boardId, userId, socket.id),
+        Promise.resolve(userId),
+      ]);
+    })
     .then(([__, userId]) => {
       return stream.leave({socket, boardId, userId});
     })
