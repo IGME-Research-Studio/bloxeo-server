@@ -8,8 +8,17 @@ import { toPlainObject } from '../../../api/helpers/utils';
 import { NotFoundError, NoOpError } from '../../../api/helpers/extendable-error';
 import {model as BoardModel} from '../../../api/models/Board';
 import BoardService from '../../../api/services/BoardService';
+import KeyValService from '../../../api/services/KeyValService';
 
 describe('BoardService', function() {
+  const SOCKETID = 'socket123';
+
+  const resetRedis = function(socketId) {
+    return Promise.all([
+      KeyValService.clearCurrentSocketConnections(BOARDID),
+      KeyValService.clearCurrentSocketUserIds(socketId),
+    ]);
+  };
 
   describe('#create()', () => {
     let USERID;
@@ -56,7 +65,6 @@ describe('BoardService', function() {
 
   describe('#addUser(boardId, userId, socketId)', function() {
     let USERID;
-    const SOCKETID = 'socketId123';
 
     beforeEach((done) => {
       Promise.all([
@@ -69,11 +77,29 @@ describe('BoardService', function() {
       ]);
     });
 
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
     it('should add the existing user to the board', function(done) {
       BoardService.addUser(BOARDID, USERID, SOCKETID)
-        .then(([board, additionsToRoom]) => {
+        .then(([socketId, userId]) => {
+          return Promise.all([
+            BoardModel.findOne({boardId: BOARDID}),
+            Promise.resolve(socketId),
+            Promise.resolve(userId),
+          ]);
+        })
+        .then(([board, socketId, userId]) => {
           expect(toPlainObject(board.users[0])).to.equal(USERID);
-          expect(additionsToRoom).to.equal(`${SOCKETID}-${USERID}`);
+          expect(socketId).to.equal(SOCKETID);
+          expect(userId).to.equal(USERID);
           done();
         });
     });
@@ -85,37 +111,48 @@ describe('BoardService', function() {
     });
   });
 
-  // describe('#removeUser(boardId, userId, socketId)', function() {
-  //   let USERID;
-  //   const SOCKETID = 'socketId123';
-  //
-  //   beforeEach((done) => {
-  //     Promise.all([
-  //       monky.create('Board'),
-  //       monky.create('User')
-  //         .then((user) => {
-  //           USERID = user.id;
-  //           return addUser(BOARDID, USERID, SOCKETID)
-  //           done();
-  //         }),
-  //     ]);
-  //   });
-  //
-  //   it('should add the existing user to the board', function(done) {
-  //     BoardService.addUser(BOARDID, USERID, SOCKETID)
-  //       .then(([board, additionsToRoom]) => {
-  //         expect(toPlainObject(board.users[0])).to.equal(USERID);
-  //         expect(additionsToRoom).to.equal(`${SOCKETID}-${USERID}`);
-  //         done();
-  //       });
-  //   });
-  //
-  //   it('should reject if the user does not exist on the board', function() {
-  //     const userThatDoesntExist = Types.ObjectId();
-  //     return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
-  //       .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
-  //   });
-  // });
+  describe('#removeUser(boardId, userId, socketId)', function() {
+    let USERID;
+
+    beforeEach((done) => {
+      return Promise.all([
+        monky.create('Board'),
+        monky.create('User'),
+      ])
+      .then(([__, user]) => {
+        USERID = user.id;
+        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should remove the existing user from the board', function(done) {
+      BoardService.removeUser(BOARDID, USERID, SOCKETID)
+        .then(([socketId, userId]) => {
+          expect(socketId).to.equal(SOCKETID);
+          expect(userId).to.equal(USERID);
+          done();
+        });
+    });
+
+    it('should reject if the user does not exist on the board', function() {
+      const userThatDoesntExist = Types.ObjectId();
+      return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+        .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
+    });
+  });
 
   describe('#addAdmin(boardId, userId)', function() {
     let USERID;
@@ -234,7 +271,7 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#findBoardsForUser(userId)', function() {
+  describe('#getBoardsForUser(userId)', function() {
     const BOARDID_A = 'abc123';
     const BOARDID_B = 'def456';
     let USERID;
@@ -257,14 +294,75 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#splitSocketIdAndUserId(mergedString)', function() {
-    const USERID = 'userId123';
-    const SOCKETID = 'socketId123';
-    const mergedString = `${SOCKETID}-${USERID}`;
+  describe('#getBoardForSocket(socketId)', function() {
+    let USERID;
 
-    it('Should return an object containing the socketId and userId', function() {
-      return expect(BoardService.splitSocketIdAndUserId(mergedString)).to.be.an('object')
-      .with.property(`${SOCKETID}`, USERID);
+    beforeEach((done) => {
+      return monky.create('User')
+      .then((user) => {
+        USERID = user.id;
+        return monky.create('Board', {boardId: BOARDID, users: [user]});
+      })
+      .then(() => {
+        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should return the board the socket is connected to', function(done) {
+      return BoardService.getBoardForSocket(SOCKETID)
+      .then((board) => {
+        expect(board.boardId).to.equal(BOARDID);
+        done();
+      });
+    });
+  });
+
+  describe('#getAllUsersInRoom(boardId)', function() {
+    let USERID;
+
+    beforeEach((done) => {
+      return monky.create('User')
+      .then((user) => {
+        USERID = user.id;
+        return monky.create('Board', {boardId: BOARDID});
+      })
+      .then(() => {
+        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should return the user ids connected to a room', function(done) {
+      return BoardService.getAllUsersInRoom(BOARDID)
+      .then(([userId]) => {
+        expect(userId).to.equal(USERID);
+        done();
+      });
     });
   });
 });
