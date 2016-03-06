@@ -80,6 +80,19 @@ self.getBoardsForUser = function(userId) {
 };
 
 /**
+* Gets the board that the socket is currently connected to
+* @param {String} socketId
+* @returns {Promise<MongoBoard|Error} returns the board of the connected socket
+*/
+self.getBoardForSocket = function(socketId) {
+  return inMemory.getUserFromSocket(socketId)
+  .then((userId) => {
+    return self.getBoardsForUser(userId);
+  })
+  .then(([board]) => board);
+};
+
+/**
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
@@ -139,6 +152,15 @@ self.getUsers = function(boardId) {
 };
 
 /**
+* Get all the connected users in a room from Redis
+* @param {String} boardId
+* @returns {Promise<Array|Error>} returns an array of user ids
+*/
+self.getAllUsersInRoom = function(boardId) {
+  return inMemory.getUsersInRoom(boardId);
+};
+
+/**
  * Find all admins on a board
  * @param {String} boardId the boardId to retrieve the admins from
  * @returns {Promise<MongooseArray|Error>}
@@ -195,7 +217,8 @@ self.addUser = function(boardId, userId, socketId) {
         self.addUserToRedis(boardId, userId, socketId),
       ]);
     }
-  });
+  })
+  .return([socketId, userId]);
 };
 
 /**
@@ -217,23 +240,49 @@ self.removeUser = function(boardId, userId, socketId) {
       return self.removeUserFromRedis(boardId, userId, socketId);
     }
   })
-  .return([boardId, userId]);
+  .return([socketId, userId]);
 };
 
+/**
+* Adds the user to a board on mongo
+* @param {MongoBoard} board: the mongo board
+* @param {String} userId
+* @param {Promise<MongoBoard|Error>}
+*/
 self.addUserToMongo = function(board, userId) {
   board.users.push(userId);
   return board.save();
 };
 
+/**
+* Removes the user from the board on mongo
+* @param {String} boardId
+* @param {String} userId
+* @returns {Promise<MongoBoard|Error>}
+*/
 self.removeUserFromMongo = function(boardId, userId) {
   board.users.pull(userId);
   return board.save();
 };
 
+/**
+* Adds the user id to redis
+* @param {String} boardId
+* @param {String} userId
+* @param {String} socketId
+* @returns {Promise<Array|Error>}
+*/
 self.addUserToRedis = function(boardId, userId, socketId) {
   return inMemory.addUser(boardId, userId, socketId);
 };
 
+/**
+* Removes the user id from redis
+* @param {String} boardId
+* @param {String} userId
+* @param {String} socketId
+* @returns {Promise<Array|Error>}
+*/
 self.removeUserFromRedis = function(boardId, userId, socketId) {
   return inMemory.removeUser(boardId, userId, socketId);
 };
@@ -316,14 +365,6 @@ self.areThereCollections = function(boardId) {
       return false;
     }
   });
-};
-
-self.splitSocketIdAndUserId = function(mergedString) {
-  const splitArray = mergedString.split('-');
-  const socketUserObj = {};
-
-  socketUserObj[splitArray[0]] = splitArray[1];
-  return socketUserObj;
 };
 
 module.exports = self;

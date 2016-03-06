@@ -64,7 +64,7 @@ describe('KeyValService', function() {
 
       it('should successfully call sadd and return the socketId-userId', function() {
         return expect(KeyValService.addUser(BOARDID, USERNAME, SOCKETID))
-        .to.eventually.equal(`${SOCKETID}-${USERNAME}`)
+        .to.eventually.include(SOCKETID).and.include(USERNAME)
         .then(function() {
           expect(RedisStub.sadd).to.have.been.called;
           expect(RedisStub.srem).to.not.have.been.called;
@@ -77,7 +77,7 @@ describe('KeyValService', function() {
 
       it('should succesfully call sadd and return the userId', function() {
         return expect(KeyValService.removeUser(BOARDID, USERNAME, SOCKETID))
-          .to.eventually.equal(`${SOCKETID}-${USERNAME}`)
+          .to.eventually.include(SOCKETID).and.include(USERNAME)
           .then(function() {
             expect(RedisStub.srem).to.have.been.called;
             expect(RedisStub.sadd).to.not.have.been.called;
