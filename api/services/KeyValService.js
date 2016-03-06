@@ -25,11 +25,7 @@ import {NoOpError} from '../helpers/extendable-error';
 const self = {};
 
 // @TODO:
-//        Deny voting on something twice through different sockets
-//        Deny readying up to vote twice through different sockets
-//        Deny readying up to finish voting twice through different socket
 //        Modify the tests and make new unit tests for new features
-//        Add documentation all added and modified functions
 
 /**
  * Use these as the sole way of creating keys to set in Redis

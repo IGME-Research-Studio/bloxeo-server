@@ -12,6 +12,7 @@ import Promise from 'bluebird';
 import InMemory from './KeyValService';
 import _ from 'lodash';
 import { groupBy, prop } from 'ramda';
+import { UnauthorizedError } from '../helpers/extendable-error';
 import IdeaCollectionService from './IdeaCollectionService';
 import ResultService from './ResultService';
 import StateService from './StateService';
@@ -127,7 +128,14 @@ self.setUserReadyToVote = function(boardId, userId) {
       return false;
     }
   })
-  .then(() => self.setUserReady('start', boardId, userId));
+  .then(() => self.isUserReadyToVote(boardId))
+  .then((readyToVote) => {
+    if (readyToVote) {
+      throw new UnauthorizedError('User is already ready to vote.');
+    }
+
+    return self.setUserReady('start', boardId, userId);
+  });
 };
 
 /**
@@ -137,7 +145,14 @@ self.setUserReadyToVote = function(boardId, userId) {
 * @returns {Promise<Boolean|Error>}: returns if the room is done voting
 */
 self.setUserReadyToFinishVoting = function(boardId, userId) {
-  return self.setUserReady('finish', boardId, userId);
+  return self.isUserDoneVoting(boardId, userId)
+  .then((doneVoting) => {
+    if (doneVoting) {
+      throw new UnauthorizedError('User is already ready to finish voting');
+    }
+
+    return self.setUserReady('finish', boardId, userId);
+  });
 };
 
 /**
@@ -208,7 +223,7 @@ self.isRoomReady = function(votingAction, boardId) {
 * @returns {Promise<Boolean|Error>}: returns if the room is ready to vote or not
 */
 self.isRoomReadyToVote = function(boardId) {
-  return isRoomReady('start', boardId);
+  return self.isRoomReady('start', boardId);
 };
 
 /**
@@ -218,7 +233,7 @@ self.isRoomReadyToVote = function(boardId) {
 * @returns {Promise<Boolean|Error>}: returns if the room is finished voting
 */
 self.isRoomDoneVoting = function(boardId) {
-  return isRoomReady('finish', boardId);
+  return self.isRoomReady('finish', boardId);
 };
 
 /**
@@ -253,7 +268,7 @@ self.isUserReady = function(votingAction, boardId, userId) {
 * @return {Promise<Boolean|Error>}: returns if the user is ready to vote or not
 */
 self.isUserReadyToVote = function(boardId, userId) {
-  return isUserReady('start', boardId, userId);
+  return self.isUserReady('start', boardId, userId);
 };
 
 /**
@@ -263,7 +278,7 @@ self.isUserReadyToVote = function(boardId, userId) {
 * @return {Promise<Boolean|Error>}: returns if the user is done voting or not
 */
 self.isUserDoneVoting = function(boardId, userId) {
-  return isUserReady('finish', boardId, userId);
+  return self.isUserReady('finish', boardId, userId);
 };
 
 self.getVoteList = function(boardId, userId) {
@@ -319,12 +334,35 @@ self.vote = function(boardId, userId, key, increment) {
   const query = {boardId: boardId, key: key};
   const updatedData = {$inc: { votes: 1 }};
 
-  return maybeIncrementCollectionVote(query, updatedData, increment)
+  // @TODO: Add a new stub for this function to finish test and push to github
+  return self.wasCollectionVotedOn(boardId, userId, key)
+  .then(() => {
+    return maybeIncrementCollectionVote(query, updatedData, increment);
+  })
   .then(() => InMemory.removeFromUserVotingList(boardId, userId, key))
   .then(() => InMemory.getCollectionsToVoteOn(boardId, userId))
   .then((collections) => {
     if (collections.length === 0) {
       return self.setUserReadyToFinishVoting(boardId, userId);
+    }
+    else {
+      return false;
+    }
+  });
+};
+
+/**
+* Checks to see if a collection was already voted on by a user
+* @param {String} boardId
+* @param {String} userId
+* @param {String} key: collection key to check
+* @param {Promise<Boolean|Error>}
+*/
+self.wasCollectionVotedOn = function(boardId, userId, key) {
+  return InMemory.getCollectionsToVoteOn(boardId, userId)
+  .then((collections) => {
+    if (collections.indexOf(key) === -1) {
+      throw new UnauthorizedError('Collection was already voted on or does not exist');
     }
     else {
       return false;
