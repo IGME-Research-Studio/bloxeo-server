@@ -85,7 +85,7 @@ self.getBoardsForUser = function(userId) {
 * @returns {Promise<MongoBoard|Error} returns the board of the connected socket
 */
 self.getBoardForSocket = function(socketId) {
-  return inMemory.getUserFromSocket(socketId)
+  return self.getUserFromSocket(socketId)
   .then((userId) => {
     return self.getBoardsForUser(userId);
   })
@@ -149,6 +149,15 @@ self.getUsers = function(boardId) {
 
     return users;
   });
+};
+
+/**
+* Gets the user id associated with a connected socket id
+* @param {String} socketId
+* @returns {Promise<String|Error>}
+*/
+self.getUserFromSocket = function(socketId) {
+  return inMemory.getUserFromSocket(socketId);
 };
 
 /**
