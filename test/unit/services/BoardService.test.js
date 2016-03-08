@@ -90,7 +90,6 @@ describe('BoardService', function() {
     it('should add the existing user to the board', function(done) {
       return BoardService.addUser(BOARDID, USERID, SOCKETID)
         .then(([socketId, userId]) => {
-          console.log('inside then of addUser test');
           return Promise.all([
             BoardModel.findOne({boardId: BOARDID}),
             Promise.resolve(socketId),
@@ -98,7 +97,6 @@ describe('BoardService', function() {
           ]);
         })
         .then(([board, socketId, userId]) => {
-          console.log('Inside .then after promise.all in BoardService addUser test');
           expect(toPlainObject(board.users[0])).to.equal(USERID);
           expect(socketId).to.equal(SOCKETID);
           expect(userId).to.equal(USERID);
