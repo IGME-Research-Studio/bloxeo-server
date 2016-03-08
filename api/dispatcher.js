@@ -35,7 +35,6 @@ const dispatcher = function(server) {
       log.info(`User with ${socketId} has disconnected`);
 
       // Remove the socket/user from the board they were connected to in Redis
-      // Remove from boardId set and remove the socket set
       return getBoardForSocket(socketId)
       .then((board) => {
         boardId = board.id;
