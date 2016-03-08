@@ -122,19 +122,28 @@ self.changeUser = curry((operation, keyGen, boardId, userId) => {
 * @param {String} socketId
 * @returns {Promise<Array|NoOpError|Error>} Returns an array of the socketId and userId
 */
-self.changeConnectedUser = curry((operation, keyGen1, keyGen2, boardId, userId, socketId) => {
-  let method;
-
-  if (operation.toLowerCase() === 'add') method = 'sadd';
-  else if (operation.toLowerCase() === 'remove') method = 'srem';
-  else throw new Error(`Invalid operation ${operation}`);
-
+self.addConnectedUser = curry((keyGen1, keyGen2, boardId, userId, socketId) => {
   return Promise.all([
-    Redis[method](keyGen1(boardId), socketId),
-    Redis[method](keyGen2(socketId), userId),
+    Redis.sadd(keyGen1(boardId), socketId),
+    Redis.sadd(keyGen2(socketId), userId),
   ])
   .then(([operation1, operation2]) => {
     return maybeThrowIfNoOp(operation1 + operation2);
+  })
+  .then(() => [socketId, userId]);
+});
+
+self.removeConnectedUser = curry((keyGen1, keyGen2, keyGen3, keyGen4, boardId,
+  userId, socketId) => {
+
+  return Promise.all([
+    Redis.srem(keyGen1(boardId), socketId),
+    Redis.srem(keyGen2(socketId), userId),
+    Redis.srem(keyGen3(boardId), userId),
+    Redis.srem(keyGen4(boardId), userId),
+  ])
+  .then(([operation1, operation2, operation3, operation4]) => {
+    return maybeThrowIfNoOp(operation1 + operation2, operation3, operation4);
   })
   .then(() => [socketId, userId]);
 });
@@ -302,8 +311,11 @@ self.checkSetExists = curry((keyGen, boardId, userId) => {
  * @param {String} socketId
  * @returns {Promise<Integer|NoOpError|Error>}
  */
-self.addUser = self.changeConnectedUser('add', currentSocketConnectionsKey, socketUserIdSetKey);
-self.removeUser = self.changeConnectedUser('remove', currentSocketConnectionsKey, socketUserIdSetKey);
+self.addUser = self.addConnectedUser(currentSocketConnectionsKey,
+   socketUserIdSetKey);
+
+self.removeUser = self.removeConnectedUser(currentSocketConnectionsKey,
+   socketUserIdSetKey, votingReadyKey, votingDoneKey);
 
 /**
  * @param {String} boardId
