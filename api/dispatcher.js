@@ -10,7 +10,8 @@ import log from 'winston';
 import stream from './event-stream';
 import events from './events';
 import { BROADCAST, EMIT_TO, JOIN, LEAVE } from './constants/INT_EVENT_API';
-import { getBoardForSocket, getUserFromSocket, removeUser} from './services/BoardService';
+import { getBoardForSocket, getUserFromSocket, removeUser,
+  isRoomReadyToVote, isRoomDoneVoting } from './services/BoardService';
 
 const dispatcher = function(server) {
   const io = sio(server, {
@@ -43,6 +44,13 @@ const dispatcher = function(server) {
       .then((userIdFromSocket) => {
         userId = userIdFromSocket;
         return removeUser(boardId, userId, socketId);
+      })
+      .then(() => {
+        // Check if the room is ready to vote or ready to finish voting
+        return Promise.all([
+          isRoomReadyToVote(boardId),
+          isRoomDoneVoting(boardId),
+        ]);
       });
     });
   });
