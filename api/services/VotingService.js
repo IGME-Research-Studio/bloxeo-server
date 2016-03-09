@@ -13,7 +13,7 @@ import InMemory from './KeyValService';
 import _ from 'lodash';
 import { groupBy, prop } from 'ramda';
 import { UnauthorizedError } from '../helpers/extendable-error';
-import IdeaCollectionService from './IdeaCollectionService';
+import * as IdeaCollectionService from './IdeaCollectionService';
 import ResultService from './ResultService';
 import StateService from './StateService';
 

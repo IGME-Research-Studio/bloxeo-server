@@ -8,7 +8,7 @@ import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/helpers/key-val-store';
 import KeyValService from '../../../api/services/KeyValService';
 import StateService from '../../../api/services/StateService';
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import * as IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import ResultService from '../../../api/services/ResultService';
 
 import {model as Board} from '../../../api/models/Board';

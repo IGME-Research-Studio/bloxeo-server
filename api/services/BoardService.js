@@ -13,8 +13,8 @@ import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
 import inMemory from './KeyValService';
-import IdeaCollectionService from './IdeaCollectionService';
-import IdeaService from './IdeaService';
+import {getIdeaCollections} from './IdeaCollectionService';
+import {getIdeas} from './IdeaService';
 import { createIdeasAndIdeaCollections } from './StateService';
 
 const self = {};
@@ -385,8 +385,6 @@ self.areThereCollections = function(boardId) {
 */
 self.hydrateRoom = function(boardId, userId) {
   const hydratedRoom = {};
-  console.log(IdeaCollectionService);
-  console.log(IdeaService);
   return Promise.all([
     Board.findOne({boardId: boardId}),
     getIdeaCollections(boardId),
@@ -395,6 +393,8 @@ self.hydrateRoom = function(boardId, userId) {
     self.getUsers(boardId),
   ])
   .then(([board, collections, ideas, options, users]) => {
+    console.log(board);
+    console.log(users);
     hydratedRoom.collections = strip(collections);
     hydratedRoom.ideas = strip(ideas);
     hydratedRoom.room = { name: board.name,

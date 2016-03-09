@@ -8,7 +8,7 @@ import destroy from '../../../api/handlers/v1/ideaCollections/destroy';
 // import addIdea from '../../../api/handlers/v1/ideaCollections/addIdea';
 // import removeIdea from '../../../api/handlers/v1/ideaCollections/removeIdea';
 
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import * as IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import TokenService from '../../../api/services/TokenService';
 import stream from '../../../api/event-stream';
 import EXT_EVENTS from '../../../api/constants/EXT_EVENT_API';
@@ -153,4 +153,3 @@ describe('IdeaCollection handlers', function() {
   describe('#removeIdea(req)', () => {
   });
 });
-

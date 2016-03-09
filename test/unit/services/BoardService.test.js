@@ -363,14 +363,15 @@ describe('BoardService', function() {
     });
   });
 
-  xdescribe('#hydrateRoom(boardId, userId)', function() {
+  describe('#hydrateRoom(boardId, userId)', function() {
     let USERID;
 
     beforeEach((done) => {
       return monky.create('User')
       .then((user) => {
         return Promise.all([
-          monky.create('Board', {boardId: BOARDID, users: [user]}),
+          monky.create('Board', {boardId: BOARDID, users: [user],
+             name: 'name', description: 'description'}),
           monky.create('Idea'),
         ]);
       })
@@ -383,17 +384,17 @@ describe('BoardService', function() {
       });
     });
 
-    xit('Should generate all of the data for a board to send back on join', function(done) {
+    it('Should generate all of the data for a board to send back on join', function(done) {
       BoardService.hydrateRoom(BOARDID, USERID)
       .then((hydratedRoom) => {
-        expect(hydratedRoom.collections).to.have.length(1);
-        expect(hydratedRoom.ideas).to.have.length(1);
+        expect(hydratedRoom.collections.collection1).to.have.property('key', 'collection1');
+        expect(hydratedRoom.ideas[0]).to.have.property('content', 'idea1');
         expect(hydratedRoom.room.name).to.be.a('string');
         expect(hydratedRoom.room.description).to.be.a('string');
         expect(hydratedRoom.room.userColorsEnabled).to.be.false;
         expect(hydratedRoom.room.numResultsShown).to.equal(25);
         expect(hydratedRoom.room.numResultsReturn).to.equal(5);
-        expect(hydratedRoom.room.users).to.have.length(1);
+        expect(hydratedRoom.room.users[0]).to.have.property('_id', USERID);
         expect(hydratedRoom.isAdmin).to.be.false;
         done();
       });

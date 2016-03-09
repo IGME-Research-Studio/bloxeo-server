@@ -5,8 +5,8 @@ import {monky} from '../../fixtures';
 import {BOARDID, BOARDID_2,
   IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
 
-import IdeaService from '../../../api/services/IdeaService';
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import * as IdeaService from '../../../api/services/IdeaService';
+import * as IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
 describe('IdeaService', function() {
 
@@ -131,7 +131,7 @@ describe('IdeaService', function() {
         })
         .then(([ideas, collections]) => {
           expect(ideas).to.have.deep.property('[0].content', IDEA_CONTENT_2);
-          expect(collections.collection1).to.have.property('ideas')
+          expect(collections.collection2).to.have.property('ideas')
             .to.not.have.members([IDEA_CONTENT]);
           done();
         });
