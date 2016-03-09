@@ -393,22 +393,23 @@ self.hydrateRoom = function(boardId, userId) {
     self.getUsers(boardId),
   ])
   .then(([board, collections, ideas, options, users]) => {
-    console.log(board);
-    console.log(users);
     hydratedRoom.collections = strip(collections);
     hydratedRoom.ideas = strip(ideas);
     hydratedRoom.room = { name: board.name,
                           description: board.description,
                           userColorsEnabled: options.userColorsEnabled,
                           numResultsShown: options.numResultsShown,
-                          numResultsReturn: options.numResultsReturn,
-                          users: users };
+                          numResultsReturn: options.numResultsReturn };
+
+
+    hydratedRoom.room.users = users.map(function(user) {
+      return {userId: user._id, username: user.username};
+    });
 
     return self.isAdmin(board, userId);
   })
   .then((isUserAnAdmin) => {
     hydratedRoom.isAdmin = isUserAnAdmin;
-    console.log(hydratedRoom);
     return hydratedRoom;
   });
 };

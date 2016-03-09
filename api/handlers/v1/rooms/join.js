@@ -11,7 +11,7 @@ import { isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { NotFoundError, ValidationError, UnauthorizedError } from '../../../helpers/extendable-error';
 import { anyAreNil } from '../../../helpers/utils';
-import { addUser, getBoardForSocket } from '../../../services/BoardService';
+import { addUser, getBoardForSocket, hydrateRoom } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
@@ -19,6 +19,7 @@ import stream from '../../../event-stream';
 export default function join(req) {
   const { socket, boardId, userToken } = req;
   const required = { boardId, userToken };
+  let userId;
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
@@ -35,14 +36,18 @@ export default function join(req) {
 
     return verifyAndGetId(userToken);
   })
-  .then((userId) => {
+  .then((verifiedUserId) => {
+    userId = verifiedUserId;
     return Promise.all([
       addUser(boardId, userId, socket.id),
       Promise.resolve(userId),
     ]);
   })
-  .then(([__, userId]) => {
-    return stream.join({socket, boardId, userId});
+  .then(() => {
+    return hydrateRoom(boardId, userId);
+  })
+  .then((boardState) => {
+    return stream.join({socket, boardId, userId, boardState});
   })
   .catch(NotFoundError, (err) => {
     return stream.notFound(JOINED_ROOM, err.data, socket, err.message);
