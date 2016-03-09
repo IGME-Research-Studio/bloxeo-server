@@ -8,6 +8,7 @@
 
 import { isNil, values } from 'ramda';
 import { getBoardOptions } from '../../../services/BoardService';
+import { NotFoundError } from '../../../helpers/extendable-error';
 import { anyAreNil } from '../../../helpers/utils';
 import { RECEIVED_OPTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
@@ -25,7 +26,7 @@ export default function getOptions(req) {
 
   return getBoardOptions(boardId)
     .then((options) => {
-      return stream.ok(socket, options, boardId);
+      return stream.okTo(RECEIVED_OPTIONS, options, socket);
     })
     .catch(NotFoundError, (err) => {
       return stream.notFound(RECEIVED_OPTIONS, err.message, socket);
