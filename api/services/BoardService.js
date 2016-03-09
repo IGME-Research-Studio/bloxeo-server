@@ -6,14 +6,15 @@
 import Promise from 'bluebird';
 import { isNil, isEmpty, not, contains } from 'ramda';
 
-import { toPlainObject } from '../helpers/utils';
+import { toPlainObject, strip } from '../helpers/utils';
 import { NotFoundError, UnauthorizedError,
    NoOpError } from '../helpers/extendable-error';
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
-import { getIdeaCollections } from './IdeaCollectionService';
 import inMemory from './KeyValService';
+import IdeaCollectionService from './IdeaCollectionService';
+import IdeaService from './IdeaService';
 import { createIdeasAndIdeaCollections } from './StateService';
 
 const self = {};
@@ -373,6 +374,42 @@ self.areThereCollections = function(boardId) {
     else {
       return false;
     }
+  });
+};
+
+/**
+* Generates all of the necessary board/room data to send to client
+* @param {String} boardId
+* @param {String} userId
+* @returns {Promise<Object|Error>}: returns all of the generated board/room data
+*/
+self.hydrateRoom = function(boardId, userId) {
+  const hydratedRoom = {};
+  console.log(IdeaCollectionService);
+  console.log(IdeaService);
+  return Promise.all([
+    Board.findOne({boardId: boardId}),
+    getIdeaCollections(boardId),
+    getIdeas(boardId),
+    self.getBoardOptions(boardId),
+    self.getUsers(boardId),
+  ])
+  .then(([board, collections, ideas, options, users]) => {
+    hydratedRoom.collections = strip(collections);
+    hydratedRoom.ideas = strip(ideas);
+    hydratedRoom.room = { name: board.name,
+                          description: board.description,
+                          userColorsEnabled: options.userColorsEnabled,
+                          numResultsShown: options.numResultsShown,
+                          numResultsReturn: options.numResultsReturn,
+                          users: users };
+
+    return self.isAdmin(board, userId);
+  })
+  .then((isUserAnAdmin) => {
+    hydratedRoom.isAdmin = isUserAnAdmin;
+    console.log(hydratedRoom);
+    return hydratedRoom;
   });
 };
 
