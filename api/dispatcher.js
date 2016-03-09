@@ -1,6 +1,5 @@
 /**
  * Dispatcher
- *
  */
 
 import sio from 'socket.io';

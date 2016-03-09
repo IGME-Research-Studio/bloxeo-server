@@ -6,7 +6,7 @@
 import Promise from 'bluebird';
 import { isNil, isEmpty, not, contains } from 'ramda';
 
-import { toPlainObject, strip } from '../helpers/utils';
+import { toPlainObject, strip, emptyDefaultTo } from '../helpers/utils';
 import { NotFoundError, UnauthorizedError,
    NoOpError } from '../helpers/extendable-error';
 import { model as Board } from '../models/Board';
@@ -23,10 +23,13 @@ const self = {};
  * Create a board in the database
  * @returns {Promise<String|Error>} the created boards boardId
  */
-self.create = function(userId, name = 'Project Title',
-  description = 'This is a description.') {
-  return new Board({users: [userId], admins: [userId], name: name,
-    description: description}).save()
+self.create = function(userId, name, description) {
+  const boardName = emptyDefaultTo('Project Title', name);
+  const boardDesc = emptyDefaultTo('This is a description.', description);
+
+  return new Board({users: [userId], admins: [userId],
+    name: boardName, description: boardDesc})
+  .save()
   .then((result) => {
     return createIdeasAndIdeaCollections(result.boardId, false, '')
     .then(() => result.boardId);
@@ -110,18 +113,14 @@ self.exists = function(boardId) {
 */
 self.getBoardOptions = function(boardId) {
   return Board.findOne({boardId: boardId})
-  .select('userColorsEnabled numResultsShown numResultsReturn')
-  .then((board) => toPlainObject(board))
+  .select('-_id userColorsEnabled numResultsShown numResultsReturn name description')
+  .then(toPlainObject)
   .then((board) => {
     if (isNil(board)) {
       throw new NotFoundError(`Board with id ${boardId} does not exist`);
     }
 
-    const options = {userColorsEnabled: board.userColorsEnabled,
-                     numResultsShown: board.numResultsShown,
-                     numResultsReturn: board.numResultsReturn };
-
-    return options;
+    return board;
   });
 };
 
