@@ -93,8 +93,8 @@ class EventStream extends EventEmitter {
    * @param {Object} req.boardId
    * @param {Object} req.userId
    */
-  join({socket, boardId, userId}) {
-    const cbRes = success(200, JOINED_ROOM, {boardId, userId});
+  join({socket, boardId, userId, boardState}) {
+    const cbRes = success(200, JOINED_ROOM, {boardId, userId, ...boardState});
     this.emit(JOIN, {socket, boardId, userId, cbRes});
   }
 

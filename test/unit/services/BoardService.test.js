@@ -351,6 +351,9 @@ describe('BoardService', function() {
       resetRedis(SOCKETID)
       .then(() => {
         done();
+      })
+      .catch(function() {
+        done();
       });
     });
 
@@ -367,15 +370,19 @@ describe('BoardService', function() {
     let USERID;
 
     beforeEach((done) => {
-      return monky.create('User')
-      .then((user) => {
+      return Promise.all([
+        monky.create('User'),
+        monky.create('User'),
+      ])
+      .then((users) => {
         return Promise.all([
-          monky.create('Board', {boardId: BOARDID, users: [user]}),
+          monky.create('Board', {boardId: BOARDID, users: users,
+             admins: users[0], name: 'name', description: 'description'}),
           monky.create('Idea'),
         ]);
       })
       .then(([board, idea]) => {
-        USERID = board.users[0].id;
+        USERID = board.admins[0].id;
         return monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea]});
       })
       .then(() => {
@@ -393,8 +400,10 @@ describe('BoardService', function() {
         expect(hydratedRoom.room.userColorsEnabled).to.be.false;
         expect(hydratedRoom.room.numResultsShown).to.equal(25);
         expect(hydratedRoom.room.numResultsReturn).to.equal(5);
-        expect(hydratedRoom.room.users).to.have.length(1);
-        expect(hydratedRoom.isAdmin).to.be.false;
+        // expect(hydratedRoom.room.users).to.have.length(1);
+        // expect(hydratedRoom.isAdmin).to.be.false;
+        expect(hydratedRoom.room.users[0]).to.have.property('userId', USERID);
+        expect(hydratedRoom.isAdmin).to.be.true;
         done();
       });
     });
