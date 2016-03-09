@@ -6,7 +6,7 @@ import {monky} from '../../fixtures';
 import {BOARDID, BOARDID_2, COLLECTION_KEY,
   IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
 
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import * as IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 
 describe('IdeaCollectionService', function() {
 

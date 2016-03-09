@@ -6,14 +6,15 @@
 import Promise from 'bluebird';
 import { isNil, isEmpty, not, contains } from 'ramda';
 
-import { toPlainObject } from '../helpers/utils';
-import { NotFoundError, ValidationError,
-  UnauthorizedError, NoOpError } from '../helpers/extendable-error';
+import { toPlainObject, strip } from '../helpers/utils';
+import { NotFoundError, UnauthorizedError,
+   NoOpError } from '../helpers/extendable-error';
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
-import { getIdeaCollections } from './IdeaCollectionService';
 import inMemory from './KeyValService';
+import {getIdeaCollections} from './IdeaCollectionService';
+import {getIdeas} from './IdeaService';
 import { createIdeasAndIdeaCollections } from './StateService';
 
 const self = {};
@@ -80,6 +81,19 @@ self.getBoardsForUser = function(userId) {
 };
 
 /**
+* Gets the board that the socket is currently connected to
+* @param {String} socketId
+* @returns {Promise<MongoBoard|Error} returns the board of the connected socket
+*/
+self.getBoardForSocket = function(socketId) {
+  return self.getUserFromSocket(socketId)
+  .then((userId) => {
+    return self.getBoardsForUser(userId);
+  })
+  .then(([board]) => board);
+};
+
+/**
  * Find if a board exists
  * @param {String} boardId the boardId to check
  * @returns {Promise<Boolean|Error>} whether the board exists
@@ -139,6 +153,24 @@ self.getUsers = function(boardId) {
 };
 
 /**
+* Gets the user id associated with a connected socket id
+* @param {String} socketId
+* @returns {Promise<String|Error>}
+*/
+self.getUserFromSocket = function(socketId) {
+  return inMemory.getUserFromSocket(socketId);
+};
+
+/**
+* Get all the connected users in a room from Redis
+* @param {String} boardId
+* @returns {Promise<Array|Error>} returns an array of user ids
+*/
+self.getAllUsersInRoom = function(boardId) {
+  return inMemory.getUsersInRoom(boardId);
+};
+
+/**
  * Find all admins on a board
  * @param {String} boardId the boardId to retrieve the admins from
  * @returns {Promise<MongooseArray|Error>}
@@ -180,44 +212,89 @@ self.validateBoardAndUser = function(boardId, userId) {
  * Adds a user to a board in Mongoose and Redis
  * @param {String} boardId
  * @param {String} userId
+ * @param {String} socketId
  * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
  */
-self.addUser = function(boardId, userId) {
+self.addUser = function(boardId, userId, socketId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (self.isUser(board, userId)) {
-      throw new NoOpError(
-        `User ${userId} already exists on the board ${boardId}`,
-        {user: userId, board: boardId});
+      return self.addUserToRedis(boardId, userId, socketId);
     }
     else {
-      board.users.push(userId);
-      return Promise.join(board.save(), inMemory.addUser(boardId, userId));
+      return Promise.all([
+        self.addUserToMongo(board, userId),
+        self.addUserToRedis(boardId, userId, socketId),
+      ]);
     }
   })
-  .return([boardId, userId]);
+  .return([socketId, userId]);
 };
 
 /**
  * Removes a user from a board in Mongoose and Redis
  * @param {String} boardId
  * @param {String} userId
- * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+ * @param {String} socketId
+ * @returns {Promise<[Redis]|Error> } resolves to a Redis response
  */
-self.removeUser = function(boardId, userId) {
+self.removeUser = function(boardId, userId, socketId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (!self.isUser(board, userId)) {
-      throw new ValidationError(
-        `User ${userId} is not already on the board ${boardId}`,
-        {user: userId, board: boardId});
+      throw new NoOpError(
+        `No user with userId ${userId} to remove from boardId ${boardId}`);
     }
     else {
-      board.users.pull(userId);
-      return Promise.join(board.save(), inMemory.removeUser(boardId, userId));
+      // @TODO: When admins become fully implmented, remove user from mongo too
+      return self.removeUserFromRedis(boardId, userId, socketId);
     }
   })
-  .return([boardId, userId]);
+  .return([socketId, userId]);
+};
+
+/**
+* Adds the user to a board on mongo
+* @param {MongoBoard} board: the mongo board
+* @param {String} userId
+* @param {Promise<MongoBoard|Error>}
+*/
+self.addUserToMongo = function(board, userId) {
+  board.users.push(userId);
+  return board.save();
+};
+
+/**
+* Removes the user from the board on mongo
+* @param {String} boardId
+* @param {String} userId
+* @returns {Promise<MongoBoard|Error>}
+*/
+self.removeUserFromMongo = function(boardId, userId) {
+  board.users.pull(userId);
+  return board.save();
+};
+
+/**
+* Adds the user id to redis
+* @param {String} boardId
+* @param {String} userId
+* @param {String} socketId
+* @returns {Promise<Array|Error>}
+*/
+self.addUserToRedis = function(boardId, userId, socketId) {
+  return inMemory.addUser(boardId, userId, socketId);
+};
+
+/**
+* Removes the user id from redis
+* @param {String} boardId
+* @param {String} userId
+* @param {String} socketId
+* @returns {Promise<Array|Error>}
+*/
+self.removeUserFromRedis = function(boardId, userId, socketId) {
+  return inMemory.removeUser(boardId, userId, socketId);
 };
 
 /**
@@ -297,6 +374,43 @@ self.areThereCollections = function(boardId) {
     else {
       return false;
     }
+  });
+};
+
+/**
+* Generates all of the necessary board/room data to send to client
+* @param {String} boardId
+* @param {String} userId
+* @returns {Promise<Object|Error>}: returns all of the generated board/room data
+*/
+self.hydrateRoom = function(boardId, userId) {
+  const hydratedRoom = {};
+  return Promise.all([
+    Board.findOne({boardId: boardId}),
+    getIdeaCollections(boardId),
+    getIdeas(boardId),
+    self.getBoardOptions(boardId),
+    self.getUsers(boardId),
+  ])
+  .then(([board, collections, ideas, options, users]) => {
+    hydratedRoom.collections = strip(collections);
+    hydratedRoom.ideas = strip(ideas);
+    hydratedRoom.room = { name: board.name,
+                          description: board.description,
+                          userColorsEnabled: options.userColorsEnabled,
+                          numResultsShown: options.numResultsShown,
+                          numResultsReturn: options.numResultsReturn };
+
+
+    hydratedRoom.room.users = users.map(function(user) {
+      return {userId: user._id, username: user.username};
+    });
+
+    return self.isAdmin(board, userId);
+  })
+  .then((isUserAnAdmin) => {
+    hydratedRoom.isAdmin = isUserAnAdmin;
+    return hydratedRoom;
   });
 };
 

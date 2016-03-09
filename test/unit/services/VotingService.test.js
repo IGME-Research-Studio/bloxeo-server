@@ -8,11 +8,12 @@ import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/helpers/key-val-store';
 import KeyValService from '../../../api/services/KeyValService';
 import StateService from '../../../api/services/StateService';
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import * as IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import ResultService from '../../../api/services/ResultService';
 
 import {model as Board} from '../../../api/models/Board';
 import {model as IdeaCollection} from '../../../api/models/IdeaCollection';
+import { UnauthorizedError } from '../../../api/helpers/extendable-error';
 
 const resetRedis = (userId) => {
   return Promise.all([
@@ -284,6 +285,52 @@ describe('VotingService', function() {
     });
   });
 
+  describe('#setUserReadyToVote(boardId, userId)', function() {
+    let checkUserVotingListExistsStub;
+    let isUserReadyToVoteStub;
+    const USERID = 'user1';
+
+    afterEach((done) => {
+      resetRedis(USERID)
+      .then(() => {
+        done();
+      });
+    });
+
+    it('Should reject the user from readying up to vote again', function() {
+      checkUserVotingListExistsStub = this.stub(KeyValService, 'checkUserVotingListExists')
+      .returns(Promise.resolve(false));
+
+      isUserReadyToVoteStub = this.stub(VotingService, 'isUserReadyToVote')
+      .returns(Promise.resolve(true));
+
+      return expect(VotingService.setUserReadyToVote(BOARDID))
+        .to.be.rejectedWith(UnauthorizedError,
+        /User is already ready to vote./)
+        .then(() => {
+          expect(checkUserVotingListExistsStub).to.have.returned;
+          expect(isUserReadyToVoteStub).to.have.returned;
+        });
+    });
+  });
+
+  describe('#setUserReadyToFinishVoting(boardId, userId)', function() {
+    let isUserDoneVotingStub;
+    const USERID = 'user1';
+
+    it('Should reject the user from readying to finish voting again', function() {
+      isUserDoneVotingStub = this.stub(VotingService, 'isUserDoneVoting')
+      .returns(Promise.resolve(true));
+
+      return expect(VotingService.setUserReadyToFinishVoting(BOARDID, USERID))
+      .to.be.rejectedWith(UnauthorizedError,
+      /User is already ready to finish voting/)
+      .then(() => {
+        expect(isUserDoneVotingStub).to.have.returned;
+      });
+    });
+  });
+
   describe('#getVoteList(boardId, userId)', () => {
     const USERID = 'user1';
     let checkUserVotingListExistsStub;
@@ -379,6 +426,7 @@ describe('VotingService', function() {
     const USERID = 'user1';
     let findOneAndUpdateStub;
     let removeFromUserVotingListStub;
+    let wasCollectionVotedOnStub;
     let getCollectionsToVoteOnStub;
     let setUserReadyToFinishVotingStub;
 
@@ -405,8 +453,12 @@ describe('VotingService', function() {
       getCollectionsToVoteOnStub = this.stub(KeyValService, 'getCollectionsToVoteOn')
       .returns(Promise.resolve(emptyCollection));
 
+      wasCollectionVotedOnStub = this.stub(VotingService, 'wasCollectionVotedOn')
+      .returns(Promise.resolve('wasCollectionVotedOn was called'));
+
       return expect(VotingService.vote(BOARDID, USERID, 'key', true)).to.be.fulfilled
       .then((setUserReady) => {
+        expect(wasCollectionVotedOnStub).to.have.returned;
         expect(findOneAndUpdateStub).to.have.returned;
         expect(removeFromUserVotingListStub).to.have.returned;
         expect(getCollectionsToVoteOnStub).to.have.returned;
@@ -419,6 +471,9 @@ describe('VotingService', function() {
       getCollectionsToVoteOnStub = this.stub(KeyValService, 'getCollectionsToVoteOn')
       .returns(Promise.resolve(collectionKeys));
 
+      wasCollectionVotedOnStub = this.stub(VotingService, 'wasCollectionVotedOn')
+      .returns(Promise.resolve('wasCollectionVotedOn was called'));
+
       return expect(VotingService.vote(BOARDID, USERID, 'key', true)).to.be.fulfilled
       .then((setUserReady) => {
         expect(findOneAndUpdateStub).to.have.returned;
@@ -426,6 +481,12 @@ describe('VotingService', function() {
         expect(getCollectionsToVoteOnStub).to.have.returned;
         expect(setUserReady).to.be.false;
       });
+    });
+
+    it('Should not allow a duplicate vote to occur', function() {
+      return expect(VotingService.vote(BOARDID, USERID, 'key', true))
+        .to.be.rejectedWith(UnauthorizedError,
+        /Collection was already voted on or does not exist/);
     });
   });
 

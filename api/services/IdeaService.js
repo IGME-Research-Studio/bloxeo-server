@@ -9,7 +9,10 @@ import { isNil } from 'ramda';
 import { model as Idea } from '../models/Idea.js';
 import { errorIfNotAdmin } from './BoardService';
 
-const self = {};
+let create;
+let destroy;
+let findByContent;
+let getIdeas;
 
 // Private
 const maybeThrowNotFound = (obj, boardId, content) => {
@@ -29,10 +32,10 @@ const maybeThrowNotFound = (obj, boardId, content) => {
  * @returns {Promise} - resolves to a client friendly response of all ideas on
  * the given board
  */
-self.create = function(userId, boardId, ideaContent) {
+create = function(userId, boardId, ideaContent) {
   return new Idea({boardId: boardId, userId: userId,
                   content: ideaContent}).save()
-  .then(() => self.getIdeas(boardId));
+  .then(() => getIdeas(boardId));
 };
 
 /**
@@ -45,14 +48,14 @@ self.create = function(userId, boardId, ideaContent) {
  * to include that in requests to client. How can we DRY that out so we don't
  * repeat logic everywhere?
  */
-self.destroy = function(board, userId, ideaContent) {
+destroy = function(board, userId, ideaContent) {
   // Check for admin permissions
   return errorIfNotAdmin(board, userId)
   .then(() => {
     return Idea.findOne({boardId: board.boardId, content: ideaContent}).exec()
     .then((idea) => maybeThrowNotFound(idea, board.boardId, ideaContent))
     .then((idea) => idea.remove())
-    .then(() => self.getIdeas(board.boardId));
+    .then(() => getIdeas(board.boardId));
   });
 };
 
@@ -65,13 +68,16 @@ self.destroy = function(board, userId, ideaContent) {
  * @returns {Promise} resolves to a single idea as a Mongoose result object or
  * rejects with a not found error
  */
-self.findByContent = function(boardId, ideaContent) {
+findByContent = function(boardId, ideaContent) {
   return Idea.findByContent(boardId, ideaContent)
   .then((idea) => maybeThrowNotFound(idea, boardId, ideaContent));
 };
 
-self.getIdeas = function(boardId) {
+getIdeas = function(boardId) {
   return Idea.findOnBoard(boardId);
 };
 
-module.exports = self;
+export {create};
+export {destroy};
+export {findByContent};
+export {getIdeas};

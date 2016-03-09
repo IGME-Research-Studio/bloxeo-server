@@ -8,8 +8,17 @@ import { toPlainObject } from '../../../api/helpers/utils';
 import { NotFoundError, NoOpError } from '../../../api/helpers/extendable-error';
 import {model as BoardModel} from '../../../api/models/Board';
 import BoardService from '../../../api/services/BoardService';
+import KeyValService from '../../../api/services/KeyValService';
 
 describe('BoardService', function() {
+  const SOCKETID = 'socket123';
+
+  const resetRedis = function(socketId) {
+    return Promise.all([
+      KeyValService.clearCurrentSocketConnections(BOARDID),
+      KeyValService.clearCurrentSocketUserIds(socketId),
+    ]);
+  };
 
   describe('#create()', () => {
     let USERID;
@@ -54,7 +63,7 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#addUser(boardId, userId)', function() {
+  describe('#addUser(boardId, userId, socketId)', function() {
     let USERID;
 
     beforeEach((done) => {
@@ -68,10 +77,73 @@ describe('BoardService', function() {
       ]);
     });
 
-    it('should add the existing user to the board', function() {
-      return BoardService.addUser(BOARDID, USERID)
-        .then(([__, userId]) => {
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should add the existing user to the board', function(done) {
+      return BoardService.addUser(BOARDID, USERID, SOCKETID)
+        .then(([socketId, userId]) => {
+          return Promise.all([
+            BoardModel.findOne({boardId: BOARDID}),
+            Promise.resolve(socketId),
+            Promise.resolve(userId),
+          ]);
+        })
+        .then(([board, socketId, userId]) => {
+          expect(toPlainObject(board.users[0])).to.equal(USERID);
+          expect(socketId).to.equal(SOCKETID);
           expect(userId).to.equal(USERID);
+          done();
+        });
+    });
+
+    it('should reject if the user does not exist on the board', function() {
+      const userThatDoesntExist = Types.ObjectId();
+      return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+        .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
+    });
+  });
+
+  describe('#removeUser(boardId, userId, socketId)', function() {
+    let USERID;
+
+    beforeEach((done) => {
+      return Promise.all([
+        monky.create('Board'),
+        monky.create('User'),
+      ])
+      .then(([__, user]) => {
+        USERID = user.id;
+        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should remove the existing user from the board', function(done) {
+      BoardService.removeUser(BOARDID, USERID, SOCKETID)
+        .then(([socketId, userId]) => {
+          expect(socketId).to.equal(SOCKETID);
+          expect(userId).to.equal(USERID);
+          done();
         });
     });
 
@@ -199,7 +271,7 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#findBoardsForUser(userId)', function() {
+  describe('#getBoardsForUser(userId)', function() {
     const BOARDID_A = 'abc123';
     const BOARDID_B = 'def456';
     let USERID;
@@ -219,6 +291,119 @@ describe('BoardService', function() {
     it('should return the boards a user is a part of', function() {
       return expect(BoardService.getBoardsForUser(USERID))
         .to.eventually.have.length(2);
+    });
+  });
+
+  describe('#getBoardForSocket(socketId)', function() {
+    let USERID;
+
+    beforeEach((done) => {
+      return monky.create('User')
+      .then((user) => {
+        USERID = user.id;
+        return monky.create('Board', {boardId: BOARDID, users: [user]});
+      })
+      .then(() => {
+        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should return the board the socket is connected to', function(done) {
+      return BoardService.getBoardForSocket(SOCKETID)
+      .then((board) => {
+        expect(board.boardId).to.equal(BOARDID);
+        done();
+      });
+    });
+  });
+
+  describe('#getAllUsersInRoom(boardId)', function() {
+    let USERID;
+
+    beforeEach((done) => {
+      return monky.create('User')
+      .then((user) => {
+        USERID = user.id;
+        return monky.create('Board', {boardId: BOARDID});
+      })
+      .then(() => {
+        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    afterEach((done) => {
+      resetRedis(SOCKETID)
+      .then(() => {
+        done();
+      })
+      .catch(function() {
+        done();
+      });
+    });
+
+    it('should return the user ids connected to a room', function(done) {
+      return BoardService.getAllUsersInRoom(BOARDID)
+      .then(([userId]) => {
+        expect(userId).to.equal(USERID);
+        done();
+      });
+    });
+  });
+
+  describe('#hydrateRoom(boardId, userId)', function() {
+    let USERID;
+
+    beforeEach((done) => {
+      return Promise.all([
+        monky.create('User'),
+        monky.create('User'),
+      ])
+      .then((users) => {
+        return Promise.all([
+          monky.create('Board', {boardId: BOARDID, users: users,
+             admins: users[0], name: 'name', description: 'description'}),
+          monky.create('Idea'),
+        ]);
+      })
+      .then(([board, idea]) => {
+        USERID = board.admins[0].id;
+        return monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea]});
+      })
+      .then(() => {
+        done();
+      });
+    });
+
+    it('Should generate all of the data for a board to send back on join', function(done) {
+      BoardService.hydrateRoom(BOARDID, USERID)
+      .then((hydratedRoom) => {
+        expect(hydratedRoom.collections.collection1).to.have.property('key', 'collection1');
+        expect(hydratedRoom.ideas[0]).to.have.property('content', 'idea1');
+        expect(hydratedRoom.room.name).to.be.a('string');
+        expect(hydratedRoom.room.description).to.be.a('string');
+        expect(hydratedRoom.room.userColorsEnabled).to.be.false;
+        expect(hydratedRoom.room.numResultsShown).to.equal(25);
+        expect(hydratedRoom.room.numResultsReturn).to.equal(5);
+        expect(hydratedRoom.room.users[0]).to.have.property('userId', USERID);
+        expect(hydratedRoom.isAdmin).to.be.true;
+        done();
+      });
     });
   });
 });

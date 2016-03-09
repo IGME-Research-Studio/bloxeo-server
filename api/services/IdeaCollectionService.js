@@ -1,9 +1,17 @@
 import _ from 'lodash';
 import { isNil } from 'ramda';
 import { model as IdeaCollection } from '../models/IdeaCollection';
-import ideaService from './IdeaService';
+import * as ideaService from './IdeaService';
 
-const self = {};
+let findByKey;
+let create;
+let destroyByKey;
+let destroy;
+let changeIdeas;
+let addIdea;
+let removeIdea;
+let getIdeaCollections;
+let removeDuplicates;
 
 /**
  * Finds a single IdeaCollection based on boardId and key
@@ -14,7 +22,7 @@ const self = {};
  * @returns {Promise} resolves to a single collection as a Mongoose
  * result object or rejects with a not found error
  */
-self.findByKey = function(boardId, key) {
+findByKey = function(boardId, key) {
   return IdeaCollection.findByKey(boardId, key)
   .then((collection) => {
     if (isNil(collection)) {
@@ -32,12 +40,12 @@ self.findByKey = function(boardId, key) {
  * @param {String} content - the content of an Idea to create the collection
  * @returns {Promise} resolves to all collections on a board
  */
-self.create = function(userId, boardId, content) {
+create = function(userId, boardId, content) {
   return ideaService.findByContent(boardId, content)
   .then((idea) => new IdeaCollection({lastUpdatedId: userId, boardId: boardId,
                                      ideas: [idea.id]}).save())
   .then((created) => new Promise((fulfill, reject) => {
-    self.getIdeaCollections(boardId)
+    getIdeaCollections(boardId)
       .then((allCollections) => fulfill([created, allCollections]))
       .catch((err) => reject(err));
   }));
@@ -54,19 +62,19 @@ self.create = function(userId, boardId, content) {
  * @todo Potentially want to add a userId to parameters track who destroyed the
  * idea collection model
  */
-self.destroyByKey = function(boardId, key) {
-  return self.findByKey(boardId, key)
+destroyByKey = function(boardId, key) {
+  return findByKey(boardId, key)
   .then((collection) => collection.remove())
-  .then(() => self.getIdeaCollections(boardId));
+  .then(() => getIdeaCollections(boardId));
 };
 
 /**
  * @param {IdeaCollection} collection - an already found mongoose collection
  * @returns {Promise} - resolves to all the collections on the board
 */
-self.destroy = function(boardId, collection) {
+destroy = function(boardId, collection) {
   return collection.remove()
-  .then(() => self.getIdeaCollections(boardId));
+  .then(() => getIdeaCollections(boardId));
 };
 
 /**
@@ -77,24 +85,24 @@ self.destroy = function(boardId, collection) {
  * @param {String} content - The content of an Idea to add or remove
  * @returns {Promise} - resolves to all the collections on the board
  */
-self.changeIdeas = function(operation, userId, boardId, key, content) {
+changeIdeas = function(operation, userId, boardId, key, content) {
   let method;
   if (operation.toLowerCase() === 'add') method = 'push';
   else if (operation.toLowerCase() === 'remove') method = 'pull';
   else throw new Error(`Invalid operation ${operation}`);
 
   return Promise.all([
-    self.findByKey(boardId, key),
+    findByKey(boardId, key),
     ideaService.findByContent(boardId, content),
   ])
   .then(([collection, idea]) => {
     if (operation.toLowerCase() === 'remove' && collection.ideas.length === 1) {
-      return self.destroy(boardId, collection);
+      return destroy(boardId, collection);
     }
     else {
       collection.ideas[method](idea.id);
       return collection.save()
-      .then(() => self.getIdeaCollections(boardId));
+      .then(() => getIdeaCollections(boardId));
     }
   });
 };
@@ -106,8 +114,8 @@ self.changeIdeas = function(operation, userId, boardId, key, content) {
  * @param {String} content - The content of an Idea to add
  * @returns {Promise} - resolves to all the collections on the board
  */
-self.addIdea = function(userId, boardId, key, content) {
-  return self.changeIdeas('add', userId, boardId, key, content);
+addIdea = function(userId, boardId, key, content) {
+  return changeIdeas('add', userId, boardId, key, content);
 };
 
 /**
@@ -117,21 +125,21 @@ self.addIdea = function(userId, boardId, key, content) {
  * @param {String} content - The content of an Idea to remove
  * @returns {Promise} - resolves to all the collections on the board
  */
-self.removeIdea = function(userId, boardId, key, content) {
-  return self.changeIdeas('remove', userId, boardId, key, content);
+removeIdea = function(userId, boardId, key, content) {
+  return changeIdeas('remove', userId, boardId, key, content);
 };
 
 /**
  * @param {String} boardId
  * @returns {Promise} - resolves to all the collections on the board
  */
-self.getIdeaCollections = function(boardId) {
+getIdeaCollections = function(boardId) {
   return IdeaCollection.findOnBoard(boardId)
   .then((collections) => _.indexBy(collections, 'key'));
 };
 
 // destroy duplicate collections
-self.removeDuplicates = function(boardId) {
+removeDuplicates = function(boardId) {
   return IdeaCollection.find({boardId: boardId})
   .then((collections) => {
     const dupCollections = [];
@@ -159,4 +167,12 @@ self.removeDuplicates = function(boardId) {
   .all();
 };
 
-module.exports = self;
+export {findByKey};
+export {create};
+export {destroyByKey};
+export {destroy};
+export {changeIdeas};
+export {addIdea};
+export {removeIdea};
+export {getIdeaCollections};
+export {removeDuplicates};

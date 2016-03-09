@@ -10,6 +10,8 @@ import log from 'winston';
 import stream from './event-stream';
 import events from './events';
 import { BROADCAST, EMIT_TO, JOIN, LEAVE } from './constants/INT_EVENT_API';
+import { getBoardForSocket, getUserFromSocket, removeUser,
+  isRoomReadyToVote, isRoomDoneVoting } from './services/BoardService';
 
 const dispatcher = function(server) {
   const io = sio(server, {
@@ -23,6 +25,32 @@ const dispatcher = function(server) {
       socket.on(event, (req) => {
         log.info(event, req);
         method(_.merge({socket: socket}, req));
+      });
+    });
+
+    io.on('disconnect', function() {
+      const socketId = socket.id;
+      let boardId;
+      let userId;
+
+      log.info(`User with ${socketId} has disconnected`);
+
+      // Remove the socket/user from the board they were connected to in Redis
+      return getBoardForSocket(socketId)
+      .then((board) => {
+        boardId = board.id;
+        return getUserFromSocket(socketId);
+      })
+      .then((userIdFromSocket) => {
+        userId = userIdFromSocket;
+        return removeUser(boardId, userId, socketId);
+      })
+      .then(() => {
+        // Check if the room is ready to vote or ready to finish voting
+        return Promise.all([
+          isRoomReadyToVote(boardId),
+          isRoomDoneVoting(boardId),
+        ]);
       });
     });
   });
