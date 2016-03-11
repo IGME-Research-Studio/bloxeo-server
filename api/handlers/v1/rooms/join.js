@@ -9,9 +9,10 @@
 
 import { isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { NotFoundError, ValidationError, UnauthorizedError } from '../../../helpers/extendable-error';
+import { NotFoundError, ValidationError,
+  UnauthorizedError } from '../../../helpers/extendable-error';
 import { anyAreNil } from '../../../helpers/utils';
-import { addUser, getBoardForSocket, hydrateRoom } from '../../../services/BoardService';
+import { addUser, hydrateRoom } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
@@ -19,7 +20,6 @@ import stream from '../../../event-stream';
 export default function join(req) {
   const { socket, boardId, userToken } = req;
   const required = { boardId, userToken };
-  let userId;
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
@@ -28,37 +28,25 @@ export default function join(req) {
     return stream.badRequest(JOINED_ROOM, required, socket);
   }
 
-  return getBoardForSocket(socket.id)
-  .then((board) => {
-    if (board) {
-      throw new UnauthorizedError('Socket is already connected to a room.');
-    }
+  return verifyAndGetId(userToken)
+  .then((userId) => addUser(boardId, userId, socket.id))
+  .then(([/* */, /* */, userId]) => {
 
-    return verifyAndGetId(userToken);
-  })
-  .then((verifiedUserId) => {
-    userId = verifiedUserId;
-    return Promise.all([
-      addUser(boardId, userId, socket.id),
-      Promise.resolve(userId),
-    ]);
-  })
-  .then(() => {
-    return hydrateRoom(boardId, userId);
-  })
-  .then((boardState) => {
-    return stream.join({socket, boardId, userId, boardState});
-  })
-  .catch(NotFoundError, (err) => {
-    return stream.notFound(JOINED_ROOM, err.data, socket, err.message);
-  })
-  .catch(UnauthorizedError, JsonWebTokenError, (err) => {
-    return stream.unauthorized(JOINED_ROOM, err.data, socket, err.message);
-  })
-  .catch(ValidationError, (err) => {
-    return stream.serverError(JOINED_ROOM, err.data, socket, err.message);
-  })
-  .catch((err) => {
-    return stream.serverError(JOINED_ROOM, err.message, socket);
+    return hydrateRoom(boardId, userId)
+    .then((boardState) => {
+      return stream.join({socket, boardId, userId, boardState});
+    })
+    .catch(NotFoundError, (err) => {
+      return stream.notFound(JOINED_ROOM, err.data, socket, err.message);
+    })
+    .catch(UnauthorizedError, JsonWebTokenError, (err) => {
+      return stream.unauthorized(JOINED_ROOM, err.data, socket, err.message);
+    })
+    .catch(ValidationError, (err) => {
+      return stream.serverError(JOINED_ROOM, err.data, socket, err.message);
+    })
+    .catch((err) => {
+      return stream.serverError(JOINED_ROOM, err.message, socket);
+    });
   });
 }

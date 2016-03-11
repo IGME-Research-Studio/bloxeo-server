@@ -366,10 +366,10 @@ describe('BoardService', function() {
     });
   });
 
-  xdescribe('#hydrateRoom(boardId, userId)', function() {
+  describe('#hydrateRoom(boardId, userId)', function() {
     let USERID;
 
-    beforeEach((done) => {
+    beforeEach(() => {
       return Promise.all([
         monky.create('User'),
         monky.create('User'),
@@ -384,13 +384,10 @@ describe('BoardService', function() {
       .then(([board, idea]) => {
         USERID = board.admins[0].id;
         return monky.create('IdeaCollection', {boardId: BOARDID, ideas: [idea]});
-      })
-      .then(() => {
-        done();
       });
     });
 
-    xit('Should generate all of the data for a board to send back on join', function(done) {
+    it('Should generate all of the data for a board to send back on join', function(done) {
       BoardService.hydrateRoom(BOARDID, USERID)
       .then((hydratedRoom) => {
         expect(hydratedRoom.collections).to.have.length(1);

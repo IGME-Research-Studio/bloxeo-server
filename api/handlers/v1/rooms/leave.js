@@ -8,7 +8,8 @@
 */
 
 import { isNil, values } from 'ramda';
-import { removeUser, isRoomReadyToVote, isRoomDoneVoting } from '../../../services/BoardService';
+import { removeUserFromRedis, isRoomReadyToVote,
+  isRoomDoneVoting } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { anyAreNil } from '../../../helpers/utils';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
@@ -31,7 +32,7 @@ export default function leave(req) {
       userId = verifiedUserId;
 
       return Promise.all([
-        removeUser(boardId, userId, socket.id),
+        removeUserFromRedis(boardId, userId, socket.id),
         Promise.resolve(userId),
       ]);
     })
@@ -45,6 +46,7 @@ export default function leave(req) {
       return stream.leave({socket, boardId, userId});
     })
     .catch((err) => {
+      console.error(err.stack);
       return stream.serverError(LEFT_ROOM, err.message, socket);
     });
 }
