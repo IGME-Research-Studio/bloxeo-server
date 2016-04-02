@@ -4,7 +4,7 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, isEmpty, not, contains, ifElse, head } from 'ramda';
+import { isNil, isEmpty, not, contains } from 'ramda';
 
 import { toPlainObject, stripNestedMap,
   stripMap, emptyDefaultTo } from '../helpers/utils';
@@ -17,6 +17,7 @@ import inMemory from './KeyValService';
 import { getIdeaCollections } from './IdeaCollectionService';
 import { getIdeas } from './IdeaService';
 import { createIdeasAndIdeaCollections } from './StateService';
+import { isRoomReadyToVote, isRoomDoneVoting } from './VotingService';
 
 // Private
 const maybeThrowNotFound = (obj, msg = 'Board not found') => {
@@ -91,7 +92,6 @@ self.findBoard = function(boardId) {
  * @returns {Promise<[MongooseObjects]|Error>} Boards for the given user
  */
 self.getBoardsForUser = function(userId) {
-  console.log(userId);
   return Board.find({users: userId})
     .then(maybeThrowNotFound);
 };
@@ -412,24 +412,16 @@ self.hydrateRoom = function(boardId, userId) {
 };
 
 self.handleLeaving = (socketId) => {
-  console.log('Socket', socketId);
-
   return self.getUserIdFromSocketId(socketId)
   .then((userId) => {
-    console.log('user', userId);
-
     return self.getBoardsForUser(userId)
     .then((boards) => {
-      console.log('boards', boards);
-
-      return Promise.filter(boards, (board) => {
-        console.log('board', board);
+      return Promise.filter(boards, () => {
         return inMemory.isSocketInRoom(socketId);
       });
     })
     .get(0)
-    .tap(console.log)
-    .then((board) => self.removeUserFromRedis(board.id, user.id, socketId))
+    .then((board) => self.removeUserFromRedis(board.boardId, userId, socketId))
     .tap(([boardId, /* userId */, /* socketId */]) => {
       return Promise.all([
         isRoomReadyToVote(boardId),
