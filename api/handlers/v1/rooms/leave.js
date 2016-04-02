@@ -30,7 +30,6 @@ export default function leave(req) {
   return verifyAndGetId(userToken)
     .then((verifiedUserId) => {
       userId = verifiedUserId;
-
       return Promise.all([
         removeUserFromRedis(boardId, userId, socket.id),
         Promise.resolve(userId),
@@ -46,7 +45,6 @@ export default function leave(req) {
       return stream.leave({socket, boardId, userId});
     })
     .catch((err) => {
-      console.error(err.stack);
       return stream.serverError(LEFT_ROOM, err.message, socket);
     });
 }
