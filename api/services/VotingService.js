@@ -11,6 +11,7 @@ import { model as IdeaCollection } from '../models/IdeaCollection';
 import Promise from 'bluebird';
 import InMemory from './KeyValService';
 import _ from 'lodash';
+import log from 'winston';
 import { groupBy, prop } from 'ramda';
 import { UnauthorizedError } from '../helpers/extendable-error';
 import IdeaCollectionService from './IdeaCollectionService';
@@ -169,7 +170,9 @@ self.isRoomReady = function(votingAction, boardId) {
   return InMemory.getUsersInRoom(boardId)
   .then((userIds) => {
     if (userIds.length === 0) {
-      throw new Error('No users are currently connected to the room');
+      // throw new Error('No users are currently connected to the room');
+      log.info(`No users are currently connected to room ${boardId}.`);
+      return [];
     }
     // Check if the users are ready to move forward based on voting action
     if (votingAction.toLowerCase() === 'start') {
@@ -192,11 +195,20 @@ self.isRoomReady = function(votingAction, boardId) {
     });
   })
   .then((promises) => {
+    if (promises.length === 0) {
+      return [];
+    }
+
     return Promise.all(promises);
   })
   // Check if all the users are ready to move forward
   .then((userStates) => {
-    const roomReadyToMoveForward = _.every(userStates, 'ready');
+    let roomReadyToMoveForward;
+
+    if (userStates.length === 0) roomReadyToMoveForward = false;
+    else roomReadyToMoveForward = _.every(userStates, {'ready': true});
+    console.log(roomReadyToMoveForward); 
+
     if (roomReadyToMoveForward) {
       // Transition the board state
       return StateService.getState(boardId)
