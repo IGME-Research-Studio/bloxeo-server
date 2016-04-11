@@ -17,7 +17,9 @@ export default function create(req, res) {
   }
 
   return userService.create(username)
-    .then((token) => res.created({token: token, username: username}))
+    .then(([token, user]) => (
+      res.created({token: token, username: username, userId: user.id})
+    ))
     .catch((err) => {
       res.internalServerError(err);
     });
