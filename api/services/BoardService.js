@@ -248,7 +248,7 @@ self.addUser = function(boardId, userId, socketId) {
       ]);
     }
   })
-  .return([boardId, userId, socketId]);
+  .return(userId);
 };
 
 /**

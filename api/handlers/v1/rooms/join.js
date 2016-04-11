@@ -30,7 +30,7 @@ export default function join(req) {
 
   return verifyAndGetId(userToken)
   .then((userId) => addUser(boardId, userId, socket.id))
-  .then(([/* */, /* */, userId]) => {
+  .then((userId) => {
 
     return hydrateRoom(boardId, userId)
     .then((boardState) => {
