@@ -400,7 +400,7 @@ self.hydrateRoom = function(boardId, userId) {
                           numResultsReturn: options.numResultsReturn };
 
     hydratedRoom.room.users = users.map(function(user) {
-      return {userId: user.id, username: user.username};
+      return {userId: user._id, username: user.username};
     });
 
     return self.isAdmin(board, userId);
