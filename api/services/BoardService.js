@@ -417,10 +417,12 @@ self.hydrateRoom = function(boardId, userId) {
   });
 };
 
-self.handleLeaving = (socketId) => {
-  return self.getUserIdFromSocketId(socketId)
-  .then((userId) => {
-    return self.getBoardsForUser(userId)
+self.handleLeaving = (socketId) =>
+  self.getUserIdFromSocketId(socketId)
+    .then((userId) => self.handleLeavingUser(userId));
+
+self.handleLeavingUser = (userId) =>
+  self.getBoardsForUser(userId)
     .then((boards) => {
       return Promise.filter(boards, () => {
         return inMemory.isSocketInRoom(socketId);
@@ -434,7 +436,5 @@ self.handleLeaving = (socketId) => {
         isRoomDoneVoting(boardId),
       ]);
     });
-  });
-};
 
 module.exports = self;
