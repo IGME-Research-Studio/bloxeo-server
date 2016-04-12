@@ -4,7 +4,7 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, isEmpty, not, contains } from 'ramda';
+import { isNil, isEmpty, not, contains, find, propEq, map } from 'ramda';
 
 import { toPlainObject, stripNestedMap,
   stripMap, emptyDefaultTo } from '../helpers/utils';
@@ -381,16 +381,17 @@ self.areThereCollections = function(boardId) {
 * @param {String} userId
 * @returns {Promise<Object|Error>}: returns all of the generated board/room data
 */
-self.hydrateRoom = function(boardId, userId) {
+self.hydrateRoom = function(boardId, socketId) {
   const hydratedRoom = {};
   return Promise.all([
     Board.findOne({boardId: boardId}),
     getIdeaCollections(boardId),
     getIdeas(boardId),
     self.getBoardOptions(boardId),
+    self.getAllUsersInRoom(boardId),
     self.getUsers(boardId),
   ])
-  .then(([board, collections, ideas, options, users]) => {
+  .then(([board, collections, ideas, options, userIds, usersOnBoard]) => {
     hydratedRoom.collections = stripNestedMap(collections);
     hydratedRoom.ideas = stripMap(ideas);
     hydratedRoom.room = { name: board.name,
@@ -399,14 +400,15 @@ self.hydrateRoom = function(boardId, userId) {
                           numResultsShown: options.numResultsShown,
                           numResultsReturn: options.numResultsReturn };
 
-    hydratedRoom.room.users = users.map(function(user) {
+    const users = map((userId) => (
+      find(propEq('_id', userId), usersOnBoard)
+    ), userIds);
+
+    hydratedRoom.room.users = users.map((user) => {
       return {userId: user._id, username: user.username};
     });
 
-    return self.isAdmin(board, userId);
-  })
-  .then((isUserAnAdmin) => {
-    hydratedRoom.isAdmin = isUserAnAdmin;
+    hydratedRoom.isAdmin = self.isAdmin(board, socketId);
     return hydratedRoom;
   });
 };

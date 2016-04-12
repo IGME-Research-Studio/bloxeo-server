@@ -18,7 +18,7 @@
  *  `${boardId}-current-users`: [ref('Users'), ...]
  */
 
-import { contains, curry, uniq, unless } from 'ramda';
+import { contains, curry, unless } from 'ramda';
 import Redis from '../helpers/key-val-store';
 import {NoOpError} from '../helpers/extendable-error';
 import Promise from 'bluebird';
@@ -305,8 +305,16 @@ self.getUserFromSocket = self.getKey(socketUserIdSetKey);
  */
 self.getUsersInRoom = (boardId) => {
   return self.getSetMembers(currentSocketConnectionsKey, boardId)
-  .then((socketIds) => Promise.map(socketIds, socketUserIdSetKey))
-  .then(uniq);
+  .then((socketIds) => {
+    const userIdPromises = socketIds.map((socketId) => {
+      return self.getUserFromSocket(socketId);
+    });
+
+    return Promise.all(userIdPromises)
+    .then((userIds) => {
+      return userIds;
+    });
+  });
 };
 
 /**
