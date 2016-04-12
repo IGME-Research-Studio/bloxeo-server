@@ -381,7 +381,7 @@ self.areThereCollections = function(boardId) {
 * @param {String} userId
 * @returns {Promise<Object|Error>}: returns all of the generated board/room data
 */
-self.hydrateRoom = function(boardId, socketId) {
+self.hydrateRoom = function(boardId, userId) {
   const hydratedRoom = {};
   return Promise.all([
     Board.findOne({boardId: boardId}),
@@ -400,15 +400,19 @@ self.hydrateRoom = function(boardId, socketId) {
                           numResultsShown: options.numResultsShown,
                           numResultsReturn: options.numResultsReturn };
 
-    const users = map((userId) => (
-      find(propEq('_id', userId), usersOnBoard)
+    const users = map((anId) => (
+      find(propEq('_id', anId), usersOnBoard)
     ), userIds);
 
     hydratedRoom.room.users = users.map((user) => {
-      return {userId: user._id, username: user.username};
+      return {
+        userId: user._id,
+        username: user.username,
+        isAdmin: self.isAdmin(board, user._id),
+      };
     });
 
-    hydratedRoom.isAdmin = self.isAdmin(board, socketId);
+    hydratedRoom.isAdmin = self.isAdmin(board, userId);
     return hydratedRoom;
   });
 };
