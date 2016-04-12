@@ -37,7 +37,7 @@ const schema = new mongoose.Schema({
 
   userColorsEnabled: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 
   numResultsShown: {

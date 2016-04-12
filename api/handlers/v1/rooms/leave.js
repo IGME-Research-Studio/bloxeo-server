@@ -7,8 +7,8 @@
 * @param {string} req.userToken
 */
 
-import { curry, isNil, values } from 'ramda';
-import { removeUser} from '../../../services/BoardService';
+import { isNil, values } from 'ramda';
+import { handleLeavingUser } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { anyAreNil } from '../../../helpers/utils';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
@@ -17,8 +17,7 @@ import stream from '../../../event-stream';
 export default function leave(req) {
   const { socket, boardId, userToken } = req;
   const required = { boardId, userToken };
-
-  const removeThisUser = curry(removeUser)(boardId);
+  let userId;
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
@@ -28,11 +27,12 @@ export default function leave(req) {
   }
 
   return verifyAndGetId(userToken)
-    .then(removeThisUser)
-    .then(([__, userId]) => {
+    .then(handleLeavingUser)
+    .then(() => {
       return stream.leave({socket, boardId, userId});
     })
     .catch((err) => {
-      return stream.serverError(LEFT_ROOM, err.message, socket);
+      stream.serverError(LEFT_ROOM, err.message, socket);
+      throw err;
     });
 }

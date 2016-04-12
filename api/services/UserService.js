@@ -18,7 +18,12 @@ const self = {};
  */
 self.create = function(username) {
   return new User({username: username}).save()
-  .then((user) => tokenService.encode(toPlainObject(user)));
+  .then((user) => (
+    Promise.all([
+      tokenService.encode(toPlainObject(user)),
+      Promise.resolve(user),
+    ]))
+  );
 };
 
 /**

@@ -1,6 +1,5 @@
 /**
  * Dispatcher
- *
  */
 
 import sio from 'socket.io';
@@ -10,6 +9,7 @@ import log from 'winston';
 import stream from './event-stream';
 import events from './events';
 import { BROADCAST, EMIT_TO, JOIN, LEAVE } from './constants/INT_EVENT_API';
+import { handleLeaving } from './services/BoardService';
 
 const dispatcher = function(server) {
   const io = sio(server, {
@@ -24,6 +24,12 @@ const dispatcher = function(server) {
         log.info(event, req);
         method(_.merge({socket: socket}, req));
       });
+    });
+
+    socket.on('disconnect', function() {
+      log.info(`User with ${socket.id} has disconnected`);
+
+      handleLeaving(socket.id);
     });
   });
 
