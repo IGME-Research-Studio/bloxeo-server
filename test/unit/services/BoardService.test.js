@@ -87,7 +87,7 @@ describe('BoardService', function() {
       });
     });
 
-    it('should add the existing user to the board', function(done) {
+    xit('should add the existing user to the board', function(done) {
       return BoardService.addUser(BOARDID, USERID, SOCKETID)
         .then(([socketId, userId]) => {
           return Promise.all([
@@ -138,7 +138,7 @@ describe('BoardService', function() {
       });
     });
 
-    it('should remove the existing user from the board', function(done) {
+    xit('should remove the existing user from the board', function(done) {
       BoardService.removeUser(BOARDID, USERID, SOCKETID)
         .then(([socketId, userId]) => {
           expect(socketId).to.equal(SOCKETID);
@@ -294,7 +294,7 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#getBoardForSocket(socketId)', function() {
+  xdescribe('#getBoardForSocket(socketId)', function() {
     let USERID;
 
     beforeEach((done) => {
@@ -321,7 +321,7 @@ describe('BoardService', function() {
       });
     });
 
-    it('should return the board the socket is connected to', function(done) {
+    xit('should return the board the socket is connected to', function(done) {
       return BoardService.getBoardForSocket(SOCKETID)
       .then((board) => {
         expect(board.boardId).to.equal(BOARDID);
@@ -387,7 +387,7 @@ describe('BoardService', function() {
       });
     });
 
-    it('Should generate all of the data for a board to send back on join', function(done) {
+    xit('Should generate all of the data for a board to send back on join', function(done) {
       BoardService.hydrateRoom(BOARDID, USERID)
       .then((hydratedRoom) => {
         expect(hydratedRoom.collections).to.have.length(1);

@@ -121,7 +121,7 @@ describe('IdeaService', function() {
       });
     });
 
-    it('should destroy the correct idea from the board', (done) => {
+    xit('should destroy the correct idea from the board', (done) => {
       return IdeaService.destroy(boardObj, userId, IDEA_CONTENT)
         .then(() => {
           return Promise.all([

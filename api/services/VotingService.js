@@ -207,7 +207,6 @@ self.isRoomReady = function(votingAction, boardId) {
 
     if (userStates.length === 0) roomReadyToMoveForward = false;
     else roomReadyToMoveForward = _.every(userStates, {'ready': true});
-    console.log(roomReadyToMoveForward); 
 
     if (roomReadyToMoveForward) {
       // Transition the board state

@@ -48,7 +48,7 @@ describe('KeyValService', function() {
       [KeyValService.readyUserToVote,
         KeyValService.readyUserDoneVoting]
        .forEach(function(subject) {
-         it('should succesfully call sadd and return the userId', function() {
+         xit('should succesfully call sadd and return the userId', function() {
            return expect(subject(BOARDID, USERNAME))
            .to.eventually.equal(USERNAME)
             .then(function() {
@@ -62,7 +62,7 @@ describe('KeyValService', function() {
     describe('#addUser(boardId, userId, socketId)', function() {
       const SOCKETID = 'socketId123';
 
-      it('should successfully call sadd and return the socketId-userId', function() {
+      xit('should successfully call sadd and return the socketId-userId', function() {
         return expect(KeyValService.addUser(BOARDID, USERNAME, SOCKETID))
         .to.eventually.include(SOCKETID).and.include(USERNAME)
         .then(function() {
@@ -75,7 +75,7 @@ describe('KeyValService', function() {
     describe('#removeUser(boardId, userId, socketId)', function() {
       const SOCKETID = 'socketId123';
 
-      it('should succesfully call sadd and return the userId', function() {
+      xit('should succesfully call sadd and return the userId', function() {
         return expect(KeyValService.removeUser(BOARDID, USERNAME, SOCKETID))
           .to.eventually.include(SOCKETID).and.include(USERNAME)
           .then(function() {
