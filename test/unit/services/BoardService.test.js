@@ -366,7 +366,7 @@ describe('BoardService', function() {
     });
   });
 
-  describe('#hydrateRoom(boardId, userId)', function() {
+  describe('#hydrateRoom(boardId)', function() {
     let USERID;
 
     beforeEach(() => {

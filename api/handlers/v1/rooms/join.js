@@ -32,7 +32,7 @@ export default function join(req) {
   .then((userId) => addUser(boardId, userId, socket.id))
   .then((userId) => {
 
-    return hydrateRoom(boardId, userId)
+    return hydrateRoom(boardId)
     .then((boardState) => {
       return stream.join({socket, boardId, userId, boardState});
     })

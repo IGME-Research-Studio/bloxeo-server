@@ -4,7 +4,7 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, isEmpty, not, contains, find, propEq, map } from 'ramda';
+import { isNil, isEmpty, pick, contains, find, propEq, map } from 'ramda';
 
 import { toPlainObject, stripNestedMap,
   stripMap, emptyDefaultTo } from '../helpers/utils';
@@ -57,24 +57,24 @@ self.destroy = function(boardId) {
 };
 
 /**
-* Update a board's name and description in the database
+* Update a board's name and boardDesc in the database
 * @param {Document} board - The mongo board model to update
-* @param {String} attribute - The attribute to update
-* @param {String} value - The value to update the attribute with
+* @param {Object<String, Type} updates - The attribute to update
 * @returns {Document} - The updated mongo board model
 */
-self.update = function(board, attribute, value) {
+self.update = function(board, updates) {
+  const safeUpdates = pick(adminEditableFields, updates);
 
-  if (not(contains(attribute, adminEditableFields))) {
+  if (isEmpty(safeUpdates)) {
     throw new UnauthorizedError(
-      `Attribute is not editable or does not exist.`);
+      `Attributes are not editable or does not exist.`);
   }
-  const query = {};
-  const updatedData = {};
-  query[attribute] = board[attribute];
-  updatedData[attribute] = value;
+  console.log(board, board.boardId, safeUpdates);
 
-  return board.update(query, updatedData);
+  return board.update(safeUpdates)
+  .then(() => self.findBoard(board.boardId))
+  .then((updatedBoard) =>
+        pick(adminEditableFields, toPlainObject(updatedBoard)));
 };
 
 /**
@@ -95,27 +95,6 @@ self.getBoardsForUser = function(userId) {
   return Board.find({users: userId})
     .then(maybeThrowNotFound);
 };
-
-/**
-* Gets the board that the socket is currently connected to
-* @param {String} socketId
-* @returns {Promise<MongoBoard|NotFoundError} returns the board and
-* userId of the connected socket if it exists,
-* otherwise throws a NotFoundError.
-*/
-// self.getBoardForSocket = function(socketId) {
-//   console.log(`Get socket ${socketId}`);
-//   return self.getUserFromSocket(socketId)
-//   .tap((userId) => console.log(`Get user from socket ${userId}`))
-//   .then((userId) => [self.getBoardsForUser(userId), userId])
-//   .tap((boards) => console.log(`Get boards from users ${boards}`))
-//   .then(([boards, userId]) => Promise.filter(boards,
-//      (board) => inMemory.isSocketInRoom(boardId)) )
-//   .tap([boar])
-//   .then(([boards, userId]) => [head(maybeThrowNotFound(boards)), userId])
-//   .then(([board, userId]) => ({ board, userId }));
-//   // .tap(console.log)
-// };
 
 /**
  * Find if a board exists
@@ -349,7 +328,7 @@ self.isAdmin = function(board, userId) {
 
 self.errorIfNotAdmin = function(board, userId) {
   if (self.isAdmin(board, userId)) {
-    return Promise.resolve(true);
+    return Promise.resolve([board, userId]);
   }
   else {
     throw new UnauthorizedError(
@@ -381,7 +360,7 @@ self.areThereCollections = function(boardId) {
 * @param {String} userId
 * @returns {Promise<Object|Error>}: returns all of the generated board/room data
 */
-self.hydrateRoom = function(boardId, userId) {
+self.hydrateRoom = function(boardId) {
   const hydratedRoom = {};
   return Promise.all([
     Board.findOne({boardId: boardId}),
@@ -412,7 +391,6 @@ self.hydrateRoom = function(boardId, userId) {
       };
     });
 
-    hydratedRoom.isAdmin = self.isAdmin(board, userId);
     return hydratedRoom;
   });
 };
@@ -421,7 +399,7 @@ self.handleLeaving = (socketId) =>
   self.getUserIdFromSocketId(socketId)
     .then((userId) => self.handleLeavingUser(userId));
 
-self.handleLeavingUser = (userId) =>
+self.handleLeavingUser = (userId, socketId) =>
   self.getBoardsForUser(userId)
     .then((boards) => {
       return Promise.filter(boards, () => {

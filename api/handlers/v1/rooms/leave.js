@@ -27,7 +27,7 @@ export default function leave(req) {
   }
 
   return verifyAndGetId(userToken)
-    .then(handleLeavingUser)
+    .then((userId) => handleLeavingUser(userId, socket.id))
     .then(() => {
       return stream.leave({socket, boardId, userId});
     })

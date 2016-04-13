@@ -2,7 +2,9 @@
 * Rooms#update
 */
 
-import { partial, isNil, values } from 'ramda';
+import { isNil, values } from 'ramda';
+import Promise from 'bluebird';
+
 import { UPDATED_BOARD } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 import { errorIfNotAdmin } from '../../../services/BoardService';
@@ -14,10 +16,8 @@ import { UnauthorizedError } from '../../../helpers/extendable-error';
 import { strip, anyAreNil } from '../../../helpers/utils';
 
 export default function update(req) {
-  const { socket, boardId, userToken, attribute, value } = req;
-  const required = { boardId, userToken, attribute, value };
-
-  const errorIfNotAdminOnThisBoard = partial(errorIfNotAdmin, [boardId]);
+  const { socket, boardId, userToken, updates } = req;
+  const required = { boardId, userToken, updates };
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
@@ -26,21 +26,21 @@ export default function update(req) {
     return stream.badRequest(UPDATED_BOARD, required, socket);
   }
 
-  return Promise.All([
+  return Promise.all([
     findBoard(boardId),
     verifyAndGetId(userToken),
   ])
-  .spread(errorIfNotAdminOnThisBoard)
-  .then(() => {
-    return updateBoard(board, attribute, value);
-  })
+  .spread(errorIfNotAdmin)
+  .then(([board /* , userId */]) => updateBoard(board, updates))
   .then((updatedBoard) => {
     return stream.ok(UPDATED_BOARD, strip(updatedBoard), boardId);
   })
   .catch(JsonWebTokenError, UnauthorizedError, (err) => {
-    return stream.unauthorized(UPDATED_BOARD, err.message, socket);
+    stream.unauthorized(UPDATED_BOARD, err.message, socket);
+    throw err;
   })
   .catch((err) => {
-    return stream.serverError(UPDATED_BOARD, err.message, socket);
+    stream.serverError(UPDATED_BOARD, err.message, socket);
+    throw err;
   });
 }
