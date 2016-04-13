@@ -3,19 +3,23 @@
  *
  */
 
+import { values } from 'ramda';
 import userService from '../../../services/UserService';
-import { isNull } from '../../../services/ValidatorService';
+import { anyAreNil } from '../../../helpers/utils';
 
 export default function create(req, res) {
-  const username = req.body.username;
+  const { username } = req.body;
+  const required = { username };
 
-  if (isNull(username)) {
-    return res.badRequest(
-      {message: 'Not all required parameters were supplied'});
+  if (anyAreNil(values(required))) {
+    return res.badRequest({...required,
+      message: 'Not all required parameters were supplied'});
   }
 
-  userService.create(username)
-    .then((user) => res.created(user))
+  return userService.create(username)
+    .then(([token, user]) => (
+      res.created({token: token, username: username, userId: user.id})
+    ))
     .catch((err) => {
       res.internalServerError(err);
     });

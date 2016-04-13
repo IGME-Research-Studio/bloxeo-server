@@ -1,6 +1,6 @@
 {
   "name": "StormServer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Storm app server",
   "scripts": {
     "start": "node index.js",
@@ -23,12 +23,16 @@
   "dependencies": {
     "agenda": "^0.7.5",
     "babel-core": "^6.1.2",
-    "babel-preset-es2015": "^6.1.2",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "babel-template": "^6.3.13",
+    "babel-types": "^6.3.24",
     "bcryptjs": "^2.2.2",
     "bluebird": "^3.0.1",
     "body-parser": "^1.14.1",
     "compression": "^1.6.0",
     "cors": "^2.7.1",
+    "dtimer": "^0.2.0",
     "es6-error": "^2.0.2",
     "express": "^4.13.3",
     "express-enrouten": "^1.2.1",
@@ -46,19 +50,22 @@
     "morgan": "^1.6.1",
     "passport": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
+    "radicchio": "^1.1.2",
     "ramda": "^0.18.0",
     "rc": "~0.5.0",
+    "redis": "^2.4.2",
     "shortid": "^2.2.2",
     "socket.io": "^1.3.7",
     "socketio-jwt": "^4.3.3",
-    "validator": "^4.0.6",
     "winston": "^2.1.1"
   },
   "devDependencies": {
     "babel-eslint": "^4.1.3",
+    "babel-plugin-rewire": "^1.0.0-beta-3",
+    "babel-plugin-syntax-jsx": "^6.3.13",
     "chai": "^3.3.0",
+    "chai-array": "0.0.2",
     "chai-as-promised": "^5.1.0",
-    "dupertest": "^1.0.2",
     "eslint": "^1.5.0",
     "eslint-config-airbnb": "0.0.8",
     "grunt-eslint": "^17.1.0",
@@ -71,7 +78,6 @@
     "sinomocha": "^0.2.4",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
-    "socket.io-client": "^1.3.7",
-    "supertest": "^1.1.0"
+    "socket.io-client": "^1.3.7"
   }
 }

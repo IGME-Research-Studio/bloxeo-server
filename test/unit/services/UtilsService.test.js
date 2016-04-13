@@ -1,8 +1,7 @@
-import chai from 'chai';
+import { expect } from 'chai';
+import { isEmpty } from 'ramda';
 
 import utils from '../../../api/helpers/utils';
-
-const expect = chai.expect;
 
 describe('UtilsService', () => {
   // Objects with _id prop
@@ -44,6 +43,21 @@ describe('UtilsService', () => {
 
       expect(utils.stripNestedMap(TEST_NESTED_OBJ))
         .to.deep.equal(RES_NESTED_OBJ);
+    });
+  });
+
+  describe('#emptyDefaultTo(default, val)', () => {
+
+    it('should ifPdefaultTo(isEmpty, true, [])', () => {
+      expect(utils.ifPdefaultTo(isEmpty, true, [])).to.equal(true);
+    });
+
+    it('should defaultTo(true, [])', () => {
+      expect(utils.emptyDefaultTo(true, [])).to.equal(true);
+    });
+
+    it('should defaultTo(true, "blah")', () => {
+      expect(utils.emptyDefaultTo(true, 'blah')).to.equal('blah');
     });
   });
 });

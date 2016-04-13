@@ -6,17 +6,14 @@
 */
 
 import mongoose from 'mongoose';
+import { model as IdeaCollection } from './IdeaCollection';
+import _ from 'lodash';
 
 const schema = new mongoose.Schema({
   // Which board the idea belongs to
   boardId: {
     type: String,
     required: true,
-  },
-
-  isActive: {
-    type: Boolean,
-    default: true,
   },
 
   // Who created the idea, used for color coding the ideas
@@ -35,6 +32,27 @@ const schema = new mongoose.Schema({
 });
 
 // Middleware
+
+// Remove the idea and remove it from all idea collections on the board too
+// @TODO: Figure out what to do about last person to edit the collecitons
+schema.pre('remove', function(next) {
+  const self = this;
+  // Get all of the idea collections on a board and populate their ideas
+  // Loop through all of the collections
+  // Remove the idea that matches by mongo id from each collection
+  IdeaCollection.find({boardId: self.boardId})
+  .then((collections) => {
+    return _.map(collections, function(collection) {
+      _.map(collection.ideas, function(collectionIdea) {
+        if (collectionIdea.id === self.id) {
+          return collection.ideas.pull(self.id);
+        }
+      });
+    });
+  })
+  .then(() => next());
+});
+
 schema.pre('save', function(next) {
   const self = this;
 

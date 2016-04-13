@@ -6,27 +6,29 @@
 * @param {string} req.boardId
 * @param {string} req.content the content of the idea to create
 * @param {string} req.key key of the collection
+* @param {string} req.userToken
 */
 
-import R from 'ramda';
+import { partialRight, isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { isNull } from '../../../services/ValidatorService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
-import { stripNestedMap as strip } from '../../../helpers/utils';
+import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function addIdea(req) {
   const { socket, boardId, content, key, userToken } = req;
-  const addThisIdeaBy = R.partialRight(addIdeaToCollection, [boardId, key, content]);
+  const required = { boardId, content, key, userToken };
 
-  if (isNull(socket)) {
+  const addThisIdeaBy = partialRight(addIdeaToCollection,
+                                     [boardId, key, content]);
+
+  if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
-  if (isNull(boardId) || isNull(content) || isNull(key) || isNull(userToken)) {
-    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(UPDATED_COLLECTIONS, required, socket);
   }
 
   return verifyAndGetId(userToken)
