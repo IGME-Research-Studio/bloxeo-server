@@ -20,7 +20,7 @@ const setupApp = function() {
     .use(logger('dev'))
     .use(compression())
     .use(cors())
-    .use(bodyParser.urlencoded({extended: true}))
+    .use(bodyParser.json())
     .use(enrouten(routes))
     .disable('x-powered-by')
     .listen(CFG.port, function(err) {

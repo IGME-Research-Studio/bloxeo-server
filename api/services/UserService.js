@@ -6,7 +6,9 @@
 */
 
 import tokenService from './TokenService';
-import { model as User } from '../models/User.js';
+import { model as User } from '../models/User';
+import { toPlainObject } from '../helpers/utils';
+
 const self = {};
 
 /**
@@ -16,11 +18,17 @@ const self = {};
  */
 self.create = function(username) {
   return new User({username: username}).save()
-  .then((user) => tokenService.encode(user));
+  .then((user) => (
+    Promise.all([
+      tokenService.encode(toPlainObject(user)),
+      Promise.resolve(user),
+    ]))
+  );
 };
 
 /**
  * Remove a user from the database
+ * @XXX This does not look like the correct way to query for a user
  * @param {String} userId - mongoId of the user
  * @returns {Promise}
  */

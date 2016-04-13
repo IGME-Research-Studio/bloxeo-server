@@ -8,24 +8,25 @@
 * @param {string} req.userToken
 */
 
-import { isNil } from 'ramda';
+import { isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { destroyByKey as removeCollection } from '../../../services/IdeaCollectionService';
-import { stripNestedMap as strip } from '../../../helpers/utils';
+import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../event-stream';
 
 export default function destroy(req) {
   const { socket, boardId, key, userToken } = req;
+  const required = { boardId, key, userToken };
+
   const removeThisCollectionBy = () => removeCollection(boardId, key);
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
   }
-
-  if (isNil(boardId) || isNil(key) || isNil(userToken)) {
-    return stream.badRequest(UPDATED_COLLECTIONS, {}, socket);
+  if (anyAreNil(values(required))) {
+    return stream.badRequest(UPDATED_COLLECTIONS, required, socket);
   }
 
   return verifyAndGetId(userToken)

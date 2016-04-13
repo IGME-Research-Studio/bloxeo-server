@@ -1,5 +1,6 @@
 {
   "extends": "airbnb/base",
+  "ecmaFeatures": { "destructuring": true },
   "rules": {
     "brace-style": [2, "stroustrup", { "allowSingleLine": true }],
     "no-param-reassign": 1,

@@ -3,21 +3,23 @@
  *
  */
 
-import { isNil } from 'ramda';
-import BoardService from '../../../services/BoardService';
+import { values } from 'ramda';
 import { verifyAndGetId } from '../../../services/TokenService';
+import { create as createBoard } from '../../../services/BoardService';
+import { anyAreNil } from '../../../helpers/utils';
 
 export default function create(req, res) {
-  const { userToken, name, description } = req;
+  const { userToken, name, description } = req.body;
+  const required = { userToken };
 
-  if (isNil(userToken) || isNil(name) || isNil(description)) {
-    return res.badRequest(
-      {message: 'Not all required parameters were supplied'});
+  if (anyAreNil(values(required))) {
+    return res.badRequest({ ...required,
+      message: 'Not all required parameters were supplied'});
   }
 
   return verifyAndGetId(userToken)
   .then((userId) => {
-    BoardService.create(userId, name, description)
+    return createBoard(userId, name, description)
       .then((boardId) => res.created({boardId: boardId}))
       .catch((err) => res.serverError(err));
   });

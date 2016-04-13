@@ -11,10 +11,18 @@
 
 import ExtendableError from 'es6-error';
 
-export class NotFoundError extends ExtendableError { }
+class CustomDataError extends ExtendableError {
 
-export class ValidationError extends ExtendableError { }
+  constructor(message = '', data = {}) {
+    super(message);
+    this.data = data;
+  }
+}
 
-export class NoOpError extends ExtendableError { }
+export class NotFoundError extends CustomDataError { }
 
-export class UnauthorizedError extends ExtendableError { }
+export class ValidationError extends CustomDataError { }
+
+export class NoOpError extends CustomDataError { }
+
+export class UnauthorizedError extends CustomDataError { }
