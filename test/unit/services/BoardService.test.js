@@ -41,8 +41,8 @@ describe('BoardService', function() {
         })
         .then(([boardId, board]) => {
           expect(boardId).to.be.a('string');
-          expect(board.name).to.equal('title');
-          expect(board.description).to.equal('description');
+          expect(board.boardName).to.equal('title');
+          expect(board.boardDesc).to.equal('description');
           expect(BoardService.exists(boardId)).to.eventually.be.true;
           done();
         });
@@ -377,7 +377,7 @@ describe('BoardService', function() {
       .then((users) => {
         return Promise.all([
           monky.create('Board', {boardId: BOARDID, users: users,
-             admins: users[0], name: 'name', description: 'description'}),
+             admins: users[0], boardName: 'name', boardDesc: 'description'}),
           monky.create('Idea'),
         ]);
       })
@@ -388,12 +388,12 @@ describe('BoardService', function() {
     });
 
     xit('Should generate all of the data for a board to send back on join', function(done) {
-      BoardService.hydrateRoom(BOARDID, USERID)
+      BoardService.hydrateRoom(BOARDID)
       .then((hydratedRoom) => {
         expect(hydratedRoom.collections).to.have.length(1);
         expect(hydratedRoom.ideas).to.have.length(1);
-        expect(hydratedRoom.room.name).to.be.a('string');
-        expect(hydratedRoom.room.description).to.be.a('string');
+        expect(hydratedRoom.room.boardName).to.be.a('string');
+        expect(hydratedRoom.room.boardDesc).to.be.a('string');
         expect(hydratedRoom.room.userColorsEnabled).to.be.false;
         expect(hydratedRoom.room.numResultsShown).to.equal(25);
         expect(hydratedRoom.room.numResultsReturn).to.equal(5);

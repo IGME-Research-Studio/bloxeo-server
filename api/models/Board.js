@@ -8,7 +8,7 @@ import IdeaCollection from './IdeaCollection.js';
 import Idea from './Idea.js';
 import Result from './Result';
 
-const adminEditables = ['isPublic', 'name', 'description',
+const adminEditables = ['isPublic', 'boardName', 'boardDesc',
                         'userColorsEnabled', 'numResultsShown',
                         'numResultsReturn'];
 
@@ -25,12 +25,12 @@ const schema = new mongoose.Schema({
     adminEditable: false,
   },
 
-  name: {
+  boardName: {
     type: String,
     trim: true,
   },
 
-  description: {
+  boardDesc: {
     type: String,
     trim: true,
   },

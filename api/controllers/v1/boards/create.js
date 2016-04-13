@@ -9,7 +9,7 @@ import { create as createBoard } from '../../../services/BoardService';
 import { anyAreNil } from '../../../helpers/utils';
 
 export default function create(req, res) {
-  const { userToken, name, description } = req.body;
+  const { userToken, boardName, boardDesc } = req.body;
   const required = { userToken };
 
   if (anyAreNil(values(required))) {
@@ -19,7 +19,7 @@ export default function create(req, res) {
 
   return verifyAndGetId(userToken)
   .then((userId) => {
-    return createBoard(userId, name, description)
+    return createBoard(userId, boardName, boardDesc)
       .then((boardId) => res.created({boardId: boardId}))
       .catch((err) => res.serverError(err));
   });

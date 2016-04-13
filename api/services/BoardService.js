@@ -35,12 +35,11 @@ const self = {};
  * Create a board in the database
  * @returns {Promise<String|Error>} the created boards boardId
  */
-self.create = function(userId, name, description) {
+self.create = function(userId, name, desc) {
   const boardName = emptyDefaultTo('Project Title', name);
-  const boardDesc = emptyDefaultTo('This is a description.', description);
+  const boardDesc = emptyDefaultTo('This is a description.', desc);
 
-  return new Board({users: [userId], admins: [userId],
-    name: boardName, description: boardDesc})
+  return new Board({users: [userId], admins: [userId], boardName, boardDesc})
   .save()
   .then((result) => {
     return createIdeasAndIdeaCollections(result.boardId, false, '')
@@ -113,7 +112,7 @@ self.exists = function(boardId) {
 */
 self.getBoardOptions = function(boardId) {
   return Board.findOne({boardId: boardId})
-  .select('-_id userColorsEnabled numResultsShown numResultsReturn name description')
+  .select('-_id userColorsEnabled numResultsShown numResultsReturn boardName boardDesc')
   .then(toPlainObject)
   .then((board) => {
     if (isNil(board)) {
@@ -373,8 +372,8 @@ self.hydrateRoom = function(boardId) {
   .then(([board, collections, ideas, options, userIds, usersOnBoard]) => {
     hydratedRoom.collections = stripNestedMap(collections);
     hydratedRoom.ideas = stripMap(ideas);
-    hydratedRoom.room = { name: board.name,
-                          description: board.description,
+    hydratedRoom.room = { boardName: board.boardName,
+                          boardDesc: board.boardDesc,
                           userColorsEnabled: options.userColorsEnabled,
                           numResultsShown: options.numResultsShown,
                           numResultsReturn: options.numResultsReturn };
