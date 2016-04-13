@@ -6,14 +6,12 @@ import logger from 'morgan';
 import cors from 'cors';
 import addStatusCodes from 'express-json-status-codes';
 import log from 'winston';
-// import redis from 'ioredis';
 
 import CFG from '../config';
 import routes from './routes';
 import dispatcher from './dispatcher';
-import database from './services/database';
+import database from './helpers/database';
 
-// const redisClient = Redis(CFG.redisURL);
 const extendedExpress = addStatusCodes(express);
 log.level = CFG.logLevel;
 
@@ -22,7 +20,7 @@ const setupApp = function() {
     .use(logger('dev'))
     .use(compression())
     .use(cors())
-    .use(bodyParser.urlencoded({extended: true}))
+    .use(bodyParser.json())
     .use(enrouten(routes))
     .disable('x-powered-by')
     .listen(CFG.port, function(err) {
@@ -32,11 +30,7 @@ const setupApp = function() {
 };
 
 database();
-
 const app = setupApp();
 dispatcher(app);
 
-database();
-
 export { app };
-

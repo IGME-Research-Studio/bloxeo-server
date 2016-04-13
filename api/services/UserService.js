@@ -6,27 +6,34 @@
 */
 
 import tokenService from './TokenService';
-import { model as User } from '../models/User.js';
+import { model as User } from '../models/User';
+import { toPlainObject } from '../helpers/utils';
 
-const userService = {};
+const self = {};
 
 /**
  * Create a user from the database
  * @param {String} username
  * @returns {Promise}
  */
-userService.create = function(username) {
+self.create = function(username) {
   return new User({username: username}).save()
-  .then((user) => tokenService.encode(user));
+  .then((user) => (
+    Promise.all([
+      tokenService.encode(toPlainObject(user)),
+      Promise.resolve(user),
+    ]))
+  );
 };
 
 /**
  * Remove a user from the database
+ * @XXX This does not look like the correct way to query for a user
  * @param {String} userId - mongoId of the user
  * @returns {Promise}
  */
-userService.destroy = function(userId) {
+self.destroy = function(userId) {
   return User.model.remove({userId: userId}).save();
 };
 
-export default userService;
+export default self;
