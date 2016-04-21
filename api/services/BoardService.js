@@ -382,6 +382,9 @@ self.hydrateRoom = function(boardId) {
       find(propEq('_id', anId), usersOnBoard)
     ), userIds);
 
+    console.log('in hydrate room');
+    console.log(usersOnBoard);
+
     hydratedRoom.room.users = users.map((user) => {
       return {
         userId: user._id,
