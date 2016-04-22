@@ -18,10 +18,11 @@
  *  `${boardId}-current-users`: [ref('Users'), ...]
  */
 
-import { contains, curry, unless, uniq } from 'ramda';
+import { contains, curry, equals, unless, uniq } from 'ramda';
 import Redis from '../helpers/key-val-store';
 import {NoOpError} from '../helpers/extendable-error';
 import Promise from 'bluebird';
+import StateService from './StateService';
 
 const self = {};
 
@@ -113,7 +114,6 @@ self.getSetMembers = curry((setKeyGen, boardId) => {
  */
 self.changeUser = curry((operation, keyGen, boardId, userId) => {
   let method;
-
   if (operation.toLowerCase() === 'add') method = 'sadd';
   else if (operation.toLowerCase() === 'remove') method = 'srem';
   else throw new Error(`Invalid operation ${operation}`);
@@ -281,15 +281,30 @@ self.addConnectedUser = curry((boardId, userId, socketId) => {
 * @param {String} socketId
  */
 self.removeConnectedUser = curry((boardId, userId, socketId) => {
+  console.log('before disconnectSocketFromRoom', socketId);
   return self.disconnectSocketFromRoom(boardId, socketId)
   .then(() => self.isUserInRoom(boardId, userId))
   .then((isInRoom) => {
-    return unless(isInRoom, () => Promise.all([
-      self.unreadyUser(boardId, userId),
-      self.unfinishVoteUser(boardId, userId),
-    ]));
+    return unless(isInRoom, () => {
+      // Get current state to determine which ready list to remove the user from
+      return self.getBoardState(boardId);
+    });
   })
-  .then(() => [boardId, userId, socketId]);
+  .then((boardState) => {
+    const createCollectionsState = StateService.StateEnum.createIdeaCollections;
+    const createIdeasAndCollectionsState = StateService.StateEnum.createIdeasAndIdeaCollections;
+    const voteOnIdeaCollectionsState = StateService.StateEnum.voteOnIdeaCollections;
+
+    if (equals(boardState, createCollectionsState) ||
+        equals(boardState, createIdeasAndCollectionsState)) {
+      console.log('calling unreadyUser');
+      return self.unreadyUser(boardId, userId);
+    }
+    else if (equals(boardState, voteOnIdeaCollectionsState)) {
+      console.log('calling unfinishVoteUser');
+      return self.unfinishVoteUser(boardId, userId);
+    }
+  });
 });
 
 /**

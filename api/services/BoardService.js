@@ -217,9 +217,11 @@ self.addUser = function(boardId, userId, socketId) {
   return self.validateBoardAndUser(boardId, userId)
   .then(([board, __]) => {
     if (self.isUser(board, userId)) {
+      console.log('just adding user to redis', socketId);
       return self.addUserToRedis(boardId, userId, socketId);
     }
     else {
+      console.log('adding the user to redis and mongo');
       return Promise.all([
         self.addUserToMongo(board, userId),
         self.addUserToRedis(boardId, userId, socketId),
@@ -399,18 +401,25 @@ self.hydrateRoom = function(boardId) {
 
 self.handleLeaving = (socketId) =>
   self.getUserIdFromSocketId(socketId)
-    .then((userId) => self.handleLeavingUser(userId));
+    .then((userId) => self.handleLeavingUser(userId, socketId));
 
 self.handleLeavingUser = (userId, socketId) =>
   self.getBoardsForUser(userId)
     .then((boards) => {
       return Promise.filter(boards, () => {
+        console.log('in handleLeavingUser', socketId);
         return inMemory.isSocketInRoom(socketId);
       });
     })
     .get(0)
-    .then((board) => self.removeUserFromRedis(board.boardId, userId, socketId))
-    .tap(([boardId, /* userId */, /* socketId */]) => {
+    .then((board) => {
+      return Promise.all([
+        self.removeUserFromRedis(board.boardId, userId, socketId),
+        Promise.resolve(board.boardId),
+      ]);
+    })
+    .tap(([/* userId */, boardId]) => {
+      console.log(boardId);
       return Promise.all([
         isRoomReadyToVote(boardId),
         isRoomDoneVoting(boardId),

@@ -17,7 +17,6 @@ import stream from '../../../event-stream';
 export default function leave(req) {
   const { socket, boardId, userToken } = req;
   const required = { boardId, userToken };
-  let userId;
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');

@@ -12,7 +12,7 @@ import Promise from 'bluebird';
 import InMemory from './KeyValService';
 import _ from 'lodash';
 import log from 'winston';
-import { groupBy, prop } from 'ramda';
+import { equals, groupBy, prop } from 'ramda';
 import { UnauthorizedError } from '../helpers/extendable-error';
 import IdeaCollectionService from './IdeaCollectionService';
 import ResultService from './ResultService';
@@ -166,6 +166,7 @@ self.isRoomReady = function(votingAction, boardId) {
   let method;
   let action;
   let requiredBoardState;
+  let alternateBoardState;
   // Get the connected users
   return InMemory.getUsersInRoom(boardId)
   .then((userIds) => {
@@ -179,6 +180,7 @@ self.isRoomReady = function(votingAction, boardId) {
       method = 'isUserReadyToVote';
       action = 'startVoting';
       requiredBoardState = StateService.StateEnum.createIdeaCollections;
+      alternateBoardState = StateService.StateEnum.createIdeasAndIdeaCollections;
     }
     else if (votingAction.toLowerCase() === 'finish') {
       method = 'isUserDoneVoting';
@@ -212,7 +214,8 @@ self.isRoomReady = function(votingAction, boardId) {
       // Transition the board state
       return StateService.getState(boardId)
       .then((state) => {
-        if (_.isEqual(state, requiredBoardState)) {
+        if (equals(state, requiredBoardState) ||
+            equals(state, alternateBoardState)) {
           return self[action](boardId, false, '');
         }
         else {

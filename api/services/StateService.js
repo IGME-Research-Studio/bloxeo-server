@@ -3,7 +3,7 @@
 
   @file Contains logic for controlling the state of a board
 */
-import BoardService from './BoardService';
+import{areThereCollections, errorIfNotAdmin} from './BoardService';
 import TokenService from './TokenService';
 import KeyValService from './KeyValService';
 import Promise from 'bluebird';
@@ -40,7 +40,7 @@ self.StateEnum = {
 function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
   if (requiresAdmin) {
     return TokenService.verifyAndGetId(userToken)
-      .then((userId) => BoardService.errorIfNotAdmin(boardId, userId));
+      .then((userId) => errorIfNotAdmin(boardId, userId));
   }
   else {
     return Promise.resolve(false);
@@ -69,7 +69,10 @@ self.setState = function(boardId, state, requiresAdmin, userToken) {
 * @TODO Figure out what to do for a default state if the server crashes and resets
 */
 self.getState = function(boardId) {
-  return KeyValService.getBoardState(boardId);
+  return KeyValService.getBoardState(boardId)
+  .then((state) => {
+    return JSON.parse(state);
+  });
 };
 
 /**
@@ -125,7 +128,7 @@ self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
 * @returns {Promise<Boolean|NoOpError|Error>}
 */
 self.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  BoardService.areThereCollections(boardId)
+  return areThereCollections(boardId)
   .then((hasCollections) => {
     if (hasCollections) {
       return self.setState(boardId,
