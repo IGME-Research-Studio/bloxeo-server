@@ -6,7 +6,7 @@
  */
 
 import { values } from 'ramda';
-import boardService from '../../../services/BoardService';
+import { destroy as destroyBoard } from '../../../services/BoardService';
 import { anyAreNil } from '../../../helpers/utils';
 
 export default function destroy(req, res) {
@@ -18,7 +18,7 @@ export default function destroy(req, res) {
       message: 'Not all required parameters were supplied'});
   }
 
-  return boardService.destroy(boardId)
+  return destroyBoard(boardId)
     .then(() => res.ok({boardId: boardId}))
     .catch((err) => res.serverError(err));
 }

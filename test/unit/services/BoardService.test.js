@@ -4,10 +4,12 @@ import {Types} from 'mongoose';
 import {monky} from '../../fixtures';
 import {BOARDID} from '../../constants';
 
+import { create, addUser, removeUser, addAdmin, isUser, getUsers, exists,
+  getBoardsForUser, getBoardForSocket, getAllUsersInRoom, getBoardOptions,
+  hydrateRoom } from '../../../api/services/BoardService';
 import { toPlainObject } from '../../../api/helpers/utils';
 import { NotFoundError, NoOpError } from '../../../api/helpers/extendable-error';
 import {model as BoardModel} from '../../../api/models/Board';
-import BoardService from '../../../api/services/BoardService';
 import KeyValService from '../../../api/services/KeyValService';
 
 describe('BoardService', function() {
@@ -32,7 +34,7 @@ describe('BoardService', function() {
     });
 
     it('should create a board and return the correct boardId', (done) => {
-      return BoardService.create(USERID, 'title', 'description')
+      return create(USERID, 'title', 'description')
         .then((createdBoardId) => {
           return Promise.all([
             Promise.resolve(createdBoardId),
@@ -43,13 +45,13 @@ describe('BoardService', function() {
           expect(boardId).to.be.a('string');
           expect(board.boardName).to.equal('title');
           expect(board.boardDesc).to.equal('description');
-          expect(BoardService.exists(boardId)).to.eventually.be.true;
+          expect(exists(boardId)).to.eventually.be.true;
           done();
         });
     });
 
     it('should add the creating user as the admin', () => {
-      return expect(BoardService.create(USERID))
+      return expect(create(USERID))
         .to.be.fulfilled
         .then((createdBoardId) => {
           return BoardModel.findOne({boardId: createdBoardId})
@@ -88,7 +90,7 @@ describe('BoardService', function() {
     });
 
     xit('should add the existing user to the board', function(done) {
-      return BoardService.addUser(BOARDID, USERID, SOCKETID)
+      return addUser(BOARDID, USERID, SOCKETID)
         .then(([socketId, userId]) => {
           return Promise.all([
             BoardModel.findOne({boardId: BOARDID}),
@@ -106,7 +108,7 @@ describe('BoardService', function() {
 
     it('should reject if the user does not exist on the board', function() {
       const userThatDoesntExist = Types.ObjectId();
-      return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+      return expect(addUser(BOARDID, userThatDoesntExist))
         .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
     });
   });
@@ -121,7 +123,7 @@ describe('BoardService', function() {
       ])
       .then(([__, user]) => {
         USERID = user.id;
-        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+        return addUser(BOARDID, USERID, SOCKETID);
       })
       .then(() => {
         done();
@@ -139,7 +141,7 @@ describe('BoardService', function() {
     });
 
     xit('should remove the existing user from the board', function(done) {
-      BoardService.removeUser(BOARDID, USERID, SOCKETID)
+      removeUser(BOARDID, USERID, SOCKETID)
         .then(([socketId, userId]) => {
           expect(socketId).to.equal(SOCKETID);
           expect(userId).to.equal(USERID);
@@ -149,7 +151,7 @@ describe('BoardService', function() {
 
     it('should reject if the user does not exist on the board', function() {
       const userThatDoesntExist = Types.ObjectId();
-      return expect(BoardService.addUser(BOARDID, userThatDoesntExist))
+      return expect(addUser(BOARDID, userThatDoesntExist))
         .to.be.rejectedWith(NotFoundError, new RegExp(userThatDoesntExist, 'gi'));
     });
   });
@@ -174,19 +176,19 @@ describe('BoardService', function() {
     });
 
     it('should add the existing user as an admin on the board', function() {
-      return BoardService.addAdmin(BOARDID, USERID)
+      return addAdmin(BOARDID, USERID)
         .then((board) => {
           return expect(toPlainObject(board.admins)).to.include(USERID);
         });
     });
 
     it('should reject if the user does not exist on the board', function() {
-      return expect(BoardService.addAdmin(BOARDID, 'user-not-on-the-board'))
+      return expect(addAdmin(BOARDID, 'user-not-on-the-board'))
         .to.be.rejectedWith(NotFoundError, /does not exist/);
     });
 
     it('should reject if the user is already an admin on the board', function() {
-      return expect(BoardService.addAdmin(BOARDID, USERID_2))
+      return expect(addAdmin(BOARDID, USERID_2))
         .to.be.rejectedWith(NoOpError, /is already an admin on the board/);
     });
   });
@@ -211,7 +213,7 @@ describe('BoardService', function() {
     it('should return true when the user exists', function() {
       return BoardModel.findOne({boardId: BOARDID})
         .then((board) => {
-          return expect(BoardService.isUser(board, USERID))
+          return expect(isUser(board, USERID))
             .to.equal(true);
         });
     });
@@ -219,7 +221,7 @@ describe('BoardService', function() {
     it('should return false when the user doesn\'t exists', function() {
       return BoardModel.findOne({boardId: BOARDID})
         .then((board) => {
-          return expect(BoardService.isUser(board, 'a nonexistant userid'))
+          return expect(isUser(board, 'a nonexistant userid'))
             .to.equal(false);
         });
     });
@@ -239,11 +241,11 @@ describe('BoardService', function() {
     });
 
     it('Should throw a not found error if the board does not exist', () => {
-      return expect(BoardService.getUsers('notRealId')).to.eventually.be.rejectedWith(NotFoundError);
+      return expect(getUsers('notRealId')).to.eventually.be.rejectedWith(NotFoundError);
     });
 
     it('Should return the users on the board', (done) => {
-      return BoardService.getUsers(BOARDID)
+      return getUsers(BOARDID)
       .then((users) => {
         expect(users).to.have.length(1);
         done();
@@ -260,7 +262,7 @@ describe('BoardService', function() {
     });
 
     it('Should return the board options', (done) => {
-      return BoardService.getBoardOptions(BOARDID)
+      return getBoardOptions(BOARDID)
       .then((options) => {
         expect(options).to.be.an('object');
         expect(options).to.have.property('userColorsEnabled');
@@ -289,7 +291,7 @@ describe('BoardService', function() {
     });
 
     it('should return the boards a user is a part of', function() {
-      return expect(BoardService.getBoardsForUser(USERID))
+      return expect(getBoardsForUser(USERID))
         .to.eventually.have.length(2);
     });
   });
@@ -304,7 +306,7 @@ describe('BoardService', function() {
         return monky.create('Board', {boardId: BOARDID, users: [user]});
       })
       .then(() => {
-        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+        return addUser(BOARDID, USERID, SOCKETID);
       })
       .then(() => {
         done();
@@ -322,7 +324,7 @@ describe('BoardService', function() {
     });
 
     xit('should return the board the socket is connected to', function(done) {
-      return BoardService.getBoardForSocket(SOCKETID)
+      return getBoardForSocket(SOCKETID)
       .then((board) => {
         expect(board.boardId).to.equal(BOARDID);
         done();
@@ -340,7 +342,7 @@ describe('BoardService', function() {
         return monky.create('Board', {boardId: BOARDID});
       })
       .then(() => {
-        return BoardService.addUser(BOARDID, USERID, SOCKETID);
+        return addUser(BOARDID, USERID, SOCKETID);
       })
       .then(() => {
         done();
@@ -358,7 +360,7 @@ describe('BoardService', function() {
     });
 
     it('should return the user ids connected to a room', function(done) {
-      return BoardService.getAllUsersInRoom(BOARDID)
+      return getAllUsersInRoom(BOARDID)
       .then(([userId]) => {
         expect(userId).to.equal(USERID);
         done();
@@ -388,7 +390,7 @@ describe('BoardService', function() {
     });
 
     xit('Should generate all of the data for a board to send back on join', function(done) {
-      BoardService.hydrateRoom(BOARDID)
+      hydrateRoom(BOARDID)
       .then((hydratedRoom) => {
         expect(hydratedRoom.collections).to.have.length(1);
         expect(hydratedRoom.ideas).to.have.length(1);

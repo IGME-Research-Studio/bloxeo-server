@@ -1,9 +1,10 @@
 /**
-  State Service
+ * State Service
+ *
+ * @file Contains logic for controlling the state of a board
+ */
 
-  @file Contains logic for controlling the state of a board
-*/
-import{areThereCollections, errorIfNotAdmin} from './BoardService';
+import { areThereCollections, errorIfNotAdmin } from './BoardService';
 import TokenService from './TokenService';
 import KeyValService from './KeyValService';
 import Promise from 'bluebird';
