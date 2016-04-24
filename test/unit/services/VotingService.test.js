@@ -7,7 +7,7 @@ import {BOARDID} from '../../constants';
 import VotingService from '../../../api/services/VotingService';
 import RedisService from '../../../api/helpers/key-val-store';
 import KeyValService from '../../../api/services/KeyValService';
-import StateService from '../../../api/services/StateService';
+import * as StateService from '../../../api/services/StateService';
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import ResultService from '../../../api/services/ResultService';
 

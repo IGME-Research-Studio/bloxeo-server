@@ -37,6 +37,7 @@ export default function ready(req) {
       return stream.unauthorized(READIED_USER, err.message, socket);
     })
     .catch((err) => {
-      return stream.serverError(READIED_USER, err.message, socket);
+      stream.serverError(READIED_USER, err.message, socket);
+      throw err;
     });
 }

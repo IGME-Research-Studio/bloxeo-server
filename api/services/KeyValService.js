@@ -22,7 +22,7 @@ import { contains, curry, equals, unless, uniq } from 'ramda';
 import Redis from '../helpers/key-val-store';
 import {NoOpError} from '../helpers/extendable-error';
 import Promise from 'bluebird';
-import StateService from './StateService';
+import {StateEnum} from './StateService';
 
 const self = {};
 
@@ -281,7 +281,6 @@ self.addConnectedUser = curry((boardId, userId, socketId) => {
 * @param {String} socketId
  */
 self.removeConnectedUser = curry((boardId, userId, socketId) => {
-  console.log('before disconnectSocketFromRoom', socketId);
   return self.disconnectSocketFromRoom(boardId, socketId)
   .then(() => self.isUserInRoom(boardId, userId))
   .then((isInRoom) => {
@@ -291,17 +290,15 @@ self.removeConnectedUser = curry((boardId, userId, socketId) => {
     });
   })
   .then((boardState) => {
-    const createCollectionsState = StateService.StateEnum.createIdeaCollections;
-    const createIdeasAndCollectionsState = StateService.StateEnum.createIdeasAndIdeaCollections;
-    const voteOnIdeaCollectionsState = StateService.StateEnum.voteOnIdeaCollections;
+    const createCollectionsState = StateEnum.createIdeaCollections;
+    const createIdeasAndCollectionsState = StateEnum.createIdeasAndIdeaCollections;
+    const voteOnIdeaCollectionsState = StateEnum.voteOnIdeaCollections;
 
     if (equals(boardState, createCollectionsState) ||
         equals(boardState, createIdeasAndCollectionsState)) {
-      console.log('calling unreadyUser');
       return self.unreadyUser(boardId, userId);
     }
     else if (equals(boardState, voteOnIdeaCollectionsState)) {
-      console.log('calling unfinishVoteUser');
       return self.unfinishVoteUser(boardId, userId);
     }
   });

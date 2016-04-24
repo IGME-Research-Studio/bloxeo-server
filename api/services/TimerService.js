@@ -8,13 +8,13 @@ const config = require('../../config');
 const radicchio = require('radicchio')(config.redisURL);
 const EXT_EVENTS = require('../constants/EXT_EVENT_API');
 const stream = require('../event-stream').default;
-const StateService = require('./StateService');
+import {createIdeaCollections} from './StateService';
 const self = {};
 
 radicchio.on('expired', function(timerDataObj) {
   const boardId = timerDataObj.boardId;
 
-  StateService.createIdeaCollections(boardId, false, null)
+  createIdeaCollections(boardId, false, null)
   .then((state) => {
     stream.ok(EXT_EVENTS.TIMER_EXPIRED, {boardId: boardId, state: state}, boardId);
   });

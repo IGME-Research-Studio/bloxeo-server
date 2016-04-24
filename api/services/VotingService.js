@@ -16,7 +16,8 @@ import { equals, groupBy, prop } from 'ramda';
 import { UnauthorizedError } from '../helpers/extendable-error';
 import IdeaCollectionService from './IdeaCollectionService';
 import ResultService from './ResultService';
-import StateService from './StateService';
+import {createIdeaCollections, getState, StateEnum,
+   voteOnIdeaCollections} from './StateService';
 
 const self = {};
 
@@ -43,7 +44,7 @@ self.startVoting = function(boardId, requiresAdmin, userToken) {
   // remove duplicate collections
   .then(() => IdeaCollectionService.removeDuplicates(boardId))
   .then(() => InMemory.clearVotingReady(boardId))
-  .then(() => StateService.voteOnIdeaCollections(boardId, requiresAdmin, userToken));
+  .then(() => voteOnIdeaCollections(boardId, requiresAdmin, userToken));
 };
 
 /**
@@ -68,7 +69,7 @@ self.finishVoting = function(boardId, requiresAdmin, userToken) {
     });
   })
   .then(() => InMemory.clearVotingDone(boardId))
-  .then(() => StateService.createIdeaCollections(boardId, requiresAdmin, userToken));
+  .then(() => createIdeaCollections(boardId, requiresAdmin, userToken));
 };
 
 /**
@@ -179,13 +180,13 @@ self.isRoomReady = function(votingAction, boardId) {
     if (votingAction.toLowerCase() === 'start') {
       method = 'isUserReadyToVote';
       action = 'startVoting';
-      requiredBoardState = StateService.StateEnum.createIdeaCollections;
-      alternateBoardState = StateService.StateEnum.createIdeasAndIdeaCollections;
+      requiredBoardState = StateEnum.createIdeaCollections;
+      alternateBoardState = StateEnum.createIdeasAndIdeaCollections;
     }
     else if (votingAction.toLowerCase() === 'finish') {
       method = 'isUserDoneVoting';
       action = 'finishVoting';
-      requiredBoardState = StateService.StateEnum.voteOnIdeaCollections;
+      requiredBoardState = StateEnum.voteOnIdeaCollections;
     }
     else throw new Error(`Invalid votingAction ${votingAction}`);
 
@@ -212,7 +213,7 @@ self.isRoomReady = function(votingAction, boardId) {
 
     if (roomReadyToMoveForward) {
       // Transition the board state
-      return StateService.getState(boardId)
+      return getState(boardId)
       .then((state) => {
         if (equals(state, requiredBoardState) ||
             equals(state, alternateBoardState)) {
