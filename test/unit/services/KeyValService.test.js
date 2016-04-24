@@ -1,9 +1,10 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import Promise from 'bluebird';
 
-import {BOARDID, USERNAME} from '../../constants';
+import { BOARDID, USERNAME } from '../../constants';
 
-import KeyValService from '../../../api/services/KeyValService';
+import KeyValService, { changeUser, readyUserToVote, addUser,
+  removeUser, readyUserDoneVoting } from '../../../api/services/KeyValService';
 
 let RedisStub;
 const keyGen = (boardId) => `key-for-${boardId}`;
@@ -25,7 +26,7 @@ describe('KeyValService', function() {
   describe('#changeUser(operation, boardId, userId)', function() {
 
     it('should succesfully call sadd', function() {
-      return expect(KeyValService.changeUser('add', keyGen,
+      return expect(changeUser('add', keyGen,
                                              BOARDID, USERNAME))
         .to.eventually.equal(USERNAME)
         .then(() => {
@@ -35,7 +36,7 @@ describe('KeyValService', function() {
     });
 
     it('should succesfully call srem', function() {
-      return expect(KeyValService.changeUser('remove', keyGen,
+      return expect(changeUser('remove', keyGen,
                                              BOARDID, USERNAME))
         .to.eventually.equal(USERNAME)
         .then(function() {
@@ -45,8 +46,7 @@ describe('KeyValService', function() {
     });
 
     describe('#readyUser|#finishVoteUser(boardId, userId)', function() {
-      [KeyValService.readyUserToVote,
-        KeyValService.readyUserDoneVoting]
+      [readyUserToVote, readyUserDoneVoting]
        .forEach(function(subject) {
          xit('should succesfully call sadd and return the userId', function() {
            return expect(subject(BOARDID, USERNAME))
@@ -63,7 +63,7 @@ describe('KeyValService', function() {
       const SOCKETID = 'socketId123';
 
       xit('should successfully call sadd and return the socketId-userId', function() {
-        return expect(KeyValService.addUser(BOARDID, USERNAME, SOCKETID))
+        return expect(addUser(BOARDID, USERNAME, SOCKETID))
         .to.eventually.include(SOCKETID).and.include(USERNAME)
         .then(function() {
           expect(RedisStub.sadd).to.have.been.called;
@@ -76,7 +76,7 @@ describe('KeyValService', function() {
       const SOCKETID = 'socketId123';
 
       xit('should succesfully call sadd and return the userId', function() {
-        return expect(KeyValService.removeUser(BOARDID, USERNAME, SOCKETID))
+        return expect(removeUser(BOARDID, USERNAME, SOCKETID))
           .to.eventually.include(SOCKETID).and.include(USERNAME)
           .then(function() {
             expect(RedisStub.srem).to.have.been.called;

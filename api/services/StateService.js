@@ -5,8 +5,9 @@
  */
 
 import { areThereCollections, errorIfNotAdmin } from './BoardService';
-import TokenService from './TokenService';
-import KeyValService from './KeyValService';
+import { verifyAndGetId } from './TokenService';
+import { checkBoardStateExists, clearBoardState,
+  setBoardState, getBoardState } from './KeyValService';
 import Promise from 'bluebird';
 
 export const StateEnum = {
@@ -39,7 +40,7 @@ export const StateEnum = {
 */
 function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
   if (requiresAdmin) {
-    return TokenService.verifyAndGetId(userToken)
+    return verifyAndGetId(userToken)
       .then((userId) => errorIfNotAdmin(boardId, userId));
   }
   else {
@@ -52,10 +53,10 @@ function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
 * @returns {Promise<Integer|Error>}: returns the number of keys deleted
 */
 export const removeState = function(boardId) {
-  return KeyValService.checkBoardStateExists(boardId)
+  return checkBoardStateExists(boardId)
   .then((exists) => {
     if (exists) {
-      return KeyValService.clearBoardState(boardId);
+      return clearBoardState(boardId);
     }
     else {
       return false;
@@ -75,7 +76,7 @@ export const removeState = function(boardId) {
 export const setState = function(boardId, state, requiresAdmin, userToken) {
   return checkRequiresAdmin(requiresAdmin, boardId, userToken)
   .then(() => removeState(boardId))
-  .then(() => KeyValService.setBoardState(boardId, state));
+  .then(() => setBoardState(boardId, state));
 };
 
 /**
@@ -85,7 +86,7 @@ export const setState = function(boardId, state, requiresAdmin, userToken) {
 * @TODO Figure out what to do for a default state if the server crashes and resets
 */
 export const getState = function(boardId) {
-  return KeyValService.getBoardState(boardId)
+  return getBoardState(boardId)
   .then((state) => {
     return JSON.parse(state);
   });

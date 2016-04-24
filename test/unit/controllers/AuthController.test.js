@@ -12,7 +12,7 @@ chai.use(sinonChai);
 sinomocha();
 const expect = chai.expect;
 
-describe('#validate({userToken}, res)', function() {
+xdescribe('#validate({userToken}, res)', function() {
   let verifyStub;
 
   before(function() {

@@ -24,10 +24,8 @@ import {NoOpError} from '../helpers/extendable-error';
 import Promise from 'bluebird';
 import {StateEnum} from './StateService';
 
-const self = {};
-
 // @TODO:
-//        Modify the tests and make new unit tests for new features
+// Modify the tests and make new unit tests for new features
 
 /**
  * Use these as the sole way of creating keys to set in Redis
@@ -96,7 +94,7 @@ const trueOrFalse = (response) => {
   else return false;
 };
 
-self.getSetMembers = curry((setKeyGen, boardId) => {
+export const getSetMembers = curry((setKeyGen, boardId) => {
   return Redis.smembers(setKeyGen(boardId));
 });
 
@@ -112,7 +110,7 @@ self.getSetMembers = curry((setKeyGen, boardId) => {
  * @param {String} userId
  * @returns {Promise<String|NoOpError|Error>}
  */
-self.changeUser = curry((operation, keyGen, boardId, userId) => {
+export const changeUser = curry((operation, keyGen, boardId, userId) => {
   let method;
   if (operation.toLowerCase() === 'add') method = 'sadd';
   else if (operation.toLowerCase() === 'remove') method = 'srem';
@@ -132,7 +130,7 @@ self.changeUser = curry((operation, keyGen, boardId, userId) => {
  * @param {Array|String} val - Array of collection keys or single collection key
  * @returns {Promise<Array|String|NoOpError|Error>}
  */
-self.changeUserVotingList = curry((operation, keyGen, boardId, userId, val) => {
+export const changeUserVotingList = curry((operation, keyGen, boardId, userId, val) => {
   let method;
 
   if (operation.toLowerCase() === 'add') method = 'sadd';
@@ -150,7 +148,7 @@ self.changeUserVotingList = curry((operation, keyGen, boardId, userId, val) => {
  * @param {String} userId
  * @returns {Promise<Array|Error>} resolves to an array of collection keys
  */
-self.getUserVotingList = curry((keyGen, boardId, userId) => {
+export const getUserVotingList = curry((keyGen, boardId, userId) => {
   return Redis.smembers(keyGen(boardId, userId));
 });
 
@@ -161,7 +159,7 @@ self.getUserVotingList = curry((keyGen, boardId, userId) => {
 * @param {String} userId
 * @returns {Promise<Int|Error>}
 */
-self.clearVotingSetKey = curry((keyGen, boardId, userId) => {
+export const clearVotingSetKey = curry((keyGen, boardId, userId) => {
   return Redis.del(keyGen(boardId, userId))
     .then(maybeThrowIfNoOp);
 });
@@ -174,7 +172,7 @@ self.clearVotingSetKey = curry((keyGen, boardId, userId) => {
  * @param {Object} val
  * @returns {Promise<True|NoOpError|Error>}
  */
-self.setObjectKey = curry((keyGen, id, val) => {
+export const setObjectKey = curry((keyGen, id, val) => {
   return Redis.set(keyGen(id), JSON.stringify(val))
     .then(maybeThrowIfUnsuccessful);
 });
@@ -187,7 +185,7 @@ self.setObjectKey = curry((keyGen, id, val) => {
  * @param {String} val
  * @returns {Promise<True|NoOpError|Error>}
  */
-self.setStringKey = curry((keyGen, id, val) => {
+export const setStringKey = curry((keyGen, id, val) => {
   return Redis.set(keyGen(id), val)
     .then(maybeThrowIfUnsuccessful);
 });
@@ -198,7 +196,7 @@ self.setStringKey = curry((keyGen, id, val) => {
  * @param {String} id
  * @returns {Promise<String|Object|NoOpError|Error>}
  */
-self.getKey = curry((keyGen, id) => {
+export const getKey = curry((keyGen, id) => {
   return Redis.get(keyGen(id))
   .then(maybeThrowIfNull);
 });
@@ -209,7 +207,7 @@ self.getKey = curry((keyGen, id) => {
  * @param {String} id
  * @returns {Promise<Integer|NoOpError|Error>}
  */
-self.clearKey = curry((keyGen, id) => {
+export const clearKey = curry((keyGen, id) => {
   return Redis.del(keyGen(id))
     .then(maybeThrowIfNoOp);
 });
@@ -219,7 +217,7 @@ self.clearKey = curry((keyGen, id) => {
  * @param {String} boardId
  * @returns {Promise<Boolean|Error>}
  */
-self.checkKey = curry((keyGen, boardId) => {
+export const checkKey = curry((keyGen, boardId) => {
   return Redis.exists((keyGen(boardId)))
   .then((ready) => ready === 1);
 });
@@ -230,7 +228,7 @@ self.checkKey = curry((keyGen, boardId) => {
  * @param {String} userId
  * @returns {Promise<Boolean|Error>}
  */
-self.checkSetExists = curry((keyGen, boardId, userId) => {
+export const checkSetExists = curry((keyGen, boardId, userId) => {
   return Redis.exists((keyGen(boardId, userId)))
   .then((ready) => ready === 1);
 });
@@ -244,9 +242,9 @@ self.checkSetExists = curry((keyGen, boardId, userId) => {
  * @param {String} socketId
  * @returns {Promise<Integer|NoOpError|Error>}
  */
-self.connectSocketToRoom = self.changeUser('add',
+export const connectSocketToRoom = changeUser('add',
                                            currentSocketConnectionsKey);
-self.disconnectSocketFromRoom = self.changeUser('remove',
+export const disconnectSocketFromRoom = changeUser('remove',
                                                 currentSocketConnectionsKey);
 
 /**
@@ -254,8 +252,106 @@ self.disconnectSocketFromRoom = self.changeUser('remove',
  * @param {String} socketId
  * @param {String} userId
  */
-self.connectSocketToUser = self.setStringKey(socketUserIdSetKey);
-self.disconnectSocketFromUser = self.clearKey(socketUserIdSetKey);
+export const connectSocketToUser = setStringKey(socketUserIdSetKey);
+export const disconnectSocketFromUser = clearKey(socketUserIdSetKey);
+
+
+export const getUsersDoneVoting = getSetMembers(votingDoneKey);
+export const getUsersReadyToVote = getSetMembers(votingReadyKey);
+
+/**
+ * @param {String} boardId
+ * @returns {Promise<Integer|Error>}
+ */
+export const clearCurrentSocketConnections = clearKey(currentSocketConnectionsKey);
+export const clearCurrentSocketUserIds = clearKey(socketUserIdSetKey);
+export const clearVotingReady = clearKey(votingReadyKey);
+export const clearVotingDone = clearKey(votingDoneKey);
+
+/**
+ * @param {String} boardId
+ * @param {Object|Array|String} value - what the key points to
+ * @returns {Promise<True|NoOpError|Error>}
+ */
+export const setBoardState = setObjectKey(stateKey);
+export const checkBoardStateExists = checkKey(stateKey);
+export const clearBoardState = clearKey(stateKey);
+
+/**
+* @param {String} boardId
+* @returns {Promise<String|Object|NoOpError|Error>}
+*/
+export const getBoardState = getKey(stateKey);
+
+/**
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<Integer|NoOpError|Error>}
+ */
+export const readyUserToVote = changeUser('add', votingReadyKey);
+export const readyUserDoneVoting = changeUser('add', votingDoneKey);
+
+/**
+ * @param {String} boardId
+ * @param {String} userId
+ * @param {Array|String} val - array of strings or single string
+ * @returns {Promise<Array|String|NoOpError|Error>} - the val passed in
+ */
+export const addToUserVotingList = changeUserVotingList('add', votingListPerUser);
+export const removeFromUserVotingList = changeUserVotingList('remove', votingListPerUser);
+
+/**
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<Array|NoOpError|Error>} - the array of members in the set
+ */
+export const getCollectionsToVoteOn = getUserVotingList(votingListPerUser);
+export const checkUserVotingListExists = checkSetExists(votingListPerUser);
+export const clearUserVotingList = clearVotingSetKey(votingListPerUser);
+
+export const unreadyUser = changeUser('remove', votingReadyKey);
+export const unfinishVoteUser = changeUser('remove', votingDoneKey);
+
+/**
+ * @param {String} socketId
+ * @returns {Promise<Integer|Error>}
+ */
+export const getUserFromSocket = getKey(socketUserIdSetKey);
+
+/**
+ * Get all the users currently connected to the room
+ * @todo filter list of users to make sure no duplicate users are sent back
+ * @param {String} boardId
+ * @returns {Promise<Array|Error>} resolves to an array of userIds
+ */
+export const getUsersInRoom = (boardId) => {
+  return getSetMembers(currentSocketConnectionsKey, boardId)
+  .then((socketIds) => {
+    const userIdPromises = socketIds.map((socketId) => {
+      return getUserFromSocket(socketId);
+    });
+
+    return Promise.all(userIdPromises)
+    .then((userIds) => {
+      return uniq(userIds);
+    });
+  });
+};
+
+/**
+ * @param {String} boardId
+ * @param {String} userId
+ * @returns {Promise<True|NoOpError|Error>}
+ */
+export const isUserInRoom = curry((boardId, userId) => {
+  return getUsersInRoom(boardId)
+  .then((users) => contains(userId, users));
+});
+
+export const isSocketInRoom = curry((boardId, socketId) => {
+  return Redis.sismember(currentSocketConnectionsKey(boardId), socketId)
+  .then(trueOrFalse);
+});
 
 /**
 * @param {'add'|'remove'} operation
@@ -264,10 +360,10 @@ self.disconnectSocketFromUser = self.clearKey(socketUserIdSetKey);
 * @param {String} socketId
 * @returns {Promise<Array|NoOpError|Error>} Returns an array of the socketId and userId
 */
-self.addConnectedUser = curry((boardId, userId, socketId) => {
+export const addConnectedUser = curry((boardId, userId, socketId) => {
   return Promise.all([
-    self.connectSocketToUser(socketId, userId),
-    self.connectSocketToRoom(boardId, socketId),
+    connectSocketToUser(socketId, userId),
+    connectSocketToRoom(boardId, socketId),
   ])
   .then(() => [boardId, userId, socketId]);
 });
@@ -280,7 +376,7 @@ self.addConnectedUser = curry((boardId, userId, socketId) => {
 * @param {String} userId
 * @param {String} socketId
  */
-self.removeConnectedUser = curry((boardId, userId, socketId) => {
+export const removeConnectedUser = curry((boardId, userId, socketId) => {
   return self.disconnectSocketFromRoom(boardId, socketId)
   .then(() => self.isUserInRoom(boardId, userId))
   .then((isInRoom) => {
@@ -303,102 +399,3 @@ self.removeConnectedUser = curry((boardId, userId, socketId) => {
     }
   });
 });
-
-/**
- * @param {String} socketId
- * @returns {Promise<Integer|Error>}
- */
-self.getUserFromSocket = self.getKey(socketUserIdSetKey);
-
-/**
- * Get all the users currently connected to the room
- * @todo filter list of users to make sure no duplicate users are sent back
- * @param {String} boardId
- * @returns {Promise<Array|Error>} resolves to an array of userIds
- */
-self.getUsersInRoom = (boardId) => {
-  return self.getSetMembers(currentSocketConnectionsKey, boardId)
-  .then((socketIds) => {
-    const userIdPromises = socketIds.map((socketId) => {
-      return self.getUserFromSocket(socketId);
-    });
-
-    return Promise.all(userIdPromises)
-    .then((userIds) => {
-      return uniq(userIds);
-    });
-  });
-};
-
-/**
- * @param {String} boardId
- * @param {String} userId
- * @returns {Promise<True|NoOpError|Error>}
- */
-self.isUserInRoom = curry((boardId, userId) => {
-  return self.getUsersInRoom(boardId)
-  .then((users) => contains(userId, users));
-});
-
-self.isSocketInRoom = curry((boardId, socketId) => {
-  return Redis.sismember(currentSocketConnectionsKey(boardId), socketId)
-  .then(trueOrFalse);
-});
-
-self.getUsersDoneVoting = self.getSetMembers(votingDoneKey);
-self.getUsersReadyToVote = self.getSetMembers(votingReadyKey);
-
-/**
- * @param {String} boardId
- * @returns {Promise<Integer|Error>}
- */
-self.clearCurrentSocketConnections = self.clearKey(currentSocketConnectionsKey);
-self.clearCurrentSocketUserIds = self.clearKey(socketUserIdSetKey);
-self.clearVotingReady = self.clearKey(votingReadyKey);
-self.clearVotingDone = self.clearKey(votingDoneKey);
-
-/**
- * @param {String} boardId
- * @param {Object|Array|String} value - what the key points to
- * @returns {Promise<True|NoOpError|Error>}
- */
-self.setBoardState = self.setObjectKey(stateKey);
-self.checkBoardStateExists = self.checkKey(stateKey);
-self.clearBoardState = self.clearKey(stateKey);
-
-/**
-* @param {String} boardId
-* @returns {Promise<String|Object|NoOpError|Error>}
-*/
-self.getBoardState = self.getKey(stateKey);
-
-/**
- * @param {String} boardId
- * @param {String} userId
- * @returns {Promise<Integer|NoOpError|Error>}
- */
-self.readyUserToVote = self.changeUser('add', votingReadyKey);
-self.readyUserDoneVoting = self.changeUser('add', votingDoneKey);
-
-/**
- * @param {String} boardId
- * @param {String} userId
- * @param {Array|String} val - array of strings or single string
- * @returns {Promise<Array|String|NoOpError|Error>} - the val passed in
- */
-self.addToUserVotingList = self.changeUserVotingList('add', votingListPerUser);
-self.removeFromUserVotingList = self.changeUserVotingList('remove', votingListPerUser);
-
-/**
- * @param {String} boardId
- * @param {String} userId
- * @returns {Promise<Array|NoOpError|Error>} - the array of members in the set
- */
-self.getCollectionsToVoteOn = self.getUserVotingList(votingListPerUser);
-self.checkUserVotingListExists = self.checkSetExists(votingListPerUser);
-self.clearUserVotingList = self.clearVotingSetKey(votingListPerUser);
-
-self.unreadyUser = self.changeUser('remove', votingReadyKey);
-self.unfinishVoteUser = self.changeUser('remove', votingDoneKey);
-
-export default self;

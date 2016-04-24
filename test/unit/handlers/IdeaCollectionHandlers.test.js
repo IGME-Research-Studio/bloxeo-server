@@ -52,7 +52,7 @@ let badRequestStub;
 
 describe('IdeaCollection handlers', function() {
 
-  describe('#index({socketId, boardId})', function() {
+  xdescribe('#index({socketId, boardId})', function() {
 
     before(function() {
       verifyAndGetIdStub = this.stub(TokenService, 'verifyAndGetId')
@@ -84,7 +84,7 @@ describe('IdeaCollection handlers', function() {
     });
   });
 
-  describe('#create(req)', function() {
+  xdescribe('#create(req)', function() {
 
     before(function() {
       verifyAndGetIdStub = this.stub(TokenService, 'verifyAndGetId');
@@ -119,7 +119,7 @@ describe('IdeaCollection handlers', function() {
     });
   });
 
-  describe('#destroy(req)', function() {
+  xdescribe('#destroy(req)', function() {
     let destroyStub;
 
     before(function() {

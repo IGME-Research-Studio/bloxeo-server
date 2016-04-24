@@ -8,14 +8,12 @@ import jwt from 'jsonwebtoken';
 import Promise from 'bluebird';
 import CFG from '../../config';
 
-const self = {};
-
 /**
  * Wraps jwt#sign in a promise for our async APIs and binds our secret
  * @param {Object} - user object
  * @returns {Promise<String|Error>} - that immediately resolves to a token
  */
-self.encode = function(authData) {
+export const encode = function(authData) {
   try {
     return Promise.resolve(jwt.sign(authData, CFG.jwt.secret));
   }
@@ -30,7 +28,7 @@ self.encode = function(authData) {
  * @returns {Promise<Object|JsonWebTokenError|Error}
  * - that immediately resolves to a user object or rejects
  */
-self.verify = function(token) {
+export const verify = function(token) {
   try {
     return Promise.resolve(jwt.verify(token, CFG.jwt.secret));
   }
@@ -39,8 +37,6 @@ self.verify = function(token) {
   }
 };
 
-self.verifyAndGetId = function(token) {
-  return self.verify(token).get('_id');
+export const verifyAndGetId = function(token) {
+  return verify(token).get('_id');
 };
-
-module.exports = self;

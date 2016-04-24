@@ -1,12 +1,14 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import Promise from 'bluebird';
 import _ from 'lodash';
 
-import {monky} from '../../fixtures';
-import {BOARDID, BOARDID_2, COLLECTION_KEY,
-  IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
+import { monky } from '../../fixtures';
+import { BOARDID, BOARDID_2, COLLECTION_KEY,
+  IDEA_CONTENT, IDEA_CONTENT_2 } from '../../constants';
 
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import { getIdeaCollections, removeDuplicates,
+  destroyByKey, create, destroy, findByKey, addIdea,
+  removeIdea } from '../../../api/services/IdeaCollectionService';
 
 describe('IdeaCollectionService', function() {
 
@@ -36,7 +38,7 @@ describe('IdeaCollectionService', function() {
     });
 
     it('should return all collections on a board', () => {
-      return expect(IdeaCollectionService.getIdeaCollections(BOARDID))
+      return expect(getIdeaCollections(BOARDID))
         .to.be.fulfilled
         .then((collections) => {
           expect(collections)
@@ -67,12 +69,12 @@ describe('IdeaCollectionService', function() {
     });
 
     it(`should return a single collection if it exists on the given board`, () => {
-      return expect(IdeaCollectionService.findByKey(BOARDID, 'collection1'))
+      return expect(findByKey(BOARDID, 'collection1'))
       .to.eventually.be.an('object');
     });
 
     it(`should throw an error if the collection doesn't exist on the given board`, () => {
-      return expect(IdeaCollectionService.findByKey(BOARDID, 'collection2'))
+      return expect(findByKey(BOARDID, 'collection2'))
       .to.rejectedWith(/IdeaCollection with key \w+ not found on board \w+/);
     });
   });
@@ -93,7 +95,7 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should create an IdeaCollection with a single existing Idea', () => {
-      return expect(IdeaCollectionService.create(USER_ID, BOARDID, 'idea 1'))
+      return expect(create(USER_ID, BOARDID, 'idea 1'))
         .to.be.fulfilled
         .then((collections) => {
           const THIS_COLLECTION_KEY = _.keys(collections[1])[0];
@@ -118,7 +120,7 @@ describe('IdeaCollectionService', function() {
     });
 
     it('should not allow creating a collection with a non-existant idea', () => {
-      return expect(IdeaCollectionService.create(USER_ID, '4', 'idea 25243324'))
+      return expect(create(USER_ID, '4', 'idea 25243324'))
       .to.be.rejected;
     });
   });
@@ -136,7 +138,7 @@ describe('IdeaCollectionService', function() {
         monky.create('IdeaCollection', {key: COLLECTION_KEY}),
       ])
       .then(() => {
-        IdeaCollectionService.addIdea(USER_ID, BOARDID, COLLECTION_KEY, 'idea1')
+        addIdea(USER_ID, BOARDID, COLLECTION_KEY, 'idea1')
         .then(() => {
           done();
         });
@@ -144,13 +146,13 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should add an idea to an idea collection', () => {
-      return expect(IdeaCollectionService.addIdea(USER_ID, BOARDID,
+      return expect(addIdea(USER_ID, BOARDID,
                                                   COLLECTION_KEY, 'idea2'))
       .to.eventually.have.property(COLLECTION_KEY);
     });
 
     it('Should reject adding a duplicate idea to an existing idea collection', () => {
-      return expect(IdeaCollectionService.addIdea(USER_ID, BOARDID,
+      return expect(addIdea(USER_ID, BOARDID,
                                                     COLLECTION_KEY, 'idea1'))
       .to.be.rejectedWith(/Idea collections must have unique ideas/);
     });
@@ -181,13 +183,13 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should remove an idea from an idea collection', () => {
-      return expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith2Ideas,
+      return expect(removeIdea(USER_ID, BOARDID, collectionWith2Ideas,
                                               IDEA_CONTENT))
         .to.eventually.have.deep.property('collection2.ideas').with.length(1);
     });
 
     it('Should destroy an idea collection when it is empty', () => {
-      return expect(IdeaCollectionService.removeIdea(USER_ID, BOARDID, collectionWith1Idea,
+      return expect(removeIdea(USER_ID, BOARDID, collectionWith1Idea,
                                               IDEA_CONTENT))
         .to.eventually.not.have.key(collectionWith1Idea);
     });
@@ -206,15 +208,15 @@ describe('IdeaCollectionService', function() {
     });
 
     it('destroy an idea collection', () => {
-      return IdeaCollectionService.findByKey(BOARDID, COLLECTION_KEY)
+      return findByKey(BOARDID, COLLECTION_KEY)
         .then((collection) => {
-          return expect(IdeaCollectionService.destroy(BOARDID, collection))
+          return expect(destroy(BOARDID, collection))
           .to.eventually.become({});
         });
     });
 
     it('destroy an idea collection by key', () => {
-      return expect(IdeaCollectionService.destroyByKey(BOARDID, COLLECTION_KEY))
+      return expect(destroyByKey(BOARDID, COLLECTION_KEY))
       .to.eventually.become({});
     });
   });
@@ -248,8 +250,8 @@ describe('IdeaCollectionService', function() {
     });
 
     it('Should only remove duplicate ideaCollections', () => {
-      return IdeaCollectionService.removeDuplicates(BOARDID)
-      .then(() => IdeaCollectionService.getIdeaCollections(BOARDID))
+      return removeDuplicates(BOARDID)
+      .then(() => getIdeaCollections(BOARDID))
       .then((collections) => {
         expect(Object.keys(collections)).to.have.length(2);
       });

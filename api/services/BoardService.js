@@ -13,7 +13,8 @@ import { NotFoundError, UnauthorizedError,
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
-import inMemory from './KeyValService';
+import { isSocketInRoom, removeConnectedUser, addConnectedUser,
+  getUserFromSocket, getUsersInRoom } from './KeyValService';
 import { getIdeaCollections } from './IdeaCollectionService';
 import { getIdeas } from './IdeaService';
 import { createIdeasAndIdeaCollections } from './StateService';
@@ -152,7 +153,7 @@ export const getUsers = function(boardId) {
 * @returns {Promise<String|Error>}
 */
 export const getUserIdFromSocketId = function(socketId) {
-  return inMemory.getUserFromSocket(socketId);
+  return getUserFromSocket(socketId);
 };
 
 /**
@@ -161,7 +162,7 @@ export const getUserIdFromSocketId = function(socketId) {
 * @returns {Promise<Array|Error>} returns an array of user ids
 */
 export const getAllUsersInRoom = function(boardId) {
-  return inMemory.getUsersInRoom(boardId);
+  return getUsersInRoom(boardId);
 };
 
 /**
@@ -232,7 +233,7 @@ export const removeUserFromMongo = function(boardId, userId) {
 * @returns {Promise<Array|Error>}
 */
 export const addUserToRedis = function(boardId, userId, socketId) {
-  return inMemory.addConnectedUser(boardId, userId, socketId);
+  return addConnectedUser(boardId, userId, socketId);
 };
 
 /**
@@ -243,7 +244,7 @@ export const addUserToRedis = function(boardId, userId, socketId) {
 * @returns {Promise<Array|Error>}
 */
 export const removeUserFromRedis = function(boardId, userId, socketId) {
-  return inMemory.removeConnectedUser(boardId, userId, socketId);
+  return removeConnectedUser(boardId, userId, socketId);
 };
 
 /**
@@ -391,24 +392,18 @@ export const hydrateRoom = function(boardId) {
 
 export const handleLeavingUser = (userId, socketId) =>
   getBoardsForUser(userId)
-    .then((boards) => {
-      return Promise.filter(boards, () => {
-        return inMemory.isSocketInRoom(socketId);
-      });
-    })
-    .get(0)
-    .then((board) => {
-      return Promise.all([
-        removeUserFromRedis(board.boardId, userId, socketId),
-        Promise.resolve(board.boardId),
-      ]);
-    })
-    .tap(([/* userId */, boardId]) => {
-      return Promise.all([
-        isRoomReadyToVote(boardId),
-        isRoomDoneVoting(boardId),
-      ]);
-    });
+  .then((boards) => Promise.filter(boards, () => {
+    return isSocketInRoom(socketId);
+  }))
+  .get(0)
+  .then((board) => Promise.all([
+    removeUserFromRedis(board.boardId, userId, socketId),
+    Promise.resolve(board.boardId),
+  ]))
+  .tap(([/* userId */, boardId]) => Promise.all([
+    isRoomReadyToVote(boardId),
+    isRoomDoneVoting(boardId),
+  ]));
 
 export const handleLeaving = (socketId) =>
   getUserIdFromSocketId(socketId)

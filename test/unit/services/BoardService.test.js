@@ -9,16 +9,17 @@ import { create, addUser, removeUser, addAdmin, isUser, getUsers, exists,
   hydrateRoom } from '../../../api/services/BoardService';
 import { toPlainObject } from '../../../api/helpers/utils';
 import { NotFoundError, NoOpError } from '../../../api/helpers/extendable-error';
-import {model as BoardModel} from '../../../api/models/Board';
-import KeyValService from '../../../api/services/KeyValService';
+import { model as BoardModel } from '../../../api/models/Board';
+import { clearCurrentSocketUserIds,
+  clearCurrentSocketConnections } from '../../../api/services/KeyValService';
 
 describe('BoardService', function() {
   const SOCKETID = 'socket123';
 
   const resetRedis = function(socketId) {
     return Promise.all([
-      KeyValService.clearCurrentSocketConnections(BOARDID),
-      KeyValService.clearCurrentSocketUserIds(socketId),
+      clearCurrentSocketConnections(BOARDID),
+      clearCurrentSocketUserIds(socketId),
     ]);
   };
 
