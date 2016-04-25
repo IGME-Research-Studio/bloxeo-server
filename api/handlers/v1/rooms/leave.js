@@ -12,7 +12,7 @@ import { handleLeavingUser } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { anyAreNil } from '../../../helpers/utils';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function leave(req) {
   const { socket, boardId, userToken } = req;

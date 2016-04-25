@@ -1,4 +1,3 @@
-import getConstants from './handlers/v1/constants/index';
 import joinRoom from './handlers/v1/rooms/join';
 import leaveRoom from './handlers/v1/rooms/leave';
 import createIdea from './handlers/v1/ideas/create';
@@ -28,8 +27,6 @@ import getUsers from './handlers/v1/rooms/getUsers';
 import * as EVENTS from './constants/EXT_EVENT_API';
 
 const eventMap = {};
-
-eventMap[EVENTS.GET_CONSTANTS]        = getConstants;
 
 eventMap[EVENTS.JOIN_ROOM]            = joinRoom;
 eventMap[EVENTS.LEAVE_ROOM]           = leaveRoom;

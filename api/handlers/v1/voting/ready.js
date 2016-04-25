@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { setUserReadyToVote } from '../../../services/VotingService';
 import { READIED_USER } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function ready(req) {
   const { socket, boardId, userToken } = req;

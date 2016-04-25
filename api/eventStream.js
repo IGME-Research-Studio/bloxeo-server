@@ -1,5 +1,5 @@
 /*
- * event-stream
+ * eventStream
  *
  * Exports a singleton event stream for the internal application logic
  * Extend the built in event emitter with some convenience functions for

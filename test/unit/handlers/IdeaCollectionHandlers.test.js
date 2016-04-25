@@ -10,7 +10,7 @@ import destroy from '../../../api/handlers/v1/ideaCollections/destroy';
 
 import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
 import TokenService from '../../../api/services/TokenService';
-import stream from '../../../api/event-stream';
+import stream from '../../../api/eventStream';
 import EXT_EVENTS from '../../../api/constants/EXT_EVENT_API';
 
 const [IDEA_1, IDEA_2, IDEA_3, IDEA_4] =

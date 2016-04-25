@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { getState } from '../../../services/StateService';
 import { RECEIVED_STATE } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function get(req) {
   const { socket, boardId, userToken } = req;

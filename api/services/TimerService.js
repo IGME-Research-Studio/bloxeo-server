@@ -6,7 +6,7 @@
 import CFG from '../../config';
 import Radicchio from 'radicchio';
 import { TIMER_EXPIRED } from '../constants/EXT_EVENT_API';
-import stream from '../event-stream';
+import stream from '../eventStream';
 import { createIdeaCollections } from './StateService';
 
 const radicchio = Radicchio(CFG.redisURL);

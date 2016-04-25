@@ -11,7 +11,7 @@ import { getBoardOptions } from '../../../services/BoardService';
 import { NotFoundError } from '../../../helpers/extendable-error';
 import { anyAreNil } from '../../../helpers/utils';
 import { RECEIVED_OPTIONS } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function getOptions(req) {
   const { socket, boardId } = req;

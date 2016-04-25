@@ -16,7 +16,7 @@ import { stopTimer } from '../../../services/TimerService';
 import { errorIfNotAdmin } from '../../../services/BoardService';
 import { DISABLED_TIMER } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function stop(req) {
   const { socket, boardId, timerId, userToken } = req;

@@ -14,7 +14,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { create as createIdea } from '../../../services/IdeaService';
 import { stripMap as strip, anyAreNil } from '../../../helpers/utils';
 import { UPDATED_IDEAS } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function create(req) {
   const { socket, boardId, content, userToken } = req;

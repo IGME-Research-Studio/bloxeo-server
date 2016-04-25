@@ -14,7 +14,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { destroyByKey as removeCollection } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function destroy(req) {
   const { socket, boardId, key, userToken } = req;

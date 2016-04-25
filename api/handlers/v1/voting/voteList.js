@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { getVoteList } from '../../../services/VotingService';
 import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
 import { RECEIVED_VOTING_ITEMS } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function voteList(req) {
   const { socket, boardId, userToken } = req;

@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { createIdeaCollections } from '../../../services/StateService';
 import { DISABLED_IDEAS } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function disableIdeaCreation(req) {
   const { socket, boardId, userToken } = req;
