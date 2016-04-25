@@ -14,7 +14,7 @@ import { toPlainObject } from '../helpers/utils';
  * @param {String} username
  * @returns {Promise}
  */
-export const create = function(username) {
+export const createUser = function(username) {
   return new User({username: username}).save()
   .then((user) => Promise.all([
     encode(toPlainObject(user)),
@@ -28,6 +28,6 @@ export const create = function(username) {
  * @param {String} userId - mongoId of the user
  * @returns {Promise}
  */
-export const destroy = function(userId) {
+export const destroyUser = function(userId) {
   return User.model.remove({userId: userId}).save();
 };

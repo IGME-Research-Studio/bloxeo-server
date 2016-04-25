@@ -377,12 +377,12 @@ export const addConnectedUser = curry((boardId, userId, socketId) => {
 * @param {String} socketId
  */
 export const removeConnectedUser = curry((boardId, userId, socketId) => {
-  return self.disconnectSocketFromRoom(boardId, socketId)
-  .then(() => self.isUserInRoom(boardId, userId))
+  return disconnectSocketFromRoom(boardId, socketId)
+  .then(() => isUserInRoom(boardId, userId))
   .then((isInRoom) => {
     return unless(isInRoom, () => {
       // Get current state to determine which ready list to remove the user from
-      return self.getBoardState(boardId);
+      return getBoardState(boardId);
     });
   })
   .then((boardState) => {
@@ -392,10 +392,10 @@ export const removeConnectedUser = curry((boardId, userId, socketId) => {
 
     if (equals(boardState, createCollectionsState) ||
         equals(boardState, createIdeasAndCollectionsState)) {
-      return self.unreadyUser(boardId, userId);
+      return unreadyUser(boardId, userId);
     }
     else if (equals(boardState, voteOnIdeaCollectionsState)) {
-      return self.unfinishVoteUser(boardId, userId);
+      return unfinishVoteUser(boardId, userId);
     }
   });
 });
