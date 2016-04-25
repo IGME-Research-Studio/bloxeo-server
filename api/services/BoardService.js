@@ -403,7 +403,8 @@ export const handleLeavingUser = (userId, socketId) =>
   .tap(([/* userId */, boardId]) => Promise.all([
     isRoomReadyToVote(boardId),
     isRoomDoneVoting(boardId),
-  ]));
+  ]))
+  .return({userId, socketId});
 
 export const handleLeaving = (socketId) =>
   getUserIdFromSocketId(socketId)
