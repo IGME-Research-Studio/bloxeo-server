@@ -19,6 +19,8 @@ class CustomDataError extends ExtendableError {
   }
 }
 
+export class EmptyBoardError extends CustomDataError { }
+
 export class NotFoundError extends CustomDataError { }
 
 export class ValidationError extends CustomDataError { }

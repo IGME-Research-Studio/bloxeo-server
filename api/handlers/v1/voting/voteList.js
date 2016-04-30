@@ -11,7 +11,7 @@ import { partial, isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getVoteList } from '../../../services/VotingService';
-import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
+import { stripNestedMap, anyAreNil } from '../../../helpers/utils';
 import { RECEIVED_VOTING_ITEMS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../eventStream';
 
@@ -31,7 +31,7 @@ export default function voteList(req) {
   return verifyAndGetId(userToken)
     .then(getThisVoteList)
     .then((collections) => {
-      return stream.ok(RECEIVED_VOTING_ITEMS, strip(collections), boardId);
+      return stream.ok(RECEIVED_VOTING_ITEMS, stripNestedMap(collections), boardId);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(RECEIVED_VOTING_ITEMS, err.message, socket);

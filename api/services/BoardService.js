@@ -4,8 +4,8 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, isEmpty, pick, contains, find, propEq, map } from 'ramda';
-
+import { equals, isNil, isEmpty, pick, contains, find, propEq, map } from 'ramda';
+import log from 'winston';
 import { toPlainObject, stripNestedMap,
   stripMap, emptyDefaultTo } from '../helpers/utils';
 import { NotFoundError, UnauthorizedError,
@@ -17,7 +17,7 @@ import { isSocketInRoom, removeConnectedUser, addConnectedUser,
   getUserFromSocket, getUsersInRoom } from './KeyValService';
 import { getIdeaCollections } from './IdeaCollectionService';
 import { getIdeas } from './IdeaService';
-import { createIdeasAndIdeaCollections } from './StateService';
+import { createIdeasAndIdeaCollections, getState, StateEnum } from './StateService';
 import { isRoomReadyToVote, isRoomDoneVoting } from './VotingService';
 
 const maybeThrowNotFound = (obj, msg = 'Board not found') => {
@@ -340,7 +340,9 @@ export const errorIfNotAdmin = function(board, userId) {
 export const areThereCollections = function(boardId) {
   return getIdeaCollections(boardId)
   .then((collections) => {
-    if (collections.length > 0) {
+    const collectionKeys = Object.keys(collections);
+
+    if (collectionKeys.length > 0) {
       return true;
     }
     else {
@@ -392,19 +394,39 @@ export const hydrateRoom = function(boardId) {
 
 export const handleLeavingUser = (userId, socketId) =>
   getBoardsForUser(userId)
-  .then((boards) => Promise.filter(boards, () => {
-    return isSocketInRoom(socketId);
+  .then((boards) => Promise.filter(boards, (board) => {
+    return isSocketInRoom(board.boardId, socketId);
   }))
   .get(0)
-  .then((board) => Promise.all([
-    removeUserFromRedis(board.boardId, userId, socketId),
-    Promise.resolve(board.boardId),
-  ]))
-  .tap(([/* userId */, boardId]) => Promise.all([
-    isRoomReadyToVote(boardId),
-    isRoomDoneVoting(boardId),
-  ]))
-  .return({userId, socketId});
+  .then((board) => {
+    if (isNil(board)) {
+      throw new Error('User was not connected to a board on disconnect');
+    }
+
+    const boardId = board.boardId;
+
+    return Promise.all([
+      removeUserFromRedis(boardId, userId, socketId),
+      Promise.resolve(boardId),
+      getState(boardId),
+    ]);
+  })
+  .tap(([/* userId */, boardId, state]) => {
+    const createIdeasAndIdeaCollectionsState = StateEnum.createIdeasAndIdeaCollections;
+    const createIdeaCollectionsState = StateEnum.createIdeaCollections;
+
+    if (equals(state, createIdeasAndIdeaCollectionsState) ||
+        equals(state, createIdeaCollectionsState)) {
+      return isRoomReadyToVote(boardId);
+    }
+    else {
+      return isRoomDoneVoting(boardId);
+    }
+  })
+  .return({userId, socketId})
+  .catch((err) => {
+    log.info(err.message);
+  });
 
 export const handleLeaving = (socketId) =>
   getUserIdFromSocketId(socketId)

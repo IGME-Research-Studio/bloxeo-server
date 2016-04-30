@@ -18,11 +18,10 @@
  *  `${boardId}-current-users`: [ref('Users'), ...]
  */
 
-import { contains, curry, equals, unless, uniq } from 'ramda';
+import { contains, curry, uniq } from 'ramda';
 import Redis from '../helpers/key-val-store';
 import {NoOpError} from '../helpers/extendable-error';
 import Promise from 'bluebird';
-import {StateEnum} from './StateService';
 
 // @TODO:
 // Modify the tests and make new unit tests for new features
@@ -115,7 +114,6 @@ export const changeUser = curry((operation, keyGen, boardId, userId) => {
   if (operation.toLowerCase() === 'add') method = 'sadd';
   else if (operation.toLowerCase() === 'remove') method = 'srem';
   else throw new Error(`Invalid operation ${operation}`);
-
   return Redis[method](keyGen(boardId), userId)
     .then(maybeThrowIfNoOp)
     .then(() => userId);
@@ -377,25 +375,5 @@ export const addConnectedUser = curry((boardId, userId, socketId) => {
 * @param {String} socketId
  */
 export const removeConnectedUser = curry((boardId, userId, socketId) => {
-  return disconnectSocketFromRoom(boardId, socketId)
-  .then(() => isUserInRoom(boardId, userId))
-  .then((isInRoom) => {
-    return unless(isInRoom, () => {
-      // Get current state to determine which ready list to remove the user from
-      return getBoardState(boardId);
-    });
-  })
-  .then((boardState) => {
-    const createCollectionsState = StateEnum.createIdeaCollections;
-    const createIdeasAndCollectionsState = StateEnum.createIdeasAndIdeaCollections;
-    const voteOnIdeaCollectionsState = StateEnum.voteOnIdeaCollections;
-
-    if (equals(boardState, createCollectionsState) ||
-        equals(boardState, createIdeasAndCollectionsState)) {
-      return unreadyUser(boardId, userId);
-    }
-    else if (equals(boardState, voteOnIdeaCollectionsState)) {
-      return unfinishVoteUser(boardId, userId);
-    }
-  });
+  return disconnectSocketFromRoom(boardId, socketId);
 });

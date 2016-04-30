@@ -9,6 +9,7 @@ import addIdea from './handlers/v1/ideaCollections/addIdea';
 import removeIdea from './handlers/v1/ideaCollections/removeIdea';
 import getCollections from './handlers/v1/ideaCollections/index';
 import readyUser from './handlers/v1/voting/ready';
+import finishUser from './handlers/v1/voting/finish';
 import getResults from './handlers/v1/voting/results';
 import vote from './handlers/v1/voting/vote';
 import getVoteItems from './handlers/v1/voting/voteList';
@@ -46,6 +47,7 @@ eventMap[EVENTS.GET_COLLECTIONS]      = getCollections;
 
 eventMap[EVENTS.GET_VOTING_ITEMS]     = getVoteItems;
 eventMap[EVENTS.READY_USER]           = readyUser;
+eventMap[EVENTS.FINISH_USER]          = finishUser;
 
 eventMap[EVENTS.GET_RESULTS]          = getResults;
 eventMap[EVENTS.VOTE]                 = vote;

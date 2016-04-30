@@ -7,7 +7,6 @@
 
 import Promise from 'bluebird';
 import _ from 'lodash';
-import log from 'winston';
 import { equals, groupBy, prop } from 'ramda';
 
 import { UnauthorizedError } from '../helpers/extendable-error';
@@ -172,7 +171,9 @@ export const forceFinishVoting = function(boardId, userToken) {
 
 
 /**
+* @TODO: Split this function into smaller and less error prone functions.
 * Checks if the room is ready to proceed based on voting action passed in
+* Transitions the state after determining which state the board is currently in
 * @param {String} votingAction: voting action to check for ('start' or 'finish')
 * @param {String} boardId: id of the board
 * @returns {Promise<Boolean|Error>}: returns if the room is ready to proceed
@@ -186,9 +187,7 @@ export const isRoomReady = function(votingAction, boardId) {
   return getUsersInRoom(boardId)
   .then((userIds) => {
     if (userIds.length === 0) {
-      // throw new Error('No users are currently connected to the room');
-      log.info(`No users are currently connected to room ${boardId}.`);
-      return [];
+      throw new Error('No users are currently connected to the room');
     }
     // Check if the users are ready to move forward based on voting action
     if (votingAction.toLowerCase() === 'start') {
@@ -264,12 +263,19 @@ export const getVoteList = function(boardId, userId) {
               return collection.key;
             });
             // Stick the collection keys into redis and associate with the user
-            return addToUserVotingList(boardId, userId, collectionKeys);
+            return Promise.all([
+              addToUserVotingList(boardId, userId, collectionKeys),
+              Promise.resolve(collections),
+            ]);
+          })
+          .then(([/* collectionKeys */, collections]) => {
+            return collections;
           });
         }
       });
     }
     else {
+      // @TODO: do i want to only send the array of keys or populate each one and strip?
       // Get remaining collections to vote on from the collection keys in Redis
       return getCollectionsToVoteOn(boardId, userId)
       .then((collectionKeys) => {
@@ -327,7 +333,6 @@ export const setUserReadyToVote = function(boardId, userId) {
     if (readyToVote) {
       throw new UnauthorizedError('User is already ready to vote.');
     }
-
     return setUserReady('start', boardId, userId);
   });
 };
@@ -363,7 +368,6 @@ export const vote = function(boardId, userId, key, increment) {
   const query = {boardId: boardId, key: key};
   const updatedData = {$inc: { votes: 1 }};
 
-  // @TODO: Add a new stub for this function to finish test and push to github
   return wasCollectionVotedOn(boardId, userId, key)
   .then(() => {
     return maybeIncrementCollectionVote(query, updatedData, increment);

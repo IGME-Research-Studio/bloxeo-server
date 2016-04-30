@@ -32,7 +32,7 @@ export default function vote(req) {
   return verifyAndGetId(userToken)
     .then(incrementVotesForThis)
     .then(() => {
-      return stream.okTo(VOTED, {}, boardId);
+      return stream.okTo(VOTED, {}, socket);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(VOTED, err.message, socket);

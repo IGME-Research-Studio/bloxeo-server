@@ -12,7 +12,7 @@ import { JsonWebTokenError } from 'jsonwebtoken';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { getResults } from '../../../services/VotingService';
 import { RECEIVED_RESULTS } from '../../../constants/EXT_EVENT_API';
-import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
+import { stripMap as strip, anyAreNil } from '../../../helpers/utils';
 import stream from '../../../eventStream';
 
 export default function results(req) {
