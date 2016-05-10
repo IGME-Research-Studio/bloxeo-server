@@ -9,10 +9,10 @@ deployment:
   release:
     tag: /v.*/
     commands:
-      - git push -f git@heroku.com:storm-server-prod.git $CIRCLE_SHA1:refs/heads/master
+      - git fetch --all --unshallow && git push -f git@heroku.com:storm-server-prod.git $CIRCLE_SHA1:refs/heads/master
 
   staging:
     branch: stage
     commands:
-      - git push -f git@heroku.com:storm-server-stage.git $CIRCLE_SHA1:master
+      - git fetch --all --unshallow && git push -f git@heroku.com:storm-server-stage.git $CIRCLE_SHA1:master
 # Customize the test machine
