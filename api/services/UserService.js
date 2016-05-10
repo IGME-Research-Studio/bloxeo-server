@@ -5,25 +5,21 @@
 * @module UserService api/services/UserService
 */
 
-import tokenService from './TokenService';
+import { encode } from './TokenService';
 import { model as User } from '../models/User';
 import { toPlainObject } from '../helpers/utils';
-
-const self = {};
 
 /**
  * Create a user from the database
  * @param {String} username
  * @returns {Promise}
  */
-self.create = function(username) {
+export const createUser = function(username) {
   return new User({username: username}).save()
-  .then((user) => (
-    Promise.all([
-      tokenService.encode(toPlainObject(user)),
-      Promise.resolve(user),
-    ]))
-  );
+  .then((user) => Promise.all([
+    encode(toPlainObject(user)),
+    Promise.resolve(user),
+  ]));
 };
 
 /**
@@ -32,8 +28,6 @@ self.create = function(username) {
  * @param {String} userId - mongoId of the user
  * @returns {Promise}
  */
-self.destroy = function(userId) {
+export const destroyUser = function(userId) {
   return User.model.remove({userId: userId}).save();
 };
-
-export default self;

@@ -12,12 +12,13 @@ import { handleLeavingUser } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { anyAreNil } from '../../../helpers/utils';
 import { LEFT_ROOM } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import { EmptyBoardError } from '../../../helpers/extendable-error';
+import { createIdeasAndIdeaCollections } from '../../../services/StateService';
+import stream from '../../../eventStream';
 
 export default function leave(req) {
   const { socket, boardId, userToken } = req;
   const required = { boardId, userToken };
-  let userId;
 
   if (isNil(socket)) {
     return new Error('Undefined request socket in handler');
@@ -28,8 +29,13 @@ export default function leave(req) {
 
   return verifyAndGetId(userToken)
     .then((userId) => handleLeavingUser(userId, socket.id))
-    .then(() => {
+    .then(({userId}) => {
       return stream.leave({socket, boardId, userId});
+    })
+    .catch(EmptyBoardError, (err) => {
+      // If the last person leaves the board, transition to default state
+      createIdeasAndIdeaCollections(boardId, false, userToken);
+      return stream.serverError(LEFT_ROOM, err.message, socket);
     })
     .catch((err) => {
       stream.serverError(LEFT_ROOM, err.message, socket);

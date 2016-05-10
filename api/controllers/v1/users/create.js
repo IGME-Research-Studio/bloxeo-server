@@ -4,7 +4,7 @@
  */
 
 import { values } from 'ramda';
-import userService from '../../../services/UserService';
+import { createUser } from '../../../services/UserService';
 import { anyAreNil } from '../../../helpers/utils';
 
 export default function create(req, res) {
@@ -16,7 +16,7 @@ export default function create(req, res) {
       message: 'Not all required parameters were supplied'});
   }
 
-  return userService.create(username)
+  return createUser(username)
     .then(([token, user]) => (
       res.created({token: token, username: username, userId: user.id})
     ))

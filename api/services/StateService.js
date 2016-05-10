@@ -1,15 +1,16 @@
 /**
-  State Service
+ * State Service
+ *
+ * @file Contains logic for controlling the state of a board
+ */
 
-  @file Contains logic for controlling the state of a board
-*/
-import BoardService from './BoardService';
-import TokenService from './TokenService';
-import KeyValService from './KeyValService';
+import { areThereCollections, errorIfNotAdmin } from './BoardService';
+import { verifyAndGetId } from './TokenService';
+import { checkBoardStateExists, clearBoardState,
+  setBoardState, getBoardState } from './KeyValService';
 import Promise from 'bluebird';
-const self = {};
 
-self.StateEnum = {
+export const StateEnum = {
   createIdeasAndIdeaCollections: {
     createIdeas: true,
     createIdeaCollections: true,
@@ -39,13 +40,29 @@ self.StateEnum = {
 */
 function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
   if (requiresAdmin) {
-    return TokenService.verifyAndGetId(userToken)
-      .then((userId) => BoardService.errorIfNotAdmin(boardId, userId));
+    return verifyAndGetId(userToken)
+      .then((userId) => errorIfNotAdmin(boardId, userId));
   }
   else {
     return Promise.resolve(false);
   }
 }
+/**
+* Remove the current state. Used for transitioning to remove current state key
+* @param {String} boardId: The string id generated for the board (not the mongo id)
+* @returns {Promise<Integer|Error>}: returns the number of keys deleted
+*/
+export const removeState = function(boardId) {
+  return checkBoardStateExists(boardId)
+  .then((exists) => {
+    if (exists) {
+      return clearBoardState(boardId);
+    }
+    else {
+      return false;
+    }
+  });
+};
 
 /**
 * Set the current state of the board on Redis.
@@ -56,10 +73,10 @@ function checkRequiresAdmin(requiresAdmin, boardId, userToken) {
 * @param {String} userToken: token representing an encrypted user id
 * @returns {Promise<Object|Error>} Promise containing the state object
 */
-self.setState = function(boardId, state, requiresAdmin, userToken) {
+export const setState = function(boardId, state, requiresAdmin, userToken) {
   return checkRequiresAdmin(requiresAdmin, boardId, userToken)
-  .then(() => self.removeState(boardId))
-  .then(() => KeyValService.setBoardState(boardId, state));
+  .then(() => removeState(boardId))
+  .then(() => setBoardState(boardId, state));
 };
 
 /**
@@ -68,24 +85,10 @@ self.setState = function(boardId, state, requiresAdmin, userToken) {
 * @returns {Promise{Object}}
 * @TODO Figure out what to do for a default state if the server crashes and resets
 */
-self.getState = function(boardId) {
-  return KeyValService.getBoardState(boardId);
-};
-
-/**
-* Remove the current state. Used for transitioning to remove current state key
-* @param {String} boardId: The string id generated for the board (not the mongo id)
-* @returns {Promise<Integer|Error>}: returns the number of keys deleted
-*/
-self.removeState = function(boardId) {
-  return KeyValService.checkBoardStateExists(boardId)
-  .then((exists) => {
-    if (exists) {
-      return KeyValService.clearBoardState(boardId);
-    }
-    else {
-      return false;
-    }
+export const getState = function(boardId) {
+  return getBoardState(boardId)
+  .then((state) => {
+    return JSON.parse(state);
   });
 };
 
@@ -96,11 +99,11 @@ self.removeState = function(boardId) {
 * @param {String} userToken: the encrypted token containing a user id
 * @returns {Promise<Boolean|NoOpError|Error>}
 */
-self.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return self.setState(boardId,
-                       self.StateEnum.createIdeasAndIdeaCollections,
-                       requiresAdmin,
-                       userToken);
+export const createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken) {
+  return setState(boardId,
+                  StateEnum.createIdeasAndIdeaCollections,
+                  requiresAdmin,
+                  userToken);
 };
 
 /**
@@ -110,11 +113,11 @@ self.createIdeasAndIdeaCollections = function(boardId, requiresAdmin, userToken)
 * @param {String} userToken: the encrypted token containing a user id
 * @returns {Promise<Boolean|NoOpError|Error>}
 */
-self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  return self.setState(boardId,
-                       self.StateEnum.createIdeaCollections,
-                       requiresAdmin,
-                       userToken);
+export const createIdeaCollections = function(boardId, requiresAdmin, userToken) {
+  return setState(boardId,
+                  StateEnum.createIdeaCollections,
+                  requiresAdmin,
+                  userToken);
 };
 
 /**
@@ -124,19 +127,17 @@ self.createIdeaCollections = function(boardId, requiresAdmin, userToken) {
 * @param {String} userToken: the encrypted token containing a user id
 * @returns {Promise<Boolean|NoOpError|Error>}
 */
-self.voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
-  BoardService.areThereCollections(boardId)
+export const voteOnIdeaCollections = function(boardId, requiresAdmin, userToken) {
+  return areThereCollections(boardId)
   .then((hasCollections) => {
     if (hasCollections) {
-      return self.setState(boardId,
-                           self.StateEnum.voteOnIdeaCollections,
-                           requiresAdmin,
-                           userToken);
+      return setState(boardId,
+                      StateEnum.voteOnIdeaCollections,
+                      requiresAdmin,
+                      userToken);
     }
     else {
       throw new Error('Board cannot transition to voting without collections');
     }
   });
 };
-
-module.exports = self;

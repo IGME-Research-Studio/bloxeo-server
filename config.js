@@ -1,19 +1,23 @@
 import rc from 'rc';
-import crypto from 'crypto';
-import log from 'winston';
 
 let mongoURL;
 switch (process.env.NODE_ENV) {
 case 'TEST':
 case 'test':
-  mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/jails-test';
+  mongoURL = process.env.MONGOLAB_URI ||
+             process.env.MONGODB_URI ||
+             'mongodb://localhost:27017/jails-test';
   break;
 case 'PROD':
 case 'prod':
-  mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017';
+  mongoURL = process.env.MONGOLAB_URI ||
+             process.env.MONGODB_URI ||
+             'mongodb://localhost:27017';
   break;
 default:
-  mongoURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/jails';
+  mongoURL = process.env.MONGOLAB_URI ||
+             process.env.MONGODB_URI ||
+            'mongodb://localhost:27017/jails';
   break;
 }
 

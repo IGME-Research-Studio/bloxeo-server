@@ -87,7 +87,7 @@ schema.statics.findByKey = function(boardId, key) {
 schema.statics.findOnBoard = function(boardId) {
   return this.find({boardId: boardId})
   .select('ideas key votes')
-  .populate('ideas', 'content')
+  .populate('ideas', 'content userId')
   .exec();
 };
 

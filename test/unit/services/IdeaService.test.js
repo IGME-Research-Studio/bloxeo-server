@@ -1,12 +1,12 @@
 import {expect} from 'chai';
 import Promise from 'bluebird';
 
-import {monky} from '../../fixtures';
-import {BOARDID, BOARDID_2,
-  IDEA_CONTENT, IDEA_CONTENT_2} from '../../constants';
+import { monky } from '../../fixtures';
+import { BOARDID, BOARDID_2,
+  IDEA_CONTENT, IDEA_CONTENT_2 } from '../../constants';
 
-import IdeaService from '../../../api/services/IdeaService';
-import IdeaCollectionService from '../../../api/services/IdeaCollectionService';
+import { destroy, create, getIdeas } from '../../../api/services/IdeaService';
+import { getIdeaCollections } from '../../../api/services/IdeaCollectionService';
 
 describe('IdeaService', function() {
 
@@ -23,7 +23,7 @@ describe('IdeaService', function() {
     });
 
     it('should return the only the ideas on the specified board', (done) => {
-      IdeaService.getIdeas(BOARDID)
+      getIdeas(BOARDID)
         .then((ideas) => {
           try {
             expect(ideas.length).to.equal(3);
@@ -36,7 +36,7 @@ describe('IdeaService', function() {
     });
 
     it('should return an array of objects with just the content string', (done) => {
-      IdeaService.getIdeas(BOARDID)
+      getIdeas(BOARDID)
         .then((ideas) => {
           try {
             expect(ideas).to.be.an('array');
@@ -68,17 +68,17 @@ describe('IdeaService', function() {
     });
 
     it('should not create duplicates on a board and throw correct validation error', (done) => {
-      expect(IdeaService.create(USER_ID, BOARDID, IDEA_CONTENT))
+      expect(create(USER_ID, BOARDID, IDEA_CONTENT))
         .to.be.rejectedWith(/content must be unique/).notify(done);
     });
 
     it('should allow duplicates on different boards', (done) => {
-      expect(IdeaService.create(USER_ID, BOARDID_2, IDEA_CONTENT))
+      expect(create(USER_ID, BOARDID_2, IDEA_CONTENT))
         .to.not.be.rejected.notify(done);
     });
 
     it('should return all the ideas in the correct format to send back to client', (done) => {
-      IdeaService.create(USER_ID, BOARDID, 'a new idea on the board')
+      create(USER_ID, BOARDID, 'a new idea on the board')
         .then((ideas) => {
           try {
             expect(ideas).to.be.an('array');
@@ -122,11 +122,11 @@ describe('IdeaService', function() {
     });
 
     xit('should destroy the correct idea from the board', (done) => {
-      return IdeaService.destroy(boardObj, userId, IDEA_CONTENT)
+      return destroy(boardObj, userId, IDEA_CONTENT)
         .then(() => {
           return Promise.all([
-            IdeaService.getIdeas(BOARDID),
-            IdeaCollectionService.getIdeaCollections(BOARDID),
+            getIdeas(BOARDID),
+            getIdeaCollections(BOARDID),
           ]);
         })
         .then(([ideas, collections]) => {
@@ -138,7 +138,7 @@ describe('IdeaService', function() {
     });
 
     it('should return all the ideas in the correct format to send back to client', () => {
-      return expect(IdeaService.destroy(boardObj, userId, IDEA_CONTENT))
+      return expect(destroy(boardObj, userId, IDEA_CONTENT))
         .to.eventually.be.an('array')
           .and.to.have.deep.property('[0]')
           .and.to.not.respondTo('userId')

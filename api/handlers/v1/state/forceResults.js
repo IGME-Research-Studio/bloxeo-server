@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { createIdeaCollections } from '../../../services/StateService';
 import { FORCED_RESULTS } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function forceResults(req) {
   const { socket, boardId, userToken } = req;

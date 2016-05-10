@@ -6,7 +6,7 @@ import sio from 'socket.io';
 import _ from 'lodash';
 import log from 'winston';
 
-import stream from './event-stream';
+import stream from './eventStream';
 import events from './events';
 import { BROADCAST, EMIT_TO, JOIN, LEAVE } from './constants/INT_EVENT_API';
 import { handleLeaving } from './services/BoardService';

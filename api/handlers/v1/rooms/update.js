@@ -6,7 +6,7 @@ import { isNil, values } from 'ramda';
 import Promise from 'bluebird';
 
 import { UPDATED_BOARD } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 import { errorIfNotAdmin } from '../../../services/BoardService';
 import { findBoard } from '../../../services/BoardService';
 import { update as updateBoard } from '../../../services/BoardService';

@@ -10,7 +10,7 @@ import { isNil, values } from 'ramda';
 import { getUsers as getUsersOnBoard } from '../../../services/BoardService';
 import { anyAreNil } from '../../../helpers/utils';
 import { RECEIVED_USERS } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function getUsers(req) {
   const { socket, boardId } = req;

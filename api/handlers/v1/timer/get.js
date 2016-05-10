@@ -14,7 +14,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { getTimeLeft } from '../../../services/TimerService';
 import { RECEIVED_TIME } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function getTime(req) {
   const { socket, boardId, timerId, userToken } = req;

@@ -16,7 +16,7 @@ import { startTimer } from '../../../services/TimerService';
 import { errorIfNotAdmin } from '../../../services/BoardService';
 import { STARTED_TIMER } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function start(req) {
   const { socket, boardId, timerLengthInMS, userToken } = req;

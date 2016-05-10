@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { voteOnIdeaCollections } from '../../../services/StateService';
 import { FORCED_VOTE } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function forceVote(req) {
   const { socket, boardid, usertoken } = req;

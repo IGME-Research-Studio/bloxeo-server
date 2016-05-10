@@ -15,7 +15,7 @@ import { anyAreNil } from '../../../helpers/utils';
 import { addUser, hydrateRoom } from '../../../services/BoardService';
 import { verifyAndGetId } from '../../../services/TokenService';
 import { JOINED_ROOM } from '../../../constants/EXT_EVENT_API';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function join(req) {
   const { socket, boardId, userToken } = req;

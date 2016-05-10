@@ -13,7 +13,7 @@ import { verifyAndGetId } from '../../../services/TokenService';
 import { vote as incrementVote } from '../../../services/VotingService';
 import { VOTED } from '../../../constants/EXT_EVENT_API';
 import { anyAreNil } from '../../../helpers/utils';
-import stream from '../../../event-stream';
+import stream from '../../../eventStream';
 
 export default function vote(req) {
   const { socket, boardId, key, increment, userToken } = req;
@@ -32,7 +32,7 @@ export default function vote(req) {
   return verifyAndGetId(userToken)
     .then(incrementVotesForThis)
     .then(() => {
-      return stream.okTo(VOTED, {}, boardId);
+      return stream.okTo(VOTED, {}, socket);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(VOTED, err.message, socket);

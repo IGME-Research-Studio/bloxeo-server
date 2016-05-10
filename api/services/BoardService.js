@@ -4,8 +4,8 @@
  */
 
 import Promise from 'bluebird';
-import { isNil, isEmpty, pick, contains, find, propEq, map } from 'ramda';
-
+import { equals, isNil, isEmpty, pick, contains, find, propEq, map } from 'ramda';
+import log from 'winston';
 import { toPlainObject, stripNestedMap,
   stripMap, emptyDefaultTo } from '../helpers/utils';
 import { NotFoundError, UnauthorizedError,
@@ -13,13 +13,13 @@ import { NotFoundError, UnauthorizedError,
 import { model as Board } from '../models/Board';
 import { adminEditableFields } from '../models/Board';
 import { model as User } from '../models/User';
-import inMemory from './KeyValService';
+import { isSocketInRoom, removeConnectedUser, addConnectedUser,
+  getUserFromSocket, getUsersInRoom } from './KeyValService';
 import { getIdeaCollections } from './IdeaCollectionService';
 import { getIdeas } from './IdeaService';
-import { createIdeasAndIdeaCollections } from './StateService';
+import { createIdeasAndIdeaCollections, getState, StateEnum } from './StateService';
 import { isRoomReadyToVote, isRoomDoneVoting } from './VotingService';
 
-// Private
 const maybeThrowNotFound = (obj, msg = 'Board not found') => {
   if (isNil(obj)) {
     throw new NotFoundError(msg);
@@ -29,13 +29,11 @@ const maybeThrowNotFound = (obj, msg = 'Board not found') => {
   }
 };
 
-const self = {};
-
 /**
- * Create a board in the database
- * @returns {Promise<String|Error>} the created boards boardId
- */
-self.create = function(userId, name, desc) {
+* Create a board in the database
+* @returns {Promise<String|Error>} the created boards boardId
+*/
+export const create = function(userId, name, desc) {
   const boardName = emptyDefaultTo('Project Title', name);
   const boardDesc = emptyDefaultTo('This is a description.', desc);
 
@@ -48,11 +46,20 @@ self.create = function(userId, name, desc) {
 };
 
 /**
- * Remove a board from the database
- * @param {String} boardId the boardId of the board to remove
- */
-self.destroy = function(boardId) {
+* Remove a board from the database
+* @param {String} boardId the boardId of the board to remove
+*/
+export const destroy = function(boardId) {
   return Board.remove({boardId: boardId});
+};
+
+/**
+* Find a board with populated users and admins
+* @param {String} boardId - the boardId to check
+* @returns {Promise<Board|Error>} - The mongo board model found
+*/
+export const findBoard = function(boardId) {
+  return Board.findBoard(boardId);
 };
 
 /**
@@ -61,46 +68,36 @@ self.destroy = function(boardId) {
 * @param {Object<String, Type} updates - The attribute to update
 * @returns {Document} - The updated mongo board model
 */
-self.update = function(board, updates) {
+export const update = function(board, updates) {
   const safeUpdates = pick(adminEditableFields, updates);
 
   if (isEmpty(safeUpdates)) {
     throw new UnauthorizedError(
       `Attributes are not editable or does not exist.`);
   }
-  console.log(board, board.boardId, safeUpdates);
 
   return board.update(safeUpdates)
-  .then(() => self.findBoard(board.boardId))
+  .then(() => findBoard(board.boardId))
   .then((updatedBoard) =>
         pick(adminEditableFields, toPlainObject(updatedBoard)));
 };
 
 /**
-* Find a board with populated users and admins
-* @param {String} boardId - the boardId to check
-* @returns {Promise<Board|Error>} - The mongo board model found
+* Find boards for user
+* @param {String} username
+* @returns {Promise<[MongooseObjects]|Error>} Boards for the given user
 */
-self.findBoard = function(boardId) {
-  return Board.findBoard(boardId);
-};
-
-/**
- * Find boards for user
- * @param {String} username
- * @returns {Promise<[MongooseObjects]|Error>} Boards for the given user
- */
-self.getBoardsForUser = function(userId) {
+export const getBoardsForUser = function(userId) {
   return Board.find({users: userId})
     .then(maybeThrowNotFound);
 };
 
 /**
- * Find if a board exists
- * @param {String} boardId the boardId to check
- * @returns {Promise<Boolean|Error>} whether the board exists
- */
-self.exists = function(boardId) {
+* Find if a board exists
+* @param {String} boardId the boardId to check
+* @returns {Promise<Boolean|Error>} whether the board exists
+*/
+export const exists = function(boardId) {
   return Board.find({boardId: boardId}).limit(1)
   .then((r) => (r.length > 0) ? true : false);
 };
@@ -110,7 +107,7 @@ self.exists = function(boardId) {
 * @param {String} boardId: id of the board
 * @returns {Promise<Object|Error>}: returns an object with the board options
 */
-self.getBoardOptions = function(boardId) {
+export const getBoardOptions = function(boardId) {
   return Board.findOne({boardId: boardId})
   .select('-_id userColorsEnabled numResultsShown numResultsReturn boardName boardDesc')
   .then(toPlainObject)
@@ -124,13 +121,13 @@ self.getBoardOptions = function(boardId) {
 };
 
 /**
- * Find all users on a board
- * @TODO perhaps faster to grab userId's in Redis and find those Mongo docs?
- *       Would need to test performance of Query+Populate to Redis+FindByIds
- * @param {String} boardId the boardId to retrieve the users from
- * @returns {Promise<MongooseArray|Error>}
- */
-self.getUsers = function(boardId) {
+* Find all users on a board
+* @TODO perhaps faster to grab userId's in Redis and find those Mongo docs?
+*       Would need to test performance of Query+Populate to Redis+FindByIds
+* @param {String} boardId the boardId to retrieve the users from
+* @returns {Promise<MongooseArray|Error>}
+*/
+export const getUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('users')
   .then((board) => toPlainObject(board))
@@ -155,8 +152,8 @@ self.getUsers = function(boardId) {
 * @param {String} socketId
 * @returns {Promise<String|Error>}
 */
-self.getUserIdFromSocketId = function(socketId) {
-  return inMemory.getUserFromSocket(socketId);
+export const getUserIdFromSocketId = function(socketId) {
+  return getUserFromSocket(socketId);
 };
 
 /**
@@ -164,33 +161,33 @@ self.getUserIdFromSocketId = function(socketId) {
 * @param {String} boardId
 * @returns {Promise<Array|Error>} returns an array of user ids
 */
-self.getAllUsersInRoom = function(boardId) {
-  return inMemory.getUsersInRoom(boardId);
+export const getAllUsersInRoom = function(boardId) {
+  return getUsersInRoom(boardId);
 };
 
 /**
- * Find all admins on a board
- * @param {String} boardId the boardId to retrieve the admins from
- * @returns {Promise<MongooseArray|Error>}
- */
-self.getAdmins = function(boardId) {
+* Find all admins on a board
+* @param {String} boardId the boardId to retrieve the admins from
+* @returns {Promise<MongooseArray|Error>}
+*/
+export const getAdmins = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('admins')
   .exec((board) => board.admins);
 };
 
 /**
- * Find all pending users on a board
- * @param {String} boardId the boardId to retrieve the pendingUsers from
- * @returns {Promise<MongooseArray|Error>}
- */
-self.getPendingUsers = function(boardId) {
+* Find all pending users on a board
+* @param {String} boardId the boardId to retrieve the pendingUsers from
+* @returns {Promise<MongooseArray|Error>}
+*/
+export const getPendingUsers = function(boardId) {
   return Board.findOne({boardId: boardId})
   .populate('pendingUsers')
   .exec((board) => board.pendingUsers);
 };
 
-self.validateBoardAndUser = function(boardId, userId) {
+export const validateBoardAndUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
   .then(([board, user]) => {
@@ -207,35 +204,12 @@ self.validateBoardAndUser = function(boardId, userId) {
 };
 
 /**
- * Adds a user to a board in Mongoose and Redis
- * @param {String} boardId
- * @param {String} userId
- * @param {String} socketId
- * @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
- */
-self.addUser = function(boardId, userId, socketId) {
-  return self.validateBoardAndUser(boardId, userId)
-  .then(([board, __]) => {
-    if (self.isUser(board, userId)) {
-      return self.addUserToRedis(boardId, userId, socketId);
-    }
-    else {
-      return Promise.all([
-        self.addUserToMongo(board, userId),
-        self.addUserToRedis(boardId, userId, socketId),
-      ]);
-    }
-  })
-  .return(userId);
-};
-
-/**
 * Adds the user to a board on mongo
 * @param {MongoBoard} board: the mongo board
 * @param {String} userId
 * @param {Promise<MongoBoard|Error>}
 */
-self.addUserToMongo = function(board, userId) {
+export const addUserToMongo = function(board, userId) {
   board.users.push(userId);
   return board.save();
 };
@@ -246,7 +220,7 @@ self.addUserToMongo = function(board, userId) {
 * @param {String} userId
 * @returns {Promise<MongoBoard|Error>}
 */
-self.removeUserFromMongo = function(boardId, userId) {
+export const removeUserFromMongo = function(boardId, userId) {
   board.users.pull(userId);
   return board.save();
 };
@@ -258,8 +232,8 @@ self.removeUserFromMongo = function(boardId, userId) {
 * @param {String} socketId
 * @returns {Promise<Array|Error>}
 */
-self.addUserToRedis = function(boardId, userId, socketId) {
-  return inMemory.addConnectedUser(boardId, userId, socketId);
+export const addUserToRedis = function(boardId, userId, socketId) {
+  return addConnectedUser(boardId, userId, socketId);
 };
 
 /**
@@ -269,8 +243,53 @@ self.addUserToRedis = function(boardId, userId, socketId) {
 * @param {String} socketId
 * @returns {Promise<Array|Error>}
 */
-self.removeUserFromRedis = function(boardId, userId, socketId) {
-  return inMemory.removeConnectedUser(boardId, userId, socketId);
+export const removeUserFromRedis = function(boardId, userId, socketId) {
+  return removeConnectedUser(boardId, userId, socketId);
+};
+
+/**
+* Checks whether a given user is on the given board synchronously
+* @XXX currently doesn't work with populated boards
+* @param {MongooseObject} board
+* @param {String} userId the userId to add as admin
+* @returns {Boolean} whether the user was on the board
+*/
+export const isUser = function(board, userId) {
+  return contains(toPlainObject(userId), toPlainObject(board.users));
+};
+
+/**
+* Checks whether a given user is an admin on the given board
+* @XXX currently doesn't work with populated boards
+* @param {String} board
+* @param {String} userId the userId to add as admin
+* @returns {Promise<Boolean|Error>} whether the user was an admin
+*/
+export const isAdmin = function(board, userId) {
+  return contains(toPlainObject(userId), toPlainObject(board.admins));
+};
+
+/**
+* Adds a user to a board in Mongoose and Redis
+* @param {String} boardId
+* @param {String} userId
+* @param {String} socketId
+* @returns {Promise<[Mongoose,Redis]|Error> } resolves to a tuple response
+*/
+export const addUser = function(boardId, userId, socketId) {
+  return validateBoardAndUser(boardId, userId)
+  .then(([board, __]) => {
+    if (isUser(board, userId)) {
+      return addUserToRedis(boardId, userId, socketId);
+    }
+    else {
+      return Promise.all([
+        addUserToMongo(board, userId),
+        addUserToRedis(boardId, userId, socketId),
+      ]);
+    }
+  })
+  .return(userId);
 };
 
 /**
@@ -279,12 +298,11 @@ self.removeUserFromRedis = function(boardId, userId, socketId) {
  * @param {String} userId the userId to add as admin
  * @returns {Promise<MongooseObject|OperationalError>} user object that was added
  */
-self.addAdmin = function(boardId, userId) {
-
+export const addAdmin = function(boardId, userId) {
   return Board.findOne({boardId: boardId})
   .then((board) => {
-    const userOnThisBoard = self.isUser(board, userId);
-    const adminOnThisBoard = self.isAdmin(board, userId);
+    const userOnThisBoard = isUser(board, userId);
+    const adminOnThisBoard = isAdmin(board, userId);
 
     if (userOnThisBoard && !adminOnThisBoard) {
       board.admins.push(userId);
@@ -303,30 +321,8 @@ self.addAdmin = function(boardId, userId) {
   });
 };
 
-/**
- * Checks whether a given user is on the given board synchronously
- * @XXX currently doesn't work with populated boards
- * @param {MongooseObject} board
- * @param {String} userId the userId to add as admin
- * @returns {Boolean} whether the user was on the board
- */
-self.isUser = function(board, userId) {
-  return contains(toPlainObject(userId), toPlainObject(board.users));
-};
-
-/**
- * Checks whether a given user is an admin on the given board
- * @XXX currently doesn't work with populated boards
- * @param {String} board
- * @param {String} userId the userId to add as admin
- * @returns {Promise<Boolean|Error>} whether the user was an admin
- */
-self.isAdmin = function(board, userId) {
-  return contains(toPlainObject(userId), toPlainObject(board.admins));
-};
-
-self.errorIfNotAdmin = function(board, userId) {
-  if (self.isAdmin(board, userId)) {
+export const errorIfNotAdmin = function(board, userId) {
+  if (isAdmin(board, userId)) {
     return Promise.resolve([board, userId]);
   }
   else {
@@ -341,10 +337,12 @@ self.errorIfNotAdmin = function(board, userId) {
 * @param {String} boardId: id of the board
 * @returns {Promise<Boolean|Error>}: return if the board has collections or not
 */
-self.areThereCollections = function(boardId) {
+export const areThereCollections = function(boardId) {
   return getIdeaCollections(boardId)
   .then((collections) => {
-    if (collections.length > 0) {
+    const collectionKeys = Object.keys(collections);
+
+    if (collectionKeys.length > 0) {
       return true;
     }
     else {
@@ -359,15 +357,15 @@ self.areThereCollections = function(boardId) {
 * @param {String} userId
 * @returns {Promise<Object|Error>}: returns all of the generated board/room data
 */
-self.hydrateRoom = function(boardId) {
+export const hydrateRoom = function(boardId) {
   const hydratedRoom = {};
   return Promise.all([
     Board.findOne({boardId: boardId}),
     getIdeaCollections(boardId),
     getIdeas(boardId),
-    self.getBoardOptions(boardId),
-    self.getAllUsersInRoom(boardId),
-    self.getUsers(boardId),
+    getBoardOptions(boardId),
+    getAllUsersInRoom(boardId),
+    getUsers(boardId),
   ])
   .then(([board, collections, ideas, options, userIds, usersOnBoard]) => {
     hydratedRoom.collections = stripNestedMap(collections);
@@ -386,7 +384,7 @@ self.hydrateRoom = function(boardId) {
       return {
         userId: user._id,
         username: user.username,
-        isAdmin: self.isAdmin(board, user._id),
+        isAdmin: isAdmin(board, user._id),
       };
     });
 
@@ -394,24 +392,42 @@ self.hydrateRoom = function(boardId) {
   });
 };
 
-self.handleLeaving = (socketId) =>
-  self.getUserIdFromSocketId(socketId)
-    .then((userId) => self.handleLeavingUser(userId));
+export const handleLeavingUser = (userId, socketId) =>
+  getBoardsForUser(userId)
+  .then((boards) => Promise.filter(boards, (board) => {
+    return isSocketInRoom(board.boardId, socketId);
+  }))
+  .get(0)
+  .then((board) => {
+    if (isNil(board)) {
+      throw new Error('User was not connected to a board on disconnect');
+    }
 
-self.handleLeavingUser = (userId, socketId) =>
-  self.getBoardsForUser(userId)
-    .then((boards) => {
-      return Promise.filter(boards, () => {
-        return inMemory.isSocketInRoom(socketId);
-      });
-    })
-    .get(0)
-    .then((board) => self.removeUserFromRedis(board.boardId, userId, socketId))
-    .tap(([boardId, /* userId */, /* socketId */]) => {
-      return Promise.all([
-        isRoomReadyToVote(boardId),
-        isRoomDoneVoting(boardId),
-      ]);
-    });
+    const boardId = board.boardId;
 
-module.exports = self;
+    return Promise.all([
+      removeUserFromRedis(boardId, userId, socketId),
+      Promise.resolve(boardId),
+      getState(boardId),
+    ]);
+  })
+  .tap(([/* userId */, boardId, state]) => {
+    const createIdeasAndIdeaCollectionsState = StateEnum.createIdeasAndIdeaCollections;
+    const createIdeaCollectionsState = StateEnum.createIdeaCollections;
+
+    if (equals(state, createIdeasAndIdeaCollectionsState) ||
+        equals(state, createIdeaCollectionsState)) {
+      return isRoomReadyToVote(boardId);
+    }
+    else {
+      return isRoomDoneVoting(boardId);
+    }
+  })
+  .return({userId, socketId})
+  .catch((err) => {
+    log.info(err.message);
+  });
+
+export const handleLeaving = (socketId) =>
+  getUserIdFromSocketId(socketId)
+    .then((userId) => handleLeavingUser(userId, socketId));
