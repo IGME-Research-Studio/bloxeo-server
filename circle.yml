@@ -13,6 +13,6 @@ deployment:
 
   staging:
     branch: stage
-    commands:
-      - git fetch --all --unshallow && git push -f git@heroku.com:storm-server-stage.git $CIRCLE_SHA1:master
+    heroku:
+      appname: bloxeo-api
 # Customize the test machine
