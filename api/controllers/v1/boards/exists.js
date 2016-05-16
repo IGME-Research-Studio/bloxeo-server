@@ -8,7 +8,7 @@ import { values } from 'ramda';
 import { exists as doesBoardExist } from '../../../services/BoardService';
 import { anyAreNil } from '../../../helpers/utils';
 
-export default function create(req, res) {
+export default function exists(req, res) {
   const { boardId } = req.body;
   const required = { boardId };
 
