@@ -1,8 +1,19 @@
-# Storm Server
+![Logo](http://i.imgur.com/rp6p0vD.png)
+
+A platform for brainstorming, organizing, and refining ideas in a distributed manner.
+
+## Bloxeo Server
 
 Server for our Brainstorm App, an Express 4 application.
 
-## Getting started
+### Tech Stack
+
+* Node.js
+* MongoDB / Mongoose for persistent data storage
+* Redis / ioredis for in memory storage
+* Express HTTP, Socket.io WebSockets for client communication
+
+### Getting started
 
 Clone the repo.
 
@@ -10,10 +21,9 @@ Clone the repo.
 $ git clone git@github.com:IGME-Research-Studio/StormServer.git
 $ cd StormServer
 $ npm install
-$ npm install -g grunt-cli
 ```
 
-### Commands
+#### Commands
 ```
 # Start Server
 $ npm start
@@ -29,17 +39,17 @@ $ npm test
 
 ```
 
-## Contributing guide
+### Contributing guide
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contributing guidelines.
 
 We use ES6 JavaScript transpiled with Babel and enforced by Airbnb's eslint config.
 
-## Documentation
+### Documentation
 
 Github page coming soon.
 
-## License
+### License
 
 Copyright &copy; 2015 MAGIC Spell Studios, all rights reserved.
 
