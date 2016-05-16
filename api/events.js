@@ -29,6 +29,7 @@ import * as EVENTS from './constants/EXT_EVENT_API';
 
 const eventMap = {};
 
+// The events and thier mapped handler calls
 eventMap[EVENTS.JOIN_ROOM]            = joinRoom;
 eventMap[EVENTS.LEAVE_ROOM]           = leaveRoom;
 eventMap[EVENTS.UPDATE_BOARD]         = updateBoard;

@@ -23,9 +23,6 @@ import Redis from '../helpers/key-val-store';
 import {NoOpError} from '../helpers/extendable-error';
 import Promise from 'bluebird';
 
-// @TODO:
-// Modify the tests and make new unit tests for new features
-
 /**
  * Use these as the sole way of creating keys to set in Redis
  */
@@ -346,6 +343,11 @@ export const isUserInRoom = curry((boardId, userId) => {
   .then((users) => contains(userId, users));
 });
 
+/**
+ * @param {String} boardId
+ * @param {String} socketId
+ * @returns {Promise<True|Error>}
+ */
 export const isSocketInRoom = curry((boardId, socketId) => {
   return Redis.sismember(currentSocketConnectionsKey(boardId), socketId)
   .then(trueOrFalse);

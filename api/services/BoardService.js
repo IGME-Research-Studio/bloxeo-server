@@ -187,6 +187,7 @@ export const getPendingUsers = function(boardId) {
   .exec((board) => board.pendingUsers);
 };
 
+
 export const validateBoardAndUser = function(boardId, userId) {
   return Promise.join(Board.findOne({boardId: boardId}),
                       User.findById(userId))
@@ -321,6 +322,12 @@ export const addAdmin = function(boardId, userId) {
   });
 };
 
+/**
+* Checks if the user is an admin and throws an error if not an admin
+* @param {MongooseObject} board: the board to check admin status against
+* @param {String} userId: the user to check for admin status
+* @returns {Promise<Array>} returns the board and userId in an array
+*/
 export const errorIfNotAdmin = function(board, userId) {
   if (isAdmin(board, userId)) {
     return Promise.resolve([board, userId]);
@@ -392,6 +399,13 @@ export const hydrateRoom = function(boardId) {
   });
 };
 
+/**
+* Handles removing a user from the appropriate redis sets and their keys
+* Occurs on a leave or a disconnect
+* @param {String} userId: the user id
+* @param {String} socketId: the socket id the user id is connected to
+* @returns {Promise<{String, String}>}: object with the user id and socket id
+*/
 export const handleLeavingUser = (userId, socketId) =>
   getBoardsForUser(userId)
   .then((boards) => Promise.filter(boards, (board) => {
@@ -428,6 +442,11 @@ export const handleLeavingUser = (userId, socketId) =>
     log.info(err.message);
   });
 
+/**
+* Called on a disconnect only because there is no user id yet
+* @param {String}: socket id to disconnect associated redis sets and keys
+* @returns Promise<{String, String}>: object with the user id and socket id
+*/
 export const handleLeaving = (socketId) =>
   getUserIdFromSocketId(socketId)
     .then((userId) => handleLeavingUser(userId, socketId));

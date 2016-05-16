@@ -1,5 +1,5 @@
 /**
-* Ideas#disable
+* State#disableIdeaCreation
 *
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object

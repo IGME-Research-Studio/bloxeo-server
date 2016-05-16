@@ -2,7 +2,6 @@
  * BoardController#destroy
  *
  * @description :: Server-side logic for destroying boards
- * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
 import { values } from 'ramda';

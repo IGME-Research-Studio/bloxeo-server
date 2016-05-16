@@ -1,5 +1,5 @@
 /**
-* Voting#ready
+* Voting#finish
 *
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
