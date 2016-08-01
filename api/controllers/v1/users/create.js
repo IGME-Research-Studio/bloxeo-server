@@ -1,6 +1,7 @@
 /**
  * UserController#create
  *
+ * Creates a user through an HTTP request and returns a user token to the client
  */
 
 import { values } from 'ramda';

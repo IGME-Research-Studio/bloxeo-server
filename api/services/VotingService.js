@@ -23,6 +23,13 @@ import { createResult } from './ResultService';
 import {createIdeaCollections, getState, StateEnum,
    voteOnIdeaCollections} from './StateService';
 
+/**
+* Finds an idea collection and updates it if it was upvoted
+* @param {Object} query: the query used to find the idea collection
+* @param {Object} update: the updated information for the idea collection
+* @param {Boolean} increment: whether or not to increment the vote count
+* @param {Promise<MongooseObject|false>}: updated collection or false
+*/
 const maybeIncrementCollectionVote = function(query, update, increment) {
   if (increment) {
     return IdeaCollection.findOneAndUpdate(query, update);
@@ -275,7 +282,6 @@ export const getVoteList = function(boardId, userId) {
       });
     }
     else {
-      // @TODO: do i want to only send the array of keys or populate each one and strip?
       // Get remaining collections to vote on from the collection keys in Redis
       return getCollectionsToVoteOn(boardId, userId)
       .then((collectionKeys) => {

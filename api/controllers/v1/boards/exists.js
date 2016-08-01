@@ -1,14 +1,14 @@
 /**
- * BoardController#destroy
+ * BoardController#exists
  *
- * @description :: Server-side logic for destroying boards
+ * Checks if a board exists through an HTTP request.
  */
 
 import { values } from 'ramda';
-import { destroy as destroyBoard } from '../../../services/BoardService';
+import { exists as doesBoardExist } from '../../../services/BoardService';
 import { anyAreNil } from '../../../helpers/utils';
 
-export default function destroy(req, res) {
+export default function exists(req, res) {
   const { boardId } = req.body;
   const required = { boardId };
 
@@ -17,7 +17,7 @@ export default function destroy(req, res) {
       message: 'Not all required parameters were supplied'});
   }
 
-  return destroyBoard(boardId)
-    .then(() => res.ok({boardId: boardId}))
+  return doesBoardExist(boardId)
+    .then((boardExists) => res.ok({exists: boardExists}))
     .catch((err) => res.serverError(err));
 }

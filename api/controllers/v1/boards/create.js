@@ -1,6 +1,7 @@
 /**
  * BoardController#create
  *
+ * Creates a board through an HTTP request. Requires a user first.
  */
 
 import { values } from 'ramda';

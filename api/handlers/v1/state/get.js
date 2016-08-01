@@ -1,5 +1,5 @@
 /**
-* Ideas#enable
+* State#get
 *
 * @param {Object} req
 * @param {Object} req.socket the connecting socket object
