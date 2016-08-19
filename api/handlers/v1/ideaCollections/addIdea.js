@@ -11,8 +11,9 @@
 
 import { partialRight, isNil, values } from 'ramda';
 import { JsonWebTokenError } from 'jsonwebtoken';
+import { InvalidDuplicateError } from '../../../helpers/extendable-error';
 import { verifyAndGetId } from '../../../services/TokenService';
-import { addIdea as addIdeaToCollection  } from '../../../services/IdeaCollectionService';
+import { addIdea as addIdeaToCollection, getIdeaCollections } from '../../../services/IdeaCollectionService';
 import { stripNestedMap as strip, anyAreNil } from '../../../helpers/utils';
 import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../eventStream';
@@ -35,6 +36,12 @@ export default function addIdea(req) {
     .then(addThisIdeaBy)
     .then((allCollections) => {
       return stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId);
+    })
+    .catch(InvalidDuplicateError, (err) => {
+      return getIdeaCollections(boardId)
+      .then(allCollections => {
+        return stream.ok(UPDATED_COLLECTIONS, strip(allCollections), boardId, err.message);
+      });
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);

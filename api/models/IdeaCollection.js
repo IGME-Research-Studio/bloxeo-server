@@ -6,6 +6,7 @@
 import mongoose from 'mongoose';
 import shortid from 'shortid';
 import _ from 'lodash';
+import { InvalidDuplicateError } from '../helpers/extendable-error';
 
 const schema = new mongoose.Schema({
   key: {
@@ -55,7 +56,7 @@ schema.pre('save', function(next) {
     });
     if (this.ideas.length !== uniqueArray.length) {
       self.invalidate('ideas', 'Idea collections must have unique ideas');
-      next(new Error('Idea collections must have unique ideas'));
+      next(new InvalidDuplicateError('Idea collections must have unique ideas'));
     }
     else {
       next();

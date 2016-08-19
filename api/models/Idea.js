@@ -5,6 +5,7 @@
 
 import mongoose from 'mongoose';
 import { model as IdeaCollection } from './IdeaCollection';
+import { InvalidDuplicateError } from '../helpers/extendable-error';
 import _ from 'lodash';
 
 const schema = new mongoose.Schema({
@@ -59,7 +60,7 @@ schema.pre('save', function(next) {
   .then( (results) => {
     if (results.length > 0 && results[0].id !== this.id) {
       self.invalidate('content', 'content must be unique to a Board');
-      next(new Error('Idea content must be unique to a Board'));
+      next(new InvalidDuplicateError('Idea content must be unique to a Board'));
     }
     else {
       next();
