@@ -17,7 +17,7 @@ export default {
       handler: destroyBoard,
     },
     {
-      path: '/v1/boards',
+      path: '/v1/boards/:boardId',
       method: 'GET',
       handler: exists,
     },

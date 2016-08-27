@@ -9,7 +9,7 @@ import { exists as doesBoardExist } from '../../../services/BoardService';
 import { anyAreNil } from '../../../helpers/utils';
 
 export default function exists(req, res) {
-  const { boardId } = req.body;
+  const { boardId } = req.params;
   const required = { boardId };
 
   if (anyAreNil(values(required))) {
