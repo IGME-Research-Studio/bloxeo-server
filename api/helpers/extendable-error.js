@@ -28,3 +28,5 @@ export class ValidationError extends CustomDataError { }
 export class NoOpError extends CustomDataError { }
 
 export class UnauthorizedError extends CustomDataError { }
+
+export class InvalidDuplicateError extends CustomDataError { }
