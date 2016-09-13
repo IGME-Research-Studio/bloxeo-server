@@ -377,7 +377,8 @@ export const hydrateRoom = function(boardId) {
   .then(([board, collections, ideas, options, userIds, usersOnBoard]) => {
     hydratedRoom.collections = stripNestedMap(collections);
     hydratedRoom.ideas = stripMap(ideas);
-    hydratedRoom.room = { boardName: board.boardName,
+    hydratedRoom.room = { boardId,
+                          boardName: board.boardName,
                           boardDesc: board.boardDesc,
                           userColorsEnabled: options.userColorsEnabled,
                           numResultsShown: options.numResultsShown,
