@@ -18,8 +18,8 @@ import { UPDATED_COLLECTIONS } from '../../../constants/EXT_EVENT_API';
 import stream from '../../../eventStream';
 
 export default function create(req) {
-  const { socket, boardId, content, top, left, userToken } = req;
-  const required = { boardId, content, top, left, userToken };
+  const { socket, boardId, content, userToken } = req;
+  const required = { boardId, content, userToken };
 
   const createThisCollectionBy = partialRight(createCollection,
                                                 [boardId, content]);
@@ -35,8 +35,7 @@ export default function create(req) {
     .then(createThisCollectionBy)
     .then(([created, allCollections]) => {
       return stream.ok(UPDATED_COLLECTIONS,
-                merge({key: created.key, top: top, left: left},
-                        strip(allCollections)), boardId);
+                merge({key: created.key}, strip(allCollections)), boardId);
     })
     .catch(JsonWebTokenError, (err) => {
       return stream.unauthorized(UPDATED_COLLECTIONS, err.message, socket);
