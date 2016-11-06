@@ -42,9 +42,12 @@ schema.pre('remove', function(next) {
   IdeaCollection.find({boardId: self.boardId})
   .then((collections) => {
     return _.map(collections, function(collection) {
-      _.map(collection.ideas, function(collectionIdea) {
-        if (collectionIdea.id === self.id) {
-          return collection.ideas.pull(self.id);
+      _.map(collection.ideas, function(collectionIdeaId) {
+        if (String(collectionIdeaId) === self.id) {
+          // Synchronous call so we can check if collection is empty afterwards
+          collection.ideas.pull(self.id);
+
+          if (collection.ideas.length === 0) { collection.remove(); }
         }
       });
     });
