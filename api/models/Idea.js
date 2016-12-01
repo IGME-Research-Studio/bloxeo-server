@@ -44,10 +44,11 @@ schema.pre('remove', function(next) {
     return _.map(collections, function(collection) {
       _.map(collection.ideas, function(collectionIdeaId) {
         if (String(collectionIdeaId) === self.id) {
-          // Synchronous call so we can check if collection is empty afterwards
           collection.ideas.pull(self.id);
-
-          if (collection.ideas.length === 0) { collection.remove(); }
+          collection.save()
+          .then(() => {
+            if (collection.ideas.length === 0) { collection.remove(); }
+          });
         }
       });
     });
