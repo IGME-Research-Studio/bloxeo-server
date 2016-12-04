@@ -35,18 +35,18 @@ export default function join(req) {
     return hydrateRoom(boardId)
     .then((boardState) => {
       return stream.join({socket, boardId, userId, boardState});
-    })
-    .catch(NotFoundError, (err) => {
-      return stream.notFound(JOINED_ROOM, err.data, socket, err.message);
-    })
-    .catch(UnauthorizedError, JsonWebTokenError, (err) => {
-      return stream.unauthorized(JOINED_ROOM, err.data, socket, err.message);
-    })
-    .catch(ValidationError, (err) => {
-      return stream.serverError(JOINED_ROOM, err.data, socket, err.message);
-    })
-    .catch((err) => {
-      return stream.serverError(JOINED_ROOM, err.message, socket);
     });
+  })
+  .catch(NotFoundError, (err) => {
+    return stream.notFound(JOINED_ROOM, err.data, socket, err.message);
+  })
+  .catch(UnauthorizedError, JsonWebTokenError, (err) => {
+    return stream.unauthorized(JOINED_ROOM, err.data, socket, err.message);
+  })
+  .catch(ValidationError, (err) => {
+    return stream.serverError(JOINED_ROOM, err.data, socket, err.message);
+  })
+  .catch((err) => {
+    return stream.serverError(JOINED_ROOM, err.message, socket);
   });
 }
