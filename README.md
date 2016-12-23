@@ -18,8 +18,8 @@ Server for our Brainstorm App, an Express 4 application.
 Clone the repo.
 
 ```
-$ git clone git@github.com:IGME-Research-Studio/StormServer.git
-$ cd StormServer
+$ git clone git@github.com:IGME-Research-Studio/bloxeo-server.git
+$ cd bloxeo-server
 $ npm install
 ```
 
@@ -51,6 +51,6 @@ Github page coming soon.
 
 ### License
 
-Copyright &copy; 2015 MAGIC Spell Studios, all rights reserved.
+Copyright &copy; 2017 MAGIC Spell Studios, all rights reserved.
 
 See [PEOPLE.md](PEOPLE.md) for a list of contributors.
