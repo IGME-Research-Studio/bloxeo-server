@@ -23,6 +23,16 @@ $ cd bloxeo-server
 $ npm install
 ```
 
+#### Additional Dependencies
+Bloxeo's server requires running a MongoDB instance and Redis server instance.
+
+* Install MongoDB: https://docs.mongodb.com/manual/installation/
+* Install Redis: https://redis.io/download
+
+When running the server locally, Bloxeo points to the following ports:
+* MongoDB's default port (27017)
+* Redis' default port (6379)
+
 #### Commands
 ```
 # Start Server
