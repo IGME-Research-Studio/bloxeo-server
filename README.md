@@ -55,12 +55,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contributing guidelines.
 
 We use ES6 JavaScript transpiled with Babel and enforced by Airbnb's eslint config.
 
-### Documentation
-
-Github page coming soon.
-
 ### License
 
-Copyright &copy; 2017 MAGIC Spell Studios, all rights reserved.
+Copyright MAGIC Spell Studios, 2017
 
 See [PEOPLE.md](PEOPLE.md) for a list of contributors.
